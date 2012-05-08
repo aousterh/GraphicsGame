@@ -53,7 +53,7 @@ static int quit = 0;
 
 static int GLUTwindow = 0;
 static int GLUTwindow_height = 512;
-static int GLUTwindow_width = 512;
+static int GLUTwindow_width = 1024;
 static int GLUTmouse[2] = { 0, 0 };
 static int GLUTbutton[3] = { 0, 0, 0 };
 static int GLUTmodifiers = 0;
@@ -269,7 +269,7 @@ void LoadCamera(R3Camera *camera)
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 0.01, 10000);
+  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, 0.01, 10000);
 
   // Set camera transformation
   R3Vector t = -(camera->towards);
@@ -768,7 +768,7 @@ void GLUTResize(int w, int h)
   // Remember window size 
   GLUTwindow_width = w;
   GLUTwindow_height = h;
-
+  
   // Redraw
   glutPostRedisplay();
 }
@@ -790,43 +790,51 @@ void GLUTRedraw(void)
 
   // Load camera
   LoadCamera(&camera);
-
+  
   // Load scene lights
   LoadLights(scene);
+  
+  
+  int x[2] = {0, GLUTwindow_width/2};
+  
+  for (int i = 0; i < 2; i++)
+  {
+    glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
-  // Draw scene camera
-  DrawCamera(scene);
+    // Draw scene camera
+    DrawCamera(scene);
 
-  // Draw scene lights
-  DrawLights(scene);
+    // Draw scene lights
+    DrawLights(scene);
 
-  // Draw particles
-  DrawParticles(scene);
+    // Draw particles
+    DrawParticles(scene);
 
-  // Draw particle sources 
-  DrawParticleSources(scene);
+    // Draw particle sources 
+    DrawParticleSources(scene);
 
-  // Draw particle sinks 
-  DrawParticleSinks(scene);
+    // Draw particle sinks 
+    DrawParticleSinks(scene);
 
-  // Draw particle springs
-  DrawParticleSprings(scene);
+    // Draw particle springs
+    DrawParticleSprings(scene);
 
-  // Draw scene surfaces
-  if (show_faces) {
-    glEnable(GL_LIGHTING);
-    DrawScene(scene);
+    // Draw scene surfaces
+    if (show_faces) {
+      glEnable(GL_LIGHTING);
+      DrawScene(scene);
+    }
+
+    // Draw scene edges
+    if (show_edges) {
+      glDisable(GL_LIGHTING);
+      glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      DrawScene(scene);
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
   }
-
-  // Draw scene edges
-  if (show_edges) {
-    glDisable(GL_LIGHTING);
-    glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    DrawScene(scene);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-  }
-
+    
   // Save image
   if (save_image) {
     char image_name[256];
@@ -870,6 +878,7 @@ void GLUTRedraw(void)
     GLUTStop();
   }
 
+  
   // Swap buffers 
   glutSwapBuffers();
 }    
@@ -1125,7 +1134,7 @@ void GLUTInit(int *argc, char **argv)
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(GLUTwindow_width, GLUTwindow_height);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // | GLUT_STENCIL
-  GLUTwindow = glutCreateWindow("OpenGL Viewer");
+  GLUTwindow = glutCreateWindow("Video Game");
 
   // Initialize GLUT callback functions 
   glutIdleFunc(GLUTIdle);
@@ -1144,6 +1153,9 @@ void GLUTInit(int *argc, char **argv)
  
   // Create menus
   GLUTCreateMenu();
+  
+  // make full screen
+  glutFullScreen();
 }
 
 
@@ -1244,7 +1256,7 @@ main(int argc, char **argv)
   // Read scene
   scene = ReadScene(input_scene_name);
   if (!scene) exit(-1);
-
+  
   // Run GLUT interface
   GLUTMainLoop();
 
