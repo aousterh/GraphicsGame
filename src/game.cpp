@@ -42,7 +42,7 @@ static int show_lights = 0;
 static int show_camera = 0;
 static int show_particles = 1;
 static int show_particle_springs = 1;
-static int show_particle_sources_and_sinks = 1;
+static int show_particle_sources_and_sinks = 0;
 static int save_image = 0;
 static int save_video = 0;
 static int num_frames_to_record = -1; 
@@ -53,7 +53,7 @@ static int quit = 0;
 
 static int GLUTwindow = 0;
 static int GLUTwindow_height = 512;
-static int GLUTwindow_width = 1024;
+static int GLUTwindow_width = 512;
 static int GLUTmouse[2] = { 0, 0 };
 static int GLUTbutton[3] = { 0, 0, 0 };
 static int GLUTmodifiers = 0;
@@ -269,7 +269,7 @@ void LoadCamera(R3Camera *camera)
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, 0.01, 10000);
+  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, 0.01, 10000);
 
   // Set camera transformation
   R3Vector t = -(camera->towards);
@@ -768,7 +768,7 @@ void GLUTResize(int w, int h)
   // Remember window size 
   GLUTwindow_width = w;
   GLUTwindow_height = h;
-  
+
   // Redraw
   glutPostRedisplay();
 }
@@ -783,104 +783,101 @@ void GLUTRedraw(void)
   glBlendFunc(GL_ONE, GL_ZERO);
   glDepthMask(true);
 
-  // Clear window 
-  R3Rgb background = scene->background;
-  glClearColor(background[0], background[1], background[2], background[3]);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Clear window 
+    R3Rgb background = scene->background;
+    glClearColor(background[0], background[1], background[2], background[3]);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  // Load camera
-  LoadCamera(&camera);
-  
-  // Load scene lights
-  LoadLights(scene);
-  
-  
   int x[2] = {0, GLUTwindow_width/2};
   
   for (int i = 0; i < 2; i++)
   {
     glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
-    // Draw scene camera
-    DrawCamera(scene);
+      // Load camera
+      LoadCamera(&camera);
 
-    // Draw scene lights
-    DrawLights(scene);
+      // Load scene lights
+      LoadLights(scene);
 
-    // Draw particles
-    DrawParticles(scene);
+      // Draw scene camera
+      DrawCamera(scene);
 
-    // Draw particle sources 
-    DrawParticleSources(scene);
+      // Draw scene lights
+      DrawLights(scene);
 
-    // Draw particle sinks 
-    DrawParticleSinks(scene);
+      // Draw particles
+      DrawParticles(scene);
 
-    // Draw particle springs
-    DrawParticleSprings(scene);
+      // Draw particle sources 
+      DrawParticleSources(scene);
 
-    // Draw scene surfaces
-    if (show_faces) {
-      glEnable(GL_LIGHTING);
-      DrawScene(scene);
+      // Draw particle sinks 
+      DrawParticleSinks(scene);
+
+      // Draw particle springs
+      DrawParticleSprings(scene);
+
+      // Draw scene surfaces
+      if (show_faces) {
+        glEnable(GL_LIGHTING);
+        DrawScene(scene);
+      }
+
+      // Draw scene edges
+      if (show_edges) {
+        glDisable(GL_LIGHTING);
+        glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        DrawScene(scene);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      }
+
+      // Save image
+      if (save_image) {
+        char image_name[256];
+        static int image_number = 1;
+        for (;;) {
+          sprintf(image_name, "image%d.jpg", image_number++);
+          FILE *fp = fopen(image_name, "r");
+          if (!fp) break; 
+          else fclose(fp);
+        }
+        GLUTSaveImage(image_name);
+        printf("Saved %s\n", image_name);
+        save_image = 0;
+      }
+
+      // Save video
+      if (save_video) {
+        char frame_name[512];
+        static int next_frame = 0;
+        static int num_frames_recorded = 0;
+        for (;;) {
+          sprintf(frame_name, "%sframe%04d.jpg", video_prefix, next_frame++);
+          FILE *fp = fopen(frame_name, "r");
+          if (!fp) break; 
+          else fclose(fp);
+        }
+        GLUTSaveImage(frame_name);
+        if (next_frame % 100 == 1) {
+          printf("Saved %s\n", frame_name);
+        }
+        if (num_frames_to_record == ++num_frames_recorded) {
+          save_video = 0;
+          printf("Recorded %d frames, stopping as instructed.\n", num_frames_recorded);
+          quit = 1;
+        }
+      }
+
+      // Quit here so that can save image before exit
+      if (quit) {
+        if (output_image_name) GLUTSaveImage(output_image_name);
+        GLUTStop();
+      }
     }
-
-    // Draw scene edges
-    if (show_edges) {
-      glDisable(GL_LIGHTING);
-      glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      DrawScene(scene);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-  }
-    
-  // Save image
-  if (save_image) {
-    char image_name[256];
-    static int image_number = 1;
-    for (;;) {
-      sprintf(image_name, "image%d.jpg", image_number++);
-      FILE *fp = fopen(image_name, "r");
-      if (!fp) break; 
-      else fclose(fp);
-    }
-    GLUTSaveImage(image_name);
-    printf("Saved %s\n", image_name);
-    save_image = 0;
-  }
-
-  // Save video
-  if (save_video) {
-    char frame_name[512];
-    static int next_frame = 0;
-    static int num_frames_recorded = 0;
-    for (;;) {
-      sprintf(frame_name, "%sframe%04d.jpg", video_prefix, next_frame++);
-      FILE *fp = fopen(frame_name, "r");
-      if (!fp) break; 
-      else fclose(fp);
-    }
-    GLUTSaveImage(frame_name);
-    if (next_frame % 100 == 1) {
-      printf("Saved %s\n", frame_name);
-    }
-    if (num_frames_to_record == ++num_frames_recorded) {
-      save_video = 0;
-      printf("Recorded %d frames, stopping as instructed.\n", num_frames_recorded);
-      quit = 1;
-    }
-  }
-
-  // Quit here so that can save image before exit
-  if (quit) {
-    if (output_image_name) GLUTSaveImage(output_image_name);
-    GLUTStop();
-  }
-
-  
-  // Swap buffers 
-  glutSwapBuffers();
+    // Swap buffers 
+    glutSwapBuffers();
 }    
 
 
@@ -1134,7 +1131,7 @@ void GLUTInit(int *argc, char **argv)
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(GLUTwindow_width, GLUTwindow_height);
   glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH); // | GLUT_STENCIL
-  GLUTwindow = glutCreateWindow("Video Game");
+  GLUTwindow = glutCreateWindow("OpenGL Viewer");
 
   // Initialize GLUT callback functions 
   glutIdleFunc(GLUTIdle);
@@ -1153,7 +1150,7 @@ void GLUTInit(int *argc, char **argv)
  
   // Create menus
   GLUTCreateMenu();
-  
+
   // make full screen
   glutFullScreen();
 }
@@ -1195,7 +1192,6 @@ ReadScene(const char *filename)
 // PROGRAM ARGUMENT PARSING
 ////////////////////////////////////////////////////////////
 
-
 int 
 ParseArgs(int argc, char **argv)
 {
@@ -1205,7 +1201,7 @@ ParseArgs(int argc, char **argv)
   // Parse arguments
   argc--; argv++;
   while (argc > 0) {
-  /*  if ((*argv)[0] == '-') {
+    if ((*argv)[0] == '-') {
       if (!strcmp(*argv, "-help")) { print_usage = 1; }
       else if (!strcmp(*argv, "-exit_immediately")) { quit = 1; }
       else if (!strcmp(*argv, "-output_image")) { argc--; argv++; output_image_name = *argv; }
@@ -1215,22 +1211,23 @@ ParseArgs(int argc, char **argv)
       else if (!strcmp(*argv, "-adaptive_step_size")) integration_type = ADAPTIVE_STEP_SIZE_INTEGRATION; 
       else if (!strcmp(*argv, "-recordandquit")) { 
         argc--; argv++; num_frames_to_record = atoi(*argv); 
-        GLUTwindow_width = 256;
-        GLUTwindow_height = 256;
+        //GLUTwindow_width = 256;
+        //GLUTwindow_height = 256;
         save_video = 1;
       }
       else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
       argv++; argc--;
     }
-    else { */
-    if (!input_scene_name) input_scene_name = *argv;
-    else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
+    else {
+      if (!input_scene_name) input_scene_name = *argv;
+      else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
       argv++; argc--;
+    }
   }
 
   // Check input_scene_name
   if (!input_scene_name || print_usage) {
-    printf("Usage: game <input.scn>\n");
+    printf("Usage: particleview <input.scn> [-exit_immediately] [-output_image OUTPUT.JPG]  [-video_prefix VIDEO_DIR/PREFIX_] [-euler] [-midpoint] [-adaptive_step_size]  [-recordandquit NUM_FRAMES] [-v]\n");
     return 0;
   }
 
@@ -1256,7 +1253,7 @@ main(int argc, char **argv)
   // Read scene
   scene = ReadScene(input_scene_name);
   if (!scene) exit(-1);
-  
+
   // Run GLUT interface
   GLUTMainLoop();
 

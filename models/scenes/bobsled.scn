@@ -69,16 +69,16 @@ particle_source
 	circle	0 70 0	0 -1 0	100
 
 mesh
-	3 1 scenes\OBJ_models\twohelmets.obj
+	3 1 OBJ_models/twohelmets.obj
 	
 mesh
-	4 1 scenes\OBJ_models\twomasks.obj
+	4 1 OBJ_models/twomasks.obj
 	
 mesh
-	2 0 scenes/OBJ_models/groundplane.obj
+	2 0 OBJ_models/groundplane.obj
 	
 mesh
-	0 1 scenes/OBJ_models/sled_body_smooth.obj
+	0 1 OBJ_models/sled_body_smooth.obj
 	
 mesh
-	1 1 scenes/OBJ_models/sled_blades.obj
+	1 1 OBJ_models/sled_blades.obj
