@@ -871,6 +871,8 @@ Read(const char *filename)
     status = ReadImage(filename);
   else if (!strncmp(extension, ".ppm", 4)) 
     status = ReadImage(filename);
+  else if (!strncmp(extension, ".obj", 4))
+	status = ReadObj(filename);
   else {
     fprintf(stderr, "Unable to read file %s (unrecognized extension: %s)\n", filename, extension);
     return 0;
@@ -1144,6 +1146,171 @@ WriteOff(const char *filename)
   return NFaces();
 }
 
+
+
+////////////////////////////////////////////////////////////
+// OBJ FILE INPUT/OUTPUT
+////////////////////////////////////////////////////////////
+
+int R3Mesh::
+ReadObj(const char *filename)
+{
+	// Open file
+	FILE *fp;
+	if (!(fp = fopen(filename, "r"))) {
+	fprintf(stderr, "Unable to open file %s\n", filename);
+	return 0;
+	}
+
+	// Read file
+	int line_count = 0;
+	int vertex_count = 0;
+	int face_count = 0;
+	char buffer[1024];
+	char header[5];
+	
+	while (fgets(buffer, 1023, fp)) {
+		// Increment line counter
+		line_count++;
+
+		// Skip white space
+		char *bufferp = buffer;
+		while (isspace(*bufferp)) bufferp++;
+
+		// Skip blank lines, comments, and texture coords
+		if (*bufferp == '#') continue;
+		if (*bufferp == '\0') continue;
+		if (strstr(bufferp, "vt")) continue;
+
+		// read in vertex line
+		else if (strstr(bufferp, "v")) {
+
+			// Read vertex coordinates
+			double x, y, z;
+			if (sscanf(bufferp, "%s%lf%lf%lf", header, &x, &y, &z) != 4) {
+				fprintf(stderr, "Syntax error with vertex coordinates on line %d in file %s\n", line_count, filename);
+				fclose(fp);
+				return 0;
+			}
+
+			// Create vertex
+			R3MeshVertex *v = CreateVertex(R3Point(x, y, z), R3zero_vector, R2zero_point);
+
+			// Increment counter
+			vertex_count++;
+		}
+		else if (strstr(buffer, "f")) {
+
+			//fprintf(stderr, "reading face\n");
+
+			vector<char *> face_tokens;
+			vector<R3MeshVertex *> face_vertices;
+			
+			// Read number of vertices in face 
+			bufferp = strtok(bufferp, " \t");
+
+			// skip "f" token
+			bufferp = strtok(NULL, " \t");
+
+			if (! bufferp) {
+				fprintf(stderr, "Syntax error with face on line %d in file %s\n", line_count, filename);
+				fclose(fp);
+				return 0;
+			}
+			else {
+				while (bufferp != NULL) {
+				
+					//fprintf(stderr, "bufferp != null\n");
+					
+					// push the token
+					face_tokens.push_back(bufferp);
+					
+					// increment bufferp
+					bufferp = strtok(NULL, " \t");
+				}
+
+				// split the tokens on slash chars
+				for (unsigned int i = 0; i < face_tokens.size(); i++) {
+
+					R3MeshVertex *v = NULL;
+
+					// take the next token
+					char *vertp = face_tokens[i];
+					vertp = strtok(vertp, "/");
+
+					if (vertp) v = Vertex(atoi(vertp)-1);
+					else {
+						fprintf(stderr, "Syntax error with face on line %d in file %s\n", line_count, filename);
+						fclose(fp);
+						return 0;
+					}
+
+					// Add vertex to vector
+					face_vertices.push_back(v);
+				}
+			}
+			// Create face
+			CreateFace(face_vertices);
+
+			// Increment counter
+			face_count++;
+		}
+
+		else {
+			// Should never get here
+			fprintf(stderr, "Found extra text starting at line %d in file %s\n", line_count, filename);
+			break;
+		}
+	}
+
+	// Close file
+	fclose(fp);
+
+	// Create Half Edges
+	//CreateAllEdges();
+
+	// Return number of faces read
+	return NFaces();
+}
+
+int R3Mesh::
+WriteObj(const char *filename)
+{
+  // Open file
+  FILE *fp = fopen(filename, "w");
+  if (!fp) {
+    fprintf(stderr, "Unable to open file %s\n", filename);
+    return 0;
+  }
+
+  // Write header
+  fprintf(fp, "OFF\n");
+  fprintf(fp, "%d %d %d\n", NVertices(), NFaces(), 0);
+
+  // Write vertices
+  for (int i = 0; i < NVertices(); i++) {
+    R3MeshVertex *vertex = Vertex(i);
+    const R3Point& p = vertex->position;
+    fprintf(fp, "%g %g %g\n", p.X(), p.Y(), p.Z());
+    vertex->id = i;
+  }
+
+  // Write Faces
+  for (int i = 0; i < NFaces(); i++) {
+    R3MeshFace *face = Face(i);
+    fprintf(fp, "%d", (int) face->vertices.size());
+    for (unsigned int j = 0; j < face->vertices.size(); j++) {
+      fprintf(fp, " %d", face->vertices[j]->id);
+    }
+    fprintf(fp, "\n");
+  }
+
+  // Close file
+  fclose(fp);
+
+  // Return number of faces
+  return NFaces();
+}
 
 
 ////////////////////////////////////////////////////////////
