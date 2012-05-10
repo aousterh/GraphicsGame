@@ -287,6 +287,39 @@ void LoadCamera(R3Camera *camera)
 }
 
 
+void LoadMapCamera(R3Camera *map_camera, R3Scene *map)
+{
+  const int scale = 10;
+  
+  // Set projection transformation
+  glMatrixMode(GL_PROJECTION);
+  glLoadIdentity();
+  R3Box& bbox = map->BBox();
+  double x_min = min(bbox.XMin(), bbox.XMax());
+  double x_max = max(bbox.XMin(), bbox.XMax());
+  double y_min = min(bbox.YMin(), bbox.YMax());
+  double y_max = max(bbox.YMin(), bbox.YMax());
+  double z_min = min(bbox.ZMin(), bbox.ZMax());
+  double z_max = max(bbox.ZMin(), bbox.ZMax());
+//  double x_avg = (bbox.XMin() + bbox.XMax()) / 2;
+//  double y_avg = (bbox.YMin() + bbox.YMax()) / 2;
+ // double z_avg = (bbox.ZMin() + bbox.ZMax()) / 2;
+ // double dimension = max(x_max - x_avg, z_max - z_avg);
+  glOrtho(x_min * scale, x_max * scale, y_min * scale, y_max * scale, z_min * scale, z_max * scale);
+/*  glOrtho(x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension); */
+ /* printf("%f %f %f %f %f %f\n", x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension);*/
+  
+  // Set camera transformation
+  R3Vector t = -(map_camera->towards);
+  R3Vector& u = map_camera->up;
+  R3Vector& r = map_camera->right;
+  GLdouble camera_matrix[16] = { r[0], u[0], t[0], 0, r[1], u[1], t[1], 0, r[2], u[2], t[2], 0, 0, 0, 0, 1 };
+  glMatrixMode(GL_MODELVIEW);
+  glLoadIdentity();
+  glMultMatrixd(camera_matrix);
+  //glTranslated(-(map_camera->eye[0]), -(map_camera->eye[1]), -(map_camera->eye[2]));
+}
+
 
 void LoadLights(R3Scene *scene)
 {
@@ -684,6 +717,38 @@ void DrawParticleSprings(R3Scene *scene)
 
 
 
+// Overlays the Map on top of existing content
+void DrawMap(double x_start, double y_start, double x_width, double y_width)
+{
+  // draw another transparent image in bottom left corner, on top
+  glViewport(x_start, y_start, x_width, y_width);
+  
+  // Load map camera
+  LoadMapCamera(&map_camera, map);
+  
+  // Load map lights
+  LoadLights(map);
+  
+  // Draw scene camera
+  DrawCamera(scene);
+  
+  // Draw scene lights
+  DrawLights(scene);
+  
+  glDepthMask(false);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+  
+  DrawScene(map);
+  
+  glDisable(GL_BLEND);
+  glBlendFunc(GL_ONE, GL_ZERO);
+  glDepthMask(true);
+  
+}
+
+
+
 ////////////////////////////////////////////////////////////
 // GLUT USER INTERFACE CODE
 ////////////////////////////////////////////////////////////
@@ -778,33 +843,6 @@ void GLUTResize(int w, int h)
 }
 
 
-// Overlays the Map on top of existing content
-void DrawMap(double x_start, double y_start, double x_width, double y_width)
-{
-  // draw another transparent image in bottom left corner, on top
-  glViewport(x_start, y_start, x_width, y_width);
-  
-  // Load map camera
-  LoadCamera(&map_camera);
-  
-  // Load map lights
-  LoadLights(map);
-  
-  glDepthMask(false);
-  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-  glEnable(GL_BLEND);
-  
-  DrawScene(map);
-  
-  glDisable(GL_BLEND);
-  glBlendFunc(GL_ONE, GL_ZERO);
-  glDepthMask(true);
-  
-  // TODO: make a version of the "scene" that is transparent
-  // place the camera in that one above it, and do a flat projection
-}
-
-
 void GLUTRedraw(void)
 {
   // Initialize OpenGL drawing modes
@@ -865,9 +903,9 @@ void GLUTRedraw(void)
     
     // draw another transparent image in bottom left corner, on top
     if (i == 0)
-      DrawMap(0, 0, GLUTwindow_width / 4, GLUTwindow_height / 2);
+      DrawMap(0, 0, GLUTwindow_width * 0.2, GLUTwindow_height * 0.4);
     else if (i == 1)
-      DrawMap(GLUTwindow_width * 0.75, 0, GLUTwindow_width / 4, GLUTwindow_height / 2);
+      DrawMap(GLUTwindow_width * 0.8, 0, GLUTwindow_width * 0.2, GLUTwindow_height * 0.4);
 
     // Save image
     if (save_image) {
@@ -1225,25 +1263,34 @@ ReadScene(const char *filename)
 R3Scene *
 ReadMap(const char *filename)
 {
-  R3Scene *map = ReadScene(filename);
+  // Allocate scene
+  R3Scene *map = new R3Scene();
+  if (!map) {
+    fprintf(stderr, "Unable to allocate map\n");
+    return NULL;
+  }
   
-  // determine camera looking down from above (-1 direction)
+  // Read file
+  if (!map->Read(filename)) {
+    fprintf(stderr, "Unable to read map from %s\n", filename);
+    return NULL;
+  }
+  
+  // determine camera looking down from above (-y direction)
   R3Box& bbox = map->BBox();
   double x_avg = (bbox.XMax() + bbox.XMin()) / 2;
- // double y_avg = (bbox.YMax() + bbox.YMin()) / 2;
   double z_avg = (bbox.ZMax() + bbox.ZMin()) / 2;
   double x_width = abs(bbox.XMax() - bbox.XMin());
-  double y_width = abs(bbox.YMax() - bbox.YMin());
   double z_width = abs(bbox.ZMax() - bbox.ZMin());
-  double y_eye = max(bbox.YMax(), bbox.YMin()) + 0.5 * max(x_width, z_width);
- // double z_eye = max(bbox.ZMax(), bbox.ZMin()) + max(x_width, y_width);
+  double y_eye = max(bbox.YMax(), bbox.YMin()) + max(x_width, z_width);
   map_camera.eye = R3Point(x_avg, y_eye, z_avg);
   map_camera.towards = R3Vector(0, -1, 0);
   map_camera.up = R3Vector(0, 0, -1);
   map_camera.right = map_camera.towards;
   map_camera.right.Cross(map_camera.up);
-  map_camera.xfov = x_width;
-  map_camera.yfov = y_width;
+  map_camera.towards.Normalize();
+  map_camera.up.Normalize();
+  map_camera.right.Normalize();
   
   return map;
 }
