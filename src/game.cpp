@@ -10,6 +10,7 @@
 #include "R3Scene.h"
 #include "particle.h"
 #include "cos426_opengl.h"
+#include <cmath>
 
 
 ////////////////////////////////////////////////////////////
@@ -25,6 +26,7 @@ static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS
 // Program arguments
 
 static char *input_scene_name = NULL;
+static char *input_map_name = NULL;
 static char *output_image_name = NULL;
 static const char *video_prefix = "./video-frames/";
 static int integration_type = EULER_INTEGRATION;
@@ -34,7 +36,9 @@ static int integration_type = EULER_INTEGRATION;
 // Display variables
 
 static R3Scene *scene = NULL;
+static R3Scene *map = NULL;
 static R3Camera camera;
+static R3Camera map_camera;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -269,7 +273,7 @@ void LoadCamera(R3Camera *camera)
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, 0.01, 10000);
+  gluPerspective(2*180.0*camera->yfov/M_PI * 2, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, 0.01, 10000);
 
   // Set camera transformation
   R3Vector t = -(camera->towards);
@@ -774,6 +778,32 @@ void GLUTResize(int w, int h)
 }
 
 
+// Overlays the Map on top of existing content
+void DrawMap(double x_start, double y_start, double x_width, double y_width)
+{
+  // draw another transparent image in bottom left corner, on top
+  glViewport(x_start, y_start, x_width, y_width);
+  
+  // Load map camera
+  LoadCamera(&map_camera);
+  
+  // Load map lights
+  LoadLights(map);
+  
+  glDepthMask(false);
+  glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+  glEnable(GL_BLEND);
+  
+  DrawScene(map);
+  
+  glDisable(GL_BLEND);
+  glBlendFunc(GL_ONE, GL_ZERO);
+  glDepthMask(true);
+  
+  // TODO: make a version of the "scene" that is transparent
+  // place the camera in that one above it, and do a flat projection
+}
+
 
 void GLUTRedraw(void)
 {
@@ -787,12 +817,6 @@ void GLUTRedraw(void)
   R3Rgb background = scene->background;
   glClearColor(background[0], background[1], background[2], background[3]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  // Load camera
-  LoadCamera(&camera);
-  
-  // Load scene lights
-  LoadLights(scene);
   
   
   int x[2] = {0, GLUTwindow_width/2};
@@ -801,6 +825,12 @@ void GLUTRedraw(void)
   {
     glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
+    // Load camera
+    LoadCamera(&camera);
+    
+    // Load scene lights
+    LoadLights(scene);
+    
     // Draw scene camera
     DrawCamera(scene);
 
@@ -833,7 +863,16 @@ void GLUTRedraw(void)
       DrawScene(scene);
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
+    
+    
+    // draw another transparent image in bottom left corner, on top
+    if (i == 0)
+      DrawMap(0, 0, GLUTwindow_width / 4, GLUTwindow_height / 2);
+    else if (i == 1)
+      DrawMap(GLUTwindow_width * 0.75, 0, GLUTwindow_width / 4, GLUTwindow_height / 2);
+    
   }
+
     
   // Save image
   if (save_image) {
@@ -882,7 +921,6 @@ void GLUTRedraw(void)
   // Swap buffers 
   glutSwapBuffers();
 }    
-
 
 
 void GLUTMotion(int x, int y)
@@ -1189,6 +1227,29 @@ ReadScene(const char *filename)
   return scene;
 }
 
+R3Scene *
+ReadMap(const char *filename)
+{
+  R3Scene *map = ReadScene(filename);
+  
+  // determine camera looking down from above
+  R3Box& bbox = map->BBox();
+  double x_avg = (bbox.XMax() + bbox.XMin()) / 2;
+  double y_avg = (bbox.YMax() + bbox.YMin()) / 2;
+  double x_width = abs(bbox.XMax() - bbox.XMin());
+  double y_width = abs(bbox.YMax() - bbox.YMin());
+  double z_eye = max(bbox.ZMax(), bbox.ZMin()) + 2 * max(x_width, y_width);
+  map_camera.eye = R3Point(x_avg, y_avg, z_eye);
+  map_camera.towards = R3Vector(0, 0, -1);
+  map_camera.up = R3Vector(0, 1, 0);
+  map_camera.right = map_camera.towards;
+  map_camera.right.Cross(map_camera.up);
+  map_camera.xfov = x_width;
+  map_camera.yfov = y_width;
+  
+  return map;
+}
+
 
 
 ////////////////////////////////////////////////////////////
@@ -1205,6 +1266,7 @@ ParseArgs(int argc, char **argv)
   // Parse arguments
   argc--; argv++;
   while (argc > 0) {
+    if (!strcmp(*argv, "-map")) { argc--; argv++; input_map_name = *argv; }
   /*  if ((*argv)[0] == '-') {
       if (!strcmp(*argv, "-help")) { print_usage = 1; }
       else if (!strcmp(*argv, "-exit_immediately")) { quit = 1; }
@@ -1223,14 +1285,18 @@ ParseArgs(int argc, char **argv)
       argv++; argc--;
     }
     else { */
-    if (!input_scene_name) input_scene_name = *argv;
+    else if (!input_scene_name) {
+      input_scene_name = *argv;
+      if (!input_map_name)
+        input_map_name = *argv;
+    }
     else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
       argv++; argc--;
   }
 
   // Check input_scene_name
   if (!input_scene_name || print_usage) {
-    printf("Usage: game <input.scn>\n");
+    printf("Usage: game <input.scn> [-map <map.scn>]\n");
     return 0;
   }
 
@@ -1256,6 +1322,9 @@ main(int argc, char **argv)
   // Read scene
   scene = ReadScene(input_scene_name);
   if (!scene) exit(-1);
+  
+  // Make map copy of scene
+  map = ReadMap(input_map_name);
   
   // Run GLUT interface
   GLUTMainLoop();
