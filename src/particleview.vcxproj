@@ -14,6 +14,7 @@
     <ProjectGuid>{97451871-161B-4C75-9EDE-C15518F67476}</ProjectGuid>
     <RootNamespace>particleview</RootNamespace>
     <Keyword>Win32Proj</Keyword>
+    <ProjectName>game</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -66,7 +67,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>glut/glut32.lib;glu32.lib;opengl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>particleview.exe</OutputFile>
+      <OutputFile>game.exe</OutputFile>
       <IgnoreSpecificDefaultLibraries>libcmtd;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Console</SubSystem>
@@ -96,6 +97,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="game.cpp" />
+    <ClCompile Include="particle.cpp" />
     <ClCompile Include="R2\R2Distance.cpp" />
     <ClCompile Include="R2\R2Image.cpp" />
     <ClCompile Include="R2\R2Line.cpp" />
@@ -163,8 +166,6 @@
     <ClCompile Include="R3\R3Segment.cpp" />
     <ClCompile Include="R3\R3Sphere.cpp" />
     <ClCompile Include="R3\R3Vector.cpp" />
-    <ClCompile Include="particle.cpp" />
-    <ClCompile Include="particleview.cpp" />
     <ClCompile Include="R3Scene.cpp" />
   </ItemGroup>
   <ItemGroup>

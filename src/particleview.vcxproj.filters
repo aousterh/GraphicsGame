@@ -243,13 +243,13 @@
     <ClCompile Include="R3\R3Vector.cpp">
       <Filter>Support Libraries\R3 Library\R3 Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="particle.cpp">
-      <Filter>Main Program\Main Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="particleview.cpp">
-      <Filter>Main Program\Main Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="R3Scene.cpp">
+      <Filter>Main Program\Main Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="game.cpp">
+      <Filter>Main Program\Main Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="particle.cpp">
       <Filter>Main Program\Main Source Files</Filter>
     </ClCompile>
   </ItemGroup>

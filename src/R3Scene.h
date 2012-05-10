@@ -128,6 +128,13 @@ struct R3ParticleSpring {
   double kd;
 };
 
+struct R3Intersection {
+	bool intersect;
+	R3Node   *node;
+	R3Point  intersection_point;
+	R3Vector intersection_normal;
+	double   parametric_rayValue;
+};
 
 
 // Scene graph definition

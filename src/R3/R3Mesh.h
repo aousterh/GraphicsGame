@@ -139,10 +139,12 @@ struct R3Mesh {
   int Read(const char *filename);
   int ReadRay(const char *filename);
   int ReadOff(const char *filename);
+  int ReadObj(const char *filename);
   int ReadImage(const char *filename);
   int Write(const char *filename);
   int WriteRay(const char *filename);
   int WriteOff(const char *filename);
+  int WriteObj(const char *filename);
 
   // Drawing functions
   void Draw(void) const;

@@ -46,7 +46,7 @@ static int show_lights = 0;
 static int show_camera = 0;
 static int show_particles = 1;
 static int show_particle_springs = 1;
-static int show_particle_sources_and_sinks = 1;
+static int show_particle_sources_and_sinks = 0;
 static int save_image = 0;
 static int save_video = 0;
 static int num_frames_to_record = -1; 
@@ -273,7 +273,7 @@ void LoadCamera(R3Camera *camera)
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(2*180.0*camera->yfov/M_PI * 2, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, 0.01, 10000);
+  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, 0.01, 10000);
 
   // Set camera transformation
   R3Vector t = -(camera->towards);
@@ -772,7 +772,7 @@ void GLUTResize(int w, int h)
   // Remember window size 
   GLUTwindow_width = w;
   GLUTwindow_height = h;
-  
+
   // Redraw
   glutPostRedisplay();
 }
@@ -817,8 +817,7 @@ void GLUTRedraw(void)
   R3Rgb background = scene->background;
   glClearColor(background[0], background[1], background[2], background[3]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
-  
+
   int x[2] = {0, GLUTwindow_width/2};
   
   for (int i = 0; i < 2; i++)
@@ -830,7 +829,7 @@ void GLUTRedraw(void)
     
     // Load scene lights
     LoadLights(scene);
-    
+
     // Draw scene camera
     DrawCamera(scene);
 
@@ -845,7 +844,7 @@ void GLUTRedraw(void)
 
     // Draw particle sinks 
     DrawParticleSinks(scene);
-
+    
     // Draw particle springs
     DrawParticleSprings(scene);
 
@@ -854,7 +853,7 @@ void GLUTRedraw(void)
       glEnable(GL_LIGHTING);
       DrawScene(scene);
     }
-
+    
     // Draw scene edges
     if (show_edges) {
       glDisable(GL_LIGHTING);
@@ -864,59 +863,55 @@ void GLUTRedraw(void)
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
     
-    
     // draw another transparent image in bottom left corner, on top
     if (i == 0)
       DrawMap(0, 0, GLUTwindow_width / 4, GLUTwindow_height / 2);
     else if (i == 1)
       DrawMap(GLUTwindow_width * 0.75, 0, GLUTwindow_width / 4, GLUTwindow_height / 2);
-    
-  }
 
-    
-  // Save image
-  if (save_image) {
-    char image_name[256];
-    static int image_number = 1;
-    for (;;) {
-      sprintf(image_name, "image%d.jpg", image_number++);
-      FILE *fp = fopen(image_name, "r");
-      if (!fp) break; 
-      else fclose(fp);
+    // Save image
+    if (save_image) {
+      char image_name[256];
+      static int image_number = 1;
+      for (;;) {
+        sprintf(image_name, "image%d.jpg", image_number++);
+        FILE *fp = fopen(image_name, "r");
+        if (!fp) break; 
+        else fclose(fp);
+      }
+      GLUTSaveImage(image_name);
+      printf("Saved %s\n", image_name);
+      save_image = 0;
     }
-    GLUTSaveImage(image_name);
-    printf("Saved %s\n", image_name);
-    save_image = 0;
-  }
 
-  // Save video
-  if (save_video) {
-    char frame_name[512];
-    static int next_frame = 0;
-    static int num_frames_recorded = 0;
-    for (;;) {
-      sprintf(frame_name, "%sframe%04d.jpg", video_prefix, next_frame++);
-      FILE *fp = fopen(frame_name, "r");
-      if (!fp) break; 
-      else fclose(fp);
+    // Save video
+    if (save_video) {
+      char frame_name[512];
+      static int next_frame = 0;
+      static int num_frames_recorded = 0;
+      for (;;) {
+        sprintf(frame_name, "%sframe%04d.jpg", video_prefix, next_frame++);
+        FILE *fp = fopen(frame_name, "r");
+        if (!fp) break; 
+        else fclose(fp);
+      }
+      GLUTSaveImage(frame_name);
+      if (next_frame % 100 == 1) {
+        printf("Saved %s\n", frame_name);
+      }
+      if (num_frames_to_record == ++num_frames_recorded) {
+        save_video = 0;
+        printf("Recorded %d frames, stopping as instructed.\n", num_frames_recorded);
+        quit = 1;
+      }
     }
-    GLUTSaveImage(frame_name);
-    if (next_frame % 100 == 1) {
-      printf("Saved %s\n", frame_name);
-    }
-    if (num_frames_to_record == ++num_frames_recorded) {
-      save_video = 0;
-      printf("Recorded %d frames, stopping as instructed.\n", num_frames_recorded);
-      quit = 1;
+
+    // Quit here so that can save image before exit
+    if (quit) {
+      if (output_image_name) GLUTSaveImage(output_image_name);
+      GLUTStop();
     }
   }
-
-  // Quit here so that can save image before exit
-  if (quit) {
-    if (output_image_name) GLUTSaveImage(output_image_name);
-    GLUTStop();
-  }
-
   
   // Swap buffers 
   glutSwapBuffers();
@@ -1191,7 +1186,7 @@ void GLUTInit(int *argc, char **argv)
  
   // Create menus
   GLUTCreateMenu();
-  
+
   // make full screen
   glutFullScreen();
 }
@@ -1232,16 +1227,19 @@ ReadMap(const char *filename)
 {
   R3Scene *map = ReadScene(filename);
   
-  // determine camera looking down from above
+  // determine camera looking down from above (-1 direction)
   R3Box& bbox = map->BBox();
   double x_avg = (bbox.XMax() + bbox.XMin()) / 2;
-  double y_avg = (bbox.YMax() + bbox.YMin()) / 2;
+ // double y_avg = (bbox.YMax() + bbox.YMin()) / 2;
+  double z_avg = (bbox.ZMax() + bbox.ZMin()) / 2;
   double x_width = abs(bbox.XMax() - bbox.XMin());
   double y_width = abs(bbox.YMax() - bbox.YMin());
-  double z_eye = max(bbox.ZMax(), bbox.ZMin()) + 2 * max(x_width, y_width);
-  map_camera.eye = R3Point(x_avg, y_avg, z_eye);
-  map_camera.towards = R3Vector(0, 0, -1);
-  map_camera.up = R3Vector(0, 1, 0);
+  double z_width = abs(bbox.ZMax() - bbox.ZMin());
+  double y_eye = max(bbox.YMax(), bbox.YMin()) + 0.5 * max(x_width, z_width);
+ // double z_eye = max(bbox.ZMax(), bbox.ZMin()) + max(x_width, y_width);
+  map_camera.eye = R3Point(x_avg, y_eye, z_avg);
+  map_camera.towards = R3Vector(0, -1, 0);
+  map_camera.up = R3Vector(0, 0, -1);
   map_camera.right = map_camera.towards;
   map_camera.right.Cross(map_camera.up);
   map_camera.xfov = x_width;
@@ -1256,7 +1254,6 @@ ReadMap(const char *filename)
 // PROGRAM ARGUMENT PARSING
 ////////////////////////////////////////////////////////////
 
-
 int 
 ParseArgs(int argc, char **argv)
 {
@@ -1266,9 +1263,9 @@ ParseArgs(int argc, char **argv)
   // Parse arguments
   argc--; argv++;
   while (argc > 0) {
-    if (!strcmp(*argv, "-map")) { argc--; argv++; input_map_name = *argv; }
-  /*  if ((*argv)[0] == '-') {
-      if (!strcmp(*argv, "-help")) { print_usage = 1; }
+    if ((*argv)[0] == '-') {
+      if (!strcmp(*argv, "-map")) { argc--; argv++; input_map_name = *argv; }
+/*      if (!strcmp(*argv, "-help")) { print_usage = 1; }
       else if (!strcmp(*argv, "-exit_immediately")) { quit = 1; }
       else if (!strcmp(*argv, "-output_image")) { argc--; argv++; output_image_name = *argv; }
       else if (!strcmp(*argv, "-video_prefix")) { argc--; argv++; video_prefix = *argv; }
@@ -1277,21 +1274,20 @@ ParseArgs(int argc, char **argv)
       else if (!strcmp(*argv, "-adaptive_step_size")) integration_type = ADAPTIVE_STEP_SIZE_INTEGRATION; 
       else if (!strcmp(*argv, "-recordandquit")) { 
         argc--; argv++; num_frames_to_record = atoi(*argv); 
-        GLUTwindow_width = 256;
-        GLUTwindow_height = 256;
+        //GLUTwindow_width = 256;
+        //GLUTwindow_height = 256;
         save_video = 1;
       }
-      else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
+      else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }*/
       argv++; argc--;
     }
-    else { */
     else if (!input_scene_name) {
       input_scene_name = *argv;
       if (!input_map_name)
         input_map_name = *argv;
+      argc--; argv++;
     }
     else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
-      argv++; argc--;
   }
 
   // Check input_scene_name

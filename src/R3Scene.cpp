@@ -12,9 +12,12 @@
 R3Scene::
 R3Scene(void)
   : bbox(R3null_box),
-    background(0,0,0,1),
+    background(0.5,0.5,0.7,1),
     ambient(0,0,0,1)
 {
+	// Setup default gravity
+	gravity = R3Vector(0,0,0);
+
   // Setup default camera
   camera.eye = R3zero_point;
   camera.towards = R3negz_vector;
@@ -350,13 +353,13 @@ Read(const char *filename, R3Node *node)
       particle_sources.push_back(source);
 
       // Update scene bounding box
-      if (shape->type == R3_SEGMENT_SHAPE) bbox.Union(shape->segment->BBox());
+      /*if (shape->type == R3_SEGMENT_SHAPE) bbox.Union(shape->segment->BBox());
       else if (shape->type == R3_BOX_SHAPE) bbox.Union(*(shape->box));
       else if (shape->type == R3_CIRCLE_SHAPE) bbox.Union(shape->circle->BBox());
       else if (shape->type == R3_SPHERE_SHAPE) bbox.Union(shape->sphere->BBox());
       else if (shape->type == R3_CYLINDER_SHAPE) bbox.Union(shape->cylinder->BBox());
       else if (shape->type == R3_CONE_SHAPE) bbox.Union(shape->cone->BBox());
-      else if (shape->type == R3_MESH_SHAPE) bbox.Union(shape->mesh->bbox);
+      else if (shape->type == R3_MESH_SHAPE) bbox.Union(shape->mesh->bbox);*/
     }
     else if (!strcmp(cmd, "particle_sink")) {
       // Read sink parameters 
@@ -626,8 +629,9 @@ Read(const char *filename, R3Node *node)
     else if (!strcmp(cmd, "mesh")) {
       // Read data
       int m;
+	  int u;
       char meshname[256];
-      if (fscanf(fp, "%d%s", &m, meshname) != 2) {
+      if (fscanf(fp, "%d%d%s", &m, &u, meshname) != 3) {
         fprintf(stderr, "Unable to parse mesh command %d in file %s\n", command_number, filename);
         return 0;
       }
@@ -683,7 +687,8 @@ Read(const char *filename, R3Node *node)
       node->bbox = mesh->bbox;
 
       // Insert node
-      group_nodes[depth]->bbox.Union(node->bbox);
+	  if (u)
+	      group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
     }
