@@ -29,3 +29,26 @@ Read(const char *filename)
   // read in mesh?
 }
 
+////////////////////////////////////////////////////////////
+// find force acting on bobsled
+////////////////////////////////////////////////////////////
+
+R3Vector Force(R3Bobsled bobsled) {
+    R3Vector force(R3null_vector);
+    // force of gravity
+    R3Vector fg(R3null_vector);
+    R3Vector gravity(0, 0, -9.8);
+    fg = bobsled.mass * gravity;
+    // normal force
+    R3Vector fn(R3null_vector);
+    fn = fg.Dot(bobsled.track->normal);
+    if (bobsled.track->isCurved) {
+        fn += bobsled.mass * bobsled.velocity * bobsled.velocity / bobsled.track->R();
+    }
+    //force of friction
+    R3Vector fk(R3null_vector);
+    fk = bobsled.track->Cof() * fg.Length() * -1 * bobsled.velocity;
+    // total force
+    force = fg + fn + fk;
+    return force;
+}

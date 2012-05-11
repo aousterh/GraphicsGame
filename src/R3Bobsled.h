@@ -1,3 +1,4 @@
+
 // Include file for the R3 Bobsled
 
 
@@ -8,6 +9,10 @@ struct R3Bobsled {
     // Constructor functions
     R3Bobsled(void);
   
+    // Update bobsled position
+    UpdateBobsled(scene, double current_time, double delta_time, bool force_left, 
+                  bool force_right);
+  
     // I/O functions
     int Read(const char *filename);
   
@@ -16,7 +21,9 @@ struct R3Bobsled {
     R3Vector velocity;  // in world coordinates
     double mass;
     R3Material *material;
-    R3Mesh *mesh;
+    R3Mesh *helmets;
+    R3Mesh *masks;
+    
     R3Track *track;     // current section of track that this bobsled is on
     R3Camera *camera;     // bobsled's camera
   

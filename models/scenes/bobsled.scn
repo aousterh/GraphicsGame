@@ -18,7 +18,7 @@ material
 	0.2 0.2 0.2
 	0.0 0.0 0.0
 	0.0 0.0 0.0
-	100.0 1.0 0
+	100.0 1.0 ../textures/checker.bmp
 	
 # blade texture
 material
