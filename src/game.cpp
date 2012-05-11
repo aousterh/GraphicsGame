@@ -863,7 +863,7 @@ void GLUTRedraw(void)
     glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
     // Load camera
-    LoadCamera(&camera);
+    LoadCamera(&camera);  // TODO: load camera of bobsled! will be easy, Ricky.
     
     // Load scene lights
     LoadLights(scene);
