@@ -63,26 +63,10 @@ particle_gravity
 	0 -9.81 0
 
 # snow
-particle_source
-	1 0 1 0 15 2
-	100 0 10
-	circle	0 70 0	0 -1 0	100
-
-mesh
-	3 1 OBJ_models/twohelmets.obj
-	
-mesh
-	4 1 OBJ_models/twomasks.obj
-	
-mesh
-	2 0 OBJ_models/groundplane.obj
-	
-mesh
-	0 1 OBJ_models/sled_body_smooth.obj
-	
-mesh
-	1 1 OBJ_models/sled_blades.obj
-		
+#particle_source
+#	1 0 1 0 15 2
+#	100 0 10
+#	circle	0 70 0	0 -1 0	100
 
 begin
 	2
@@ -107,7 +91,7 @@ begin
 	2
 	1 0 0 0
 	0 1 0 15.6
-	0 0 1 -50
+	0 0 1 50
 	0 0 0 1
 	
 	mesh
@@ -119,7 +103,7 @@ begin
 	2
 	1 0 0 0
 	0 1 0 15.6
-	0 0 1 -100
+	0 0 100
 	0 0 0 1
 	
 	mesh
@@ -131,11 +115,12 @@ begin
 	2
 	1 0 0 0
 	0 1 0 15.6
-	0 0 1 -150
+	0 0 1 150
 	0 0 0 1
 	
 	mesh
 		2 1 OBJ_models/track_straight.obj
 
-	end	
+	end
+	
 end
