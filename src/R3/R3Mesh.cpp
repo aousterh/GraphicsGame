@@ -823,6 +823,10 @@ Draw(void) const
     for (unsigned int j = 0; j < face->vertices.size(); j++) {
       R3MeshVertex *vertex = face->vertices[j];
       const R3Point& p = vertex->position;
+
+      R2Point * p2 = face->faceTexCoords[j];
+      glTexCoord2d(p2->X(), p2->Y());
+
       glVertex3d(p[0], p[1], p[2]);
     }
     glEnd();
@@ -1180,7 +1184,21 @@ ReadObj(const char *filename)
 		// Skip blank lines, comments, and texture coords
 		if (*bufferp == '#') continue;
 		if (*bufferp == '\0') continue;
-		if (strstr(bufferp, "vt")) continue;
+		if (strstr(bufferp, "vt"))
+		{
+			double s, t;
+			if (sscanf(bufferp, "%s%lf%lf", header, &s, &t) != 3)
+			{
+				fprintf(stderr, "Syntax error with texture coordinates on line %d in file %s\n", line_count, filename);
+				fclose(fp);
+				return 0;
+			}
+
+			R2Point * p = new R2Point();
+			p->SetX(s);
+			p->SetY(t);
+			texCoords.push_back(p);
+		}
 
 		// read in vertex line
 		else if (strstr(bufferp, "v")) {
@@ -1205,6 +1223,7 @@ ReadObj(const char *filename)
 
 			vector<char *> face_tokens;
 			vector<R3MeshVertex *> face_vertices;
+			vector<R2Point *> faceTexCoords;
 			
 			// Read number of vertices in face 
 			bufferp = strtok(bufferp, " \t");
@@ -1247,10 +1266,21 @@ ReadObj(const char *filename)
 
 					// Add vertex to vector
 					face_vertices.push_back(v);
+
+					bufferp = strtok(NULL, "/");
+					R2Point * tex;
+					if (bufferp) tex = texCoords[atoi(bufferp) - 1];
+					else {
+						fprintf(stderr, "Syntax error with face on line %d in file %s\n", line_count, filename);
+						fclose(fp);
+						return 0;
+					}
+					faceTexCoords.push_back(tex);
 				}
 			}
 			// Create face
-			CreateFace(face_vertices);
+			R3MeshFace * f = CreateFace(face_vertices);
+			f->faceTexCoords = faceTexCoords;
 
 			// Increment counter
 			face_count++;
