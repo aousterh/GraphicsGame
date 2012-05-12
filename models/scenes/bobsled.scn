@@ -68,17 +68,16 @@ particle_source
 	100 0 10
 	circle	0 70 0	0 -1 0	100
 
-mesh
-	3 1 OBJ_models/twohelmets.obj
-	
-mesh
-	4 1 OBJ_models/twomasks.obj
-	
-mesh
-	2 0 OBJ_models/groundplane.obj
-	
-mesh
-	0 1 OBJ_models/sled_body_smooth.obj
-	
-mesh
-	1 1 OBJ_models/sled_blades.obj
+mesh	2 0 OBJ_models/groundplane.obj
+
+begin_bobsled 0
+ 1 0 0 0
+ 0 1 0 0
+ 0 0 1 0
+ 0 0 0 1
+
+  mesh 3 1 OBJ_models/twohelmets.obj
+  mesh 4 1 OBJ_models/twomasks.obj
+  mesh 0 1 OBJ_models/sled_body_smooth.obj
+  mesh 1 1 OBJ_models/sled_blades.obj
+end_bobsled

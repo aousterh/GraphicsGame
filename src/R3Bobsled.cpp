@@ -5,6 +5,7 @@
 // Include files 
 
 #include "R3/R3.h"
+#include "R3Scene.h"
 #include "R3Bobsled.h"
 
 
@@ -15,11 +16,7 @@ R3Bobsled(void)
     velocity(R3null_vector),
     mass(0)
 {
-  // Initialize material
-	material = NULL;
-  
-  // Initialize mesh
-  mesh = NULL;
+  node = NULL;
 }
 
 int R3Bobsled::
@@ -33,6 +30,7 @@ Read(const char *filename)
 // find force acting on bobsled
 ////////////////////////////////////////////////////////////
 
+/*
 R3Vector Force(R3Bobsled bobsled) {
     R3Vector force(R3null_vector);
     // force of gravity
@@ -51,4 +49,11 @@ R3Vector Force(R3Bobsled bobsled) {
     // total force
     force = fg + fn + fk;
     return force;
+}*/
+
+void R3Bobsled::
+UpdateBobsled(R3Node *node, double current_time, double delta_time,
+              bool force_left, bool force_right)
+{
+ // fprintf(stderr, "UpdateBobsled unimplemented!\n");
 }

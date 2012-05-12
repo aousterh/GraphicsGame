@@ -6,6 +6,7 @@
 
 #include "R3/R3.h"
 #include "R3Scene.h"
+#include "R3Bobsled.h"
 
 
 
@@ -687,7 +688,7 @@ Read(const char *filename, R3Node *node)
       node->bbox = mesh->bbox;
 
       // Insert node
-	  if (u)
+      if (u)
 	      group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
@@ -834,6 +835,65 @@ Read(const char *filename, R3Node *node)
       group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
+    }
+    else if (!strcmp(cmd, "begin_bobsled")) {
+      // Read data
+      int m;
+      double matrix[16];
+      if (fscanf(fp, "%d%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf%lf", &m, 
+                 &matrix[0], &matrix[1], &matrix[2], &matrix[3], 
+                 &matrix[4], &matrix[5], &matrix[6], &matrix[7], 
+                 &matrix[8], &matrix[9], &matrix[10], &matrix[11], 
+                 &matrix[12], &matrix[13], &matrix[14], &matrix[15]) != 17) {
+        fprintf(stderr, "Unable to read begin at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+      
+      // Get material
+      R3Material *material = group_materials[depth];
+      if (m >= 0) {
+        if (m < (int) materials.size()) {
+          material = materials[m];
+        }
+        else {
+          fprintf(stderr, "Invalid material id at cone command %d in file %s\n", command_number, filename);
+          return 0;
+        }
+      }
+      
+      // Create new group node
+      R3Node *node = new R3Node();
+      node->transformation = R3Matrix(matrix);
+      node->material = NULL;
+      node->shape = NULL;
+      node->bbox = R3null_box;
+      
+      // Push node onto stack
+      depth++;
+      group_nodes[depth] = node;
+      group_materials[depth] = material;
+    }
+    else if (!strcmp(cmd, "end_bobsled")) {
+      // Pop node from stack
+      R3Node *node = group_nodes[depth];
+      depth--;
+      
+      // Transform bounding box
+      node->bbox.Transform(node->transformation);
+      
+      // Insert node
+      // TODO: remove this later, once cameras are fixed to bobsleds
+      group_nodes[depth]->bbox.Union(node->bbox);
+   //   group_nodes[depth]->children.push_back(node);
+      node->parent = NULL; //group_nodes[depth];
+      
+      // Create bobsled
+      R3Bobsled *bobsled = new R3Bobsled();
+      bobsled->velocity = R3Vector(0, 0, 0);
+      bobsled->node = node;
+      // TODO: set position and mass somewhere?
+      
+      bobsleds.push_back(bobsled);
     }
     else if (!strcmp(cmd, "material")) {
       // Read data
