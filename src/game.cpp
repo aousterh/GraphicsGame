@@ -637,7 +637,7 @@ void DrawScene(R3Scene *scene)
   // Draw nodes recursively
   DrawNode(scene, scene->root);
 
-  DrawMountain();
+  //DrawMountain();
 }
 
 
