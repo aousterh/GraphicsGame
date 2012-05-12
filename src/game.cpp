@@ -770,7 +770,7 @@ void DrawBobsleds(R3Scene *scene)
 
   // Update particles
 
-  //UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, false, false);
+  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, false, false);
 
   
   // Draw all bobsleds
