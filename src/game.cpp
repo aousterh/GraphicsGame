@@ -672,7 +672,7 @@ void DrawBobsleds(R3Scene *scene)
   
   // Draw all bobsleds
   glEnable(GL_LIGHTING);
-  for (int i = 0; i < scene->NBobsleds(); i++) {
+  for (int i = 0; i < 1 /*scene->NBobsleds()*/; i++) {
     R3Bobsled *bobsled = scene->Bobsled(i);
 
     // Push transformation onto stack
@@ -698,6 +698,8 @@ void DrawBobsleds(R3Scene *scene)
     // Restore previous transformation
     glPopMatrix();
   }
+    // Remember previous time
+    previous_time = current_time;
 }
 
 void DrawTracks(R3Scene *scene)
@@ -724,7 +726,7 @@ void DrawTracks(R3Scene *scene)
 void DrawScene(R3Scene *scene) 
 {
   // Draw nodes recursively
-  DrawMountain();
+ // DrawMountain();
   DrawNode(scene, scene->root);
   DrawBobsleds(scene);
   DrawTracks(scene);
