@@ -36,7 +36,7 @@ static int integration_type = EULER_INTEGRATION;
 
 
 //Mountain
-Mountain * m = NULL; //new Mountain();
+Mountain * m = new Mountain();
 
 
 // Display variables
@@ -724,10 +724,10 @@ void DrawTracks(R3Scene *scene)
 void DrawScene(R3Scene *scene) 
 {
   // Draw nodes recursively
+  DrawMountain();
   DrawNode(scene, scene->root);
   DrawBobsleds(scene);
   DrawTracks(scene);
-  //DrawMountain();
 }
 
 
