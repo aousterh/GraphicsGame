@@ -221,7 +221,7 @@ begin
 	end
 
 	bobsled
-		100 0 0 0 0 0 0 0 1 3 4
+		100 0 0 0 0 0 0 6 1 3 4
 		mesh models/scenes/OBJ_models/sled_body.obj
 		mesh models/scenes/OBJ_models/sled_blades.obj
 		mesh models/scenes/OBJ_models/twohelmets.obj

@@ -354,7 +354,9 @@ Read(const char *filename, R3Node *node)
       bobsled->helmets_material = helmets_material;
       bobsled->masks_material = masks_material;
       bobsled->track = track_segments[0];
-      bobsled->transformation = R3identity_matrix;
+
+      bobsled->transformation = current_transformation;
+
 	  bobsled->big_theta = 0;
 	  bobsled->little_theta = 0;
 
@@ -369,6 +371,7 @@ Read(const char *filename, R3Node *node)
       bobsled->bbox.Union(masks->mesh->bbox);
 	  
 	  // Provide default camera
+	  bobsled->bbox.Transform(current_transformation);
 	  double sled_radius = bobsled->bbox.DiagonalRadius();
 	  R3Point sled_center = bobsled->bbox.Centroid();
 	  printf("sled_center = %f,%f,%f\n", sled_center.X(), sled_center.Y(), sled_center.Z());
