@@ -268,9 +268,13 @@ Read(const char *filename, R3Node *node)
     }
     else if (!strcmp(cmd, "bobsled")) {
       // Read sink parameters 
-      double mass, px, py, pz, vx, vy, vz;
+      double mass;
+	  R3Point position;
+	  R3Vector velocity = R3null_vector; 
       int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id;
-      if (fscanf(fp, "%lf%lf%lf%lf%1f%1f%1f%1d%1d%1d%1d", &mass, &px, &py, &pz, &vx, &vy, &vz, &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id) != 11)
+      if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%ld%ld%ld%ld", &mass, &position[0], &position[1], &position[2],
+															&velocity[0], &velocity[1], &velocity[2], 
+															&sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id) != 11)
       {
         fprintf(stderr, "Unable to read bobsled at command %d in file %s\n", command_number, filename);
         return 0;
@@ -343,8 +347,8 @@ Read(const char *filename, R3Node *node)
       // Create bobsled
       R3Bobsled *bobsled = new R3Bobsled();
       bobsled->mass = mass;
-      bobsled->position = R3Point(px, py, pz);
-      bobsled->velocity = R3Vector(vx, vy, vz);
+      bobsled->position = position;
+      bobsled->velocity = velocity;
       bobsled->sled = sled;
       bobsled->skates = skates;
       bobsled->helmets = helmets;
@@ -372,7 +376,6 @@ Read(const char *filename, R3Node *node)
 	  bobsled->bbox.Transform(current_transformation);
 	  double sled_radius = bobsled->bbox.DiagonalRadius();
 	  R3Point sled_center = bobsled->bbox.Centroid();
-	  printf("sled_center = %f,%f,%f\n", sled_center.X(), sled_center.Y(), sled_center.Z());
 
 	  R3Camera *sled_camera = new R3Camera();
 	  sled_camera->towards = R3Vector(0, 0, -1);
@@ -389,7 +392,7 @@ Read(const char *filename, R3Node *node)
       // Read sink parameters 
       double cof;
       int type, isCovered, m;
-      if (fscanf(fp, "%ld%lf%ld%1d", &type, &cof, &isCovered, &m) != 4) {
+      if (fscanf(fp, "%ld%lf%ld%ld", &type, &cof, &isCovered, &m) != 4) {
         fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
         return 0;
       }
