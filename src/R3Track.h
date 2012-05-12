@@ -32,4 +32,6 @@ struct R3Bobsled {
     R3Plane endPlane;		// end of track segment
 	R3Vector side;			// vector from center to right edge
 	double cof;				// coefficient of friction
+    double R;               // radius full curved path
+    double r;               // radius of the path itself
 };
