@@ -666,7 +666,7 @@ void DrawBobsleds(R3Scene *scene)
   }
 
   // Update particles
-  // UpdateBobsleds(scene, current_time - time_lost_taking_videos, delta_time, integration_type);
+  //UpdateBobsleds(scene, current_time - time_lost_taking_videos, delta_time, false, false);
   
   // Draw all bobsleds
   glEnable(GL_LIGHTING);
@@ -1011,16 +1011,14 @@ void GLUTRedraw(void)
 
   int x[2] = {0, GLUTwindow_width/2};
   
-  for (int i = 0; i < 2; i++)
+  for (int i = 0; i < scene->NBobsleds(); i++)
   {
 	R3Bobsled *bobsled = scene->Bobsled(i);
     glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
     // Load camera
-    LoadCamera(&camera);
-    // TODO: load camera of bobsled! will be easy, Ricky.
-    // switch to being fixed behind bobsled!!!
-    
+	LoadCamera(bobsled->camera);
+
     // Load scene lights
     LoadLights(scene);
 

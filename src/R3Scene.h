@@ -137,6 +137,7 @@ struct R3Bobsled {
     R3Matrix transformation;
 	double big_theta;
 	double little_theta;
+	R3Box bbox;
 };
 
 

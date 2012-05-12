@@ -354,7 +354,6 @@ Read(const char *filename, R3Node *node)
       bobsled->helmets_material = helmets_material;
       bobsled->masks_material = masks_material;
       bobsled->track = NULL;//track_segments[0];
-      bobsled->camera = NULL;
       bobsled->transformation = R3identity_matrix;
 	  bobsled->big_theta = 0;
 	  bobsled->little_theta = 0;
@@ -363,10 +362,27 @@ Read(const char *filename, R3Node *node)
       bobsleds.push_back(bobsled);
 
       // Update scene bounding box
-      bbox.Union(sled->mesh->bbox);
-      bbox.Union(skates->mesh->bbox);
-      bbox.Union(helmets->mesh->bbox);
-      bbox.Union(masks->mesh->bbox);
+	  bobsled->bbox = R3null_box;
+      bobsled->bbox.Union(sled->mesh->bbox);
+      bobsled->bbox.Union(skates->mesh->bbox);
+      bobsled->bbox.Union(helmets->mesh->bbox);
+      bobsled->bbox.Union(masks->mesh->bbox);
+	  
+	  // Provide default camera
+	  double sled_radius = bobsled->bbox.DiagonalRadius();
+	  R3Point sled_center = bobsled->bbox.Centroid();
+	  printf("sled_center = %f,%f,%f\n", sled_center.X(), sled_center.Y(), sled_center.Z());
+
+	  R3Camera *sled_camera = new R3Camera();
+	  sled_camera->towards = R3Vector(0, 0, -1);
+	  sled_camera->up = R3Vector(0, 1, 0);
+	  sled_camera->right = R3Vector(1, 0, 0);
+	  sled_camera->eye = sled_center - 5 * sled_radius * sled_camera->towards + 0.5 * sled_radius * sled_camera->up;
+	  sled_camera->xfov = 0.25;
+	  sled_camera->yfov = 0.25;
+	  sled_camera->neardist = 0.01 * sled_radius;
+	  sled_camera->fardist = 100 * sled_radius;
+      bobsled->camera = sled_camera;
     }
     else if (!strcmp(cmd, "track")) {
       // Read sink parameters 
