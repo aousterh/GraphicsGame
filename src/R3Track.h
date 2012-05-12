@@ -25,6 +25,7 @@ struct R3Bobsled {
 	R3TrackType type;		// straight, turn, or approach
     R3Point start;			// position of beginning of along vector
 	R3Point end;			// position of end of along vector
+    R3Point center;         // center of curved path
 	R3Vector startNormal;	// normal at beginning
 	R3Vector endNormal;		// normal at end
     R3Vector along;			// in world coordinates
