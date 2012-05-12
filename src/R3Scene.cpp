@@ -428,8 +428,8 @@ Read(const char *filename, R3Node *node)
 	  track->track_shape = trackshape;
 
 	  if (type == TRACK_STRAIGHT) {
-		  R3Point straight_start(0, 20, 25);
-		  R3Point straight_end(0, 20, -25);
+		  R3Point straight_start(0, 0, 25);
+		  R3Point straight_end(0, 0, -25);
 		  R3Plane straight_endplane(straight_end, (straight_end - straight_start));
 		  R3Vector straight_side(-20, 0, 0);
 		  straight_start.Transform(current_transformation);
