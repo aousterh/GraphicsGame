@@ -22,6 +22,9 @@ struct R3Track {
     
     R3Track *track;     // current section of track that this bobsled is on
     R3Camera *camera;     // bobsled's camera
+    
+    double main_theta;
+    double inside_theta;
   
     // NOTE: transform camera position whenever you transform bobsled position!
     // scene graph, bobsled position, camera position

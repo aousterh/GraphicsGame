@@ -13,7 +13,9 @@ R3Bobsled::
 R3Bobsled(void)
   : position(R3null_point),
     velocity(R3null_vector),
-    mass(0)
+    mass(0),
+    main_theta(0),
+    inside_theta(0)
 {
   // Initialize material
 	material = NULL;
