@@ -1,4 +1,4 @@
-﻿Build started 5/12/2012 1:41:47 AM.
+﻿Build started 5/12/2012 2:34:56 AM.
      1>Project "C:\Users\Ricky\Dropbox\Spring 2011-12\COS 426\Final Project\repos\GraphicsGame\src\particleview.vcxproj" on node 2 (clean target(s)).
      1>_PrepareForClean:
          Deleting file "Debug\game.lastbuildstate".
@@ -6,4 +6,4 @@
 
 Build succeeded.
 
-Time Elapsed 00:00:00.35
+Time Elapsed 00:00:00.58

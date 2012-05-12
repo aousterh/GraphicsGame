@@ -666,7 +666,8 @@ void DrawBobsleds(R3Scene *scene)
   }
 
   // Update particles
-  //UpdateBobsleds(scene, current_time - time_lost_taking_videos, delta_time, false, false);
+  double diff = current_time - time_lost_taking_videos;
+  //UpdateBobsled(scene, diff, delta_time, false, false);
   
   // Draw all bobsleds
   glEnable(GL_LIGHTING);
