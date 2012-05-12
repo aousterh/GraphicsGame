@@ -1,19 +1,15 @@
 
-// Include file for the R3 Bobsled
+// Include file for the R3 Track
 
 
-// Bobsled defintion
+// Track defintion
 
-struct R3Bobsled {
+struct R3Track {
   public:
     // Constructor functions
-    R3Bobsled(void);
+    R3Track(void);
   
-    // Update bobsled position
-    UpdateBobsled(scene, double current_time, double delta_time, bool force_left, 
-                  bool force_right);
-  
-    // I/O functions
+        // I/O functions
     int Read(const char *filename);
   
   public:
