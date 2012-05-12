@@ -13,11 +13,11 @@
 class Mountain
 {
 private:
-	double RandomNumber();
+	double RandomNumber(void);
 
 public:
 	static const int height = 129;
-	static const int width = 513;
+	static const int width = 2049;
 	Mountain();
 	double heights[width][height];
 };

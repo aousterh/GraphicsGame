@@ -70,10 +70,9 @@ Mountain::Mountain()
 	heights[width - 1][0] = 1;
 	heights[width - 1][height - 1] = 1;
 
-
 	for (int k = 0; k < 6; k++)
 	{
-		double range = 50.0;
+		double range = 200.0;
 		int radius = width > height ? height : width;
 		radius--;
 		while (radius > 1)
@@ -139,6 +138,6 @@ Mountain::Mountain()
 			range *= pow(2, -h);
 		}
 	}
-
+	printf("done with mountain\n");
 }
 
