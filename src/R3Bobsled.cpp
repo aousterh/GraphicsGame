@@ -4,9 +4,23 @@
 
 // Include files 
 
-#include "R3/R3.h"
-#include "R3Bobsled.h"
+// Include files
 
+#include "R2/R2.h"
+#include "R3/R3.h"
+#include "R3Scene.h"
+#include "R3Bobsled.h"
+#include <cmath>
+using namespace std;
+#ifdef _WIN32
+#   include <windows.h>
+#else
+#   include <sys/time.h>
+#   define TRUE true
+#   define FALSE false
+#endif
+
+<<<<<<< HEAD
 enum angle_shift 0.016
 
 R3Bobsled::
@@ -30,13 +44,15 @@ Read(const char *filename)
   // do stuff?
   // read in mesh?
 }
+=======
+>>>>>>> 1326cd87873ec13084d934af14a7f58bf700b7f2
 
 ////////////////////////////////////////////////////////////
 // Updating Bobsled
 ////////////////////////////////////////////////////////////
 
 void UpdateBobsled(R3Scene scene, R3Node *node, double current_time, double delta_time, bool force_left, bool force_right) {
-    R3Bobsled bobsled(this);
+  /*  R3Bobsled bobsled(this);
     double half_height = .5 * node->bbox.YLength();
     //R3Vector along(this.track->rotate_vector);
     R3Vector force(R3null_vector);
@@ -79,13 +95,13 @@ void UpdateBobsled(R3Scene scene, R3Node *node, double current_time, double delt
     double dist_plane = to_plane.Dot(this.track->end_plane.Vector());
     if (dist_plane <= 0) {
         this.track = this.track->next;
-    }
+    }*/
 }
 
 ////////////////////////////////////////////////////////////
 // find force acting on bobsled
 ////////////////////////////////////////////////////////////
-
+/*
 R3Vector Force(R3Bobsled bobsled, double half_height) {
     R3Vector force(R3null_vector);
     // force of gravity
@@ -97,11 +113,34 @@ R3Vector Force(R3Bobsled bobsled, double half_height) {
     fn = fg.Dot(bobsled.track->normal);
     if (bobsled.track->isCurved) {
         fn += bobsled.mass * bobsled.velocity * bobsled.velocity / (bobsled.track->R() + half_height);
+>>>>>>> 2bc1fea96058d704e9d707c1cc18bf5fb81d8604
     }
-    //force of friction
+    
+	//force of friction
     R3Vector fk(R3null_vector);
+<<<<<<< HEAD
+    fk = bobsled->track->cof * fg.Length() * -1 * bobsled->velocity;
+    
+	// total force
+    force = fg + fn + fk;
+    return force;
+}
+
+void
+UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
+			  bool force_left, bool force_right)
+{
+	return;
+=======
     fk = bobsled.track->cof * fg.Length() * -1 * bobsled.velocity;
     // total force
     force = fg + fn + fk;
     return force;
+}*/
+
+void R3Bobsled::
+UpdateBobsled(R3Node *node, double current_time, double delta_time,
+              bool force_left, bool force_right)
+{
+	// fprintf(stderr, "UpdateBobsled unimplemented!\n");
 }

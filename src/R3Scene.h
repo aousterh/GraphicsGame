@@ -1,5 +1,6 @@
 // Include file for the R3 scene stuff
 
+
 #define R3Rgb R2Pixel
 
 
@@ -14,6 +15,7 @@ typedef enum {
   R3_MESH_SHAPE,
   R3_SEGMENT_SHAPE,
   R3_CIRCLE_SHAPE,
+  R3_BOBSLED_SHAPE,
   R3_NUM_SHAPE_TYPES
 } R3ShapeType;
 
@@ -24,6 +26,18 @@ typedef enum {
   R3_AREA_LIGHT,
   R3_NUM_LIGHT_TYPES
 } R3LightType;
+
+
+typedef enum {
+	TRACK_STRAIGHT,
+	TRACK_APPROACH_RIGHT,
+	TRACK_APPROACH_LEFT,
+	TRACK_EXIT_RIGHT,
+	TRACK_EXIT_LEFT,
+	TRACK_TURN_RIGHT,
+	TRACK_TURN_LEFT,
+	NUM_TRACK_TYPES
+} R3TrackType;
 
 
 
@@ -38,6 +52,7 @@ struct R3Shape {
   R3Mesh *mesh;
   R3Segment *segment;
   R3Circle *circle;
+  R3Bobsled *bobsled;
 };  
 
 struct R3Material {
@@ -78,10 +93,45 @@ struct R3Camera {
 struct R3Node {
   struct R3Node *parent;
   vector<struct R3Node *> children;
+  vector<struct R3Bobsled *> bobsleds;
   R3Shape *shape;
   R3Matrix transformation;
   R3Material *material;
   R3Box bbox;
+};
+
+
+
+// Bobsled specific definitions
+struct R3Track {
+    bool isCovered;			// tunnel?
+	R3TrackType type;		// straight, turn, or approach
+    R3Point start;			// position of beginning of along vector
+	R3Point end;			// position of end of along vector
+	R3Vector startNormal;	// normal at beginning
+	R3Vector endNormal;		// normal at end
+    R3Vector along;			// in world coordinates
+    R3Plane endPlane;		// end of track segment
+	R3Vector side;			// vector from center to right edge
+	double cof;				// coefficient of friction
+	double radius;			// track radius
+};
+
+struct R3Bobsled {
+    double mass;
+    R3Point position;               // position of center of volume of bbox
+    R3Vector velocity;              // in world coordinates
+    R3Shape *sled;
+    R3Shape *skates;
+    R3Shape *helmets;
+    R3Shape *masks;
+    R3Material *sled_material;
+    R3Material *skates_material;
+    R3Material *helmets_material;
+    R3Material *masks_material;
+    R3Track *track;                 // current section of track that this bobsled is on
+    R3Camera *camera;               // bobsled's camera    
+    R3Matrix transformation;
 };
 
 
@@ -158,6 +208,8 @@ struct R3Scene {
   R3ParticleSink *ParticleSink(int k) const;
   int NParticles(void) const;
   R3Particle *Particle(int k) const;
+  int NBobsleds(void) const;
+  R3Bobsled *Bobsled(int k) const;
 
   // I/O functions
   int Read(const char *filename, R3Node *root = NULL);
@@ -169,6 +221,8 @@ struct R3Scene {
   vector<R3ParticleSink *> particle_sinks;
   vector<R3ParticleSpring *> particle_springs;
   vector<R3Light *> lights;
+  vector<R3Track *> track_segments;s
+  vector<R3Bobsled *> bobsleds;
   R3Vector gravity;
   R3Camera camera;
   R3Box bbox;
@@ -187,6 +241,21 @@ Root(void) const
   return root;
 }
 
+
+
+inline int R3Scene::
+NBobsleds(void) const
+{
+  // Return number of bobsleds
+  return bobsleds.size();
+}
+
+inline R3Bobsled *R3Scene::
+Bobsled(int k) const
+{
+  // Return kth light
+  return bobsleds[k];
+}
 
 
 inline int R3Scene::

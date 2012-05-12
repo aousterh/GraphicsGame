@@ -1,4 +1,5 @@
 
+<<<<<<< HEAD
 // Include file for the R3 Track
 
 
@@ -29,3 +30,7 @@ struct R3Track {
     // NOTE: transform camera position whenever you transform bobsled position!
     // scene graph, bobsled position, camera position
 };
+=======
+// Update bobsled position
+void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, bool force_left, bool force_right);
+>>>>>>> 1326cd87873ec13084d934af14a7f58bf700b7f2

@@ -368,8 +368,5 @@
     <ClInclude Include="R3Bobsled.h">
       <Filter>Main Program\Main Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="R3Track.h">
-      <Filter>Main Program\Main Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

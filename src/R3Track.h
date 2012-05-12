@@ -1,5 +1,6 @@
+// Include file for the R3 Track
 
-// Bobsled defintion
+// Track defintion
 
 typedef enum {
 	TRACK_STRAIGHT,
@@ -10,9 +11,9 @@ typedef enum {
 	TRACK_TURN_RIGHT,
 	TRACK_TURN_LEFT,
 	NUM_TRACK_TYPES
-}
+} R3TrackType;
 
-struct R3Bobsled {
+struct R3Track {
   public:
     // Constructor functions
     R3Track(void);
