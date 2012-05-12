@@ -329,7 +329,7 @@ void LoadMapCamera(R3Camera *map_camera, R3Scene *map)
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glMultMatrixd(camera_matrix);
-  //glTranslated(-(map_camera->eye[0]), -(map_camera->eye[1]), -(map_camera->eye[2]));
+  glTranslated(-(map_camera->eye[0]), -(map_camera->eye[1]), -(map_camera->eye[2]));
 }
 
 
