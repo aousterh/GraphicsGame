@@ -21,7 +21,7 @@ using namespace std;
 #endif
 
 
-//enum ANGLE_SHIFT 0.016
+enum Angle ANGLE_SHIFT = 0.016
 
 
 ////////////////////////////////////////////////////////////
@@ -47,7 +47,32 @@ void UpdateBobsled(R3Scene scene, R3Node *node, double current_time, double delt
 		
 		// Side rotation on a straight track
 		R3Vector v_side(R3null_vector);
-		
+		R3Vector rotate_vector(R3null_vector);
+		if (track->type == TRACK_STRAIGHT) {
+			v_side = bobsled->velocity.Dot(track->side) * track->side;
+			rotate_vector = track->along;
+		}
+        double delta_dist = delta_time * v_side;
+        double delta_theta = delta_dist / r;
+        if (force_right)
+            delta_theta += ANGLE_SHIFT;
+        if (force_left)
+            delta_theta -= ANGLE_SHIFT;
+        bobsled->little_theta += delta_theta;
+        bobsled->position.Rotate(rotate_vector, delta_theta);
+        
+        // check if over the edge
+        if (bobsled->little_theta > M_PI/4) {
+            // fall of edge or something
+        }
+        
+        // check if bobsled is on new track
+        R3Vector to_plane(track->endPlane.Point() - bobsled->position);
+        double dist_plane = to_plane.Dot(track->endPlane.Vector());
+        if (dist_plane <= 0) {
+            bobsled->track = track->next;
+            bobsled->big_theta = 0;
+        }
 	}
   /*  
     // do forward translation
