@@ -28,9 +28,9 @@ double ANGLE_SHIFT = 0.016;
 // Updating Bobsled
 ////////////////////////////////////////////////////////////
 
-void UpdateBobsled(R3Scene scene, R3Node *node, double current_time, double delta_time, bool force_left, bool force_right) {
-	for (int i = 0; i < scene.NBobsleds(); i++) {
-		R3Bobsled *bobsled = scene.Bobsled(i);
+void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, bool force_left, bool force_right) {
+	for (int i = 0; i < scene->NBobsleds(); i++) {
+		R3Bobsled *bobsled = scene->Bobsled(i);
         R3Ray along_ray(bobsled->track->start, bobsled->track->along, false);
 		double r = R3Distance(bobsled->position, along_ray);
 		R3Vector force(R3null_vector);
@@ -43,7 +43,11 @@ void UpdateBobsled(R3Scene scene, R3Node *node, double current_time, double delt
 		R3Vector v_along(R3null_vector);
 		if (track->type == TRACK_STRAIGHT) {
 			v_along = bobsled->velocity.Dot(track->along) * track->along;
-			bobsled->position.Translate(v_along);
+			//bobsled->position.Translate(v_along);
+            bobsled->velocity.Print();
+            bobsled->sled->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+            bobsled->skates->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+            bobsled->helmets->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
 		}
 		
 		// Side rotation on a straight track

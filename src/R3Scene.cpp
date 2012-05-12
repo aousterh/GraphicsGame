@@ -353,7 +353,7 @@ Read(const char *filename, R3Node *node)
       bobsled->skates_material = skates_material;
       bobsled->helmets_material = helmets_material;
       bobsled->masks_material = masks_material;
-      bobsled->track = NULL;//track_segments[0];
+      bobsled->track = track_segments[0];
       bobsled->transformation = R3identity_matrix;
 	  bobsled->big_theta = 0;
 	  bobsled->little_theta = 0;
