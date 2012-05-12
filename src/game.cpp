@@ -9,6 +9,7 @@
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "particle.h"
+#include "R3Bobsled.h"
 #include "cos426_opengl.h"
 #include <cmath>
 
@@ -568,10 +569,75 @@ void DrawCamera(R3Scene *scene)
 
 
 
+void DrawBobsleds(R3Scene *scene)
+{
+  // Get current time (in seconds) since start of execution
+  double current_time = GetTime();
+  static double previous_time = 0;
+
+
+  static double time_lost_taking_videos = 0; // for switching back and forth
+					     // between recording and not
+					     // recording smoothly
+
+  // program just started up?
+  if (previous_time == 0) previous_time = current_time;
+
+  // time passed since starting
+  double delta_time = current_time - previous_time;
+
+
+  if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
+    delta_time = VIDEO_FRAME_DELAY;    
+    // ... but we need to keep track how much time we gained and lost so that we can arbitrarily switch back and forth ...
+    time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
+  } else { // real time simulation
+    delta_time = current_time - previous_time;
+  }
+
+  // Update particles
+  // UpdateBobsleds(scene, current_time - time_lost_taking_videos, delta_time, integration_type);
+  
+  // Draw all bobsleds
+  glEnable(GL_LIGHTING);
+  for (int i = 0; i < scene->NBobsleds(); i++) {
+    R3Bobsled *bobsled = scene->Bobsled(i);
+
+    // Push transformation onto stack
+    glPushMatrix();
+    LoadMatrix(&bobsled->transformation);
+
+    // Load sled material
+    LoadMaterial(bobsled->sled_material);
+    DrawShape(bobsled->sled);
+    
+    // Load sled material
+    LoadMaterial(bobsled->skates_material);
+    DrawShape(bobsled->skates);
+
+    // Load sled material
+    LoadMaterial(bobsled->helmets_material);
+    DrawShape(bobsled->helmets);
+
+    // Load sled material
+    LoadMaterial(bobsled->masks_material);
+    DrawShape(bobsled->masks);
+
+    // Restore previous transformation
+    glPopMatrix();
+  }
+
+
+  // Remember previous time
+  previous_time = current_time;
+}
+
+
 void DrawScene(R3Scene *scene) 
 {
   // Draw nodes recursively
   DrawNode(scene, scene->root);
+  DrawBobsleds(scene);
 }
 
 

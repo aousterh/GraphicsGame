@@ -18,7 +18,7 @@ material
 	0.2 0.2 0.2
 	0.0 0.0 0.0
 	0.0 0.0 0.0
-	100.0 1.0 0
+	100.0 1.0 models/textures/checker.bmp
 	
 # blade texture
 material
@@ -63,7 +63,7 @@ material
 	0.5 0.5 0.5
 	0.0 0.0 0.0
 	0.0 0.0 0.0
-	1.0 1.0 ..\\textures\\ice.jpg
+	1.0 1.0 0
 
 ambient
 	0.1 0.1 0.1
@@ -77,21 +77,15 @@ particle_gravity
 #	100 0 10
 #	circle	0 70 0	0 -1 0	100
 
-mesh
-	3 1 OBJ_models/twohelmets.obj
-	
-mesh
-	4 1 OBJ_models/twomasks.obj
-	
+bobsled
+	100 0 0 0 0 0 0 0 1 3 4
+	mesh OBJ_models/sled_body_smooth.obj
+	mesh OBJ_models/sled_blades.obj
+	mesh OBJ_models/twohelmets.obj
+	mesh OBJ_models/twomasks.obj
+		
 mesh
 	2 0 OBJ_models/groundplane.obj
-	
-mesh
-	0 1 OBJ_models/sled_body_smooth.obj
-	
-mesh
-	1 1 OBJ_models/sled_blades.obj
-		
 
 begin
 	5

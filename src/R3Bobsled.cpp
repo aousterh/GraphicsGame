@@ -4,51 +4,54 @@
 
 // Include files 
 
+// Include files
+
+#include "R2/R2.h"
 #include "R3/R3.h"
+#include "R3Scene.h"
 #include "R3Bobsled.h"
+#include <cmath>
+using namespace std;
+#ifdef _WIN32
+#   include <windows.h>
+#else
+#   include <sys/time.h>
+#   define TRUE true
+#   define FALSE false
+#endif
 
-
-
-R3Bobsled::
-R3Bobsled(void)
-  : position(R3null_point),
-    velocity(R3null_vector),
-    mass(0)
-{
-  // Initialize material
-	material = NULL;
-  
-  // Initialize mesh
-  mesh = NULL;
-}
-
-int R3Bobsled::
-Read(const char *filename)
-{
-  // do stuff?
-  // read in mesh?
-}
 
 ////////////////////////////////////////////////////////////
 // find force acting on bobsled
 ////////////////////////////////////////////////////////////
 
-R3Vector Force(R3Bobsled bobsled) {
+R3Vector Force(R3Bobsled *bobsled) {
     R3Vector force(R3null_vector);
+
     // force of gravity
     R3Vector fg(R3null_vector);
     R3Vector gravity(0, 0, -9.8);
-    fg = bobsled.mass * gravity;
-    // normal force
-    R3Vector fn(R3null_vector);
-    fn = fg.Dot(bobsled.track->normal);
-    if (bobsled.track->isCurved) {
-        fn += bobsled.mass * bobsled.velocity * bobsled.velocity / bobsled.track->R();
+    fg = bobsled->mass * gravity;
+    
+	// normal force
+    R3Vector fn(fg);
+	fn.Dot(bobsled->track->startNormal);
+    if (bobsled->track->type != TRACK_STRAIGHT) {
+        fn += bobsled->mass * bobsled->velocity * bobsled->velocity / bobsled->track->radius;
     }
-    //force of friction
+    
+	//force of friction
     R3Vector fk(R3null_vector);
-    fk = bobsled.track->Cof() * fg.Length() * -1 * bobsled.velocity;
-    // total force
+    fk = bobsled->track->cof * fg.Length() * -1 * bobsled->velocity;
+    
+	// total force
     force = fg + fn + fk;
     return force;
+}
+
+void
+UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
+			  bool force_left, bool force_right)
+{
+	return;
 }

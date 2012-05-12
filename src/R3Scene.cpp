@@ -232,6 +232,10 @@ Read(const char *filename, R3Node *node)
   // Create array of materials
   vector<R3Material *> materials;
 
+  // Create stack of transformations
+  vector<R3Matrix> transformations;
+  R3Matrix current_transformation = R3identity_matrix;
+
   // Create default material
   R3Material *default_material = new R3Material();
   default_material->ka = R3Rgb(0.2, 0.2, 0.2, 1);
@@ -260,6 +264,154 @@ Read(const char *filename, R3Node *node)
     if (cmd[0] == '#') {
       // Comment -- read everything until end of line
       do { cmd[0] = fgetc(fp); } while ((cmd[0] >= 0) && (cmd[0] != '\n'));
+    }
+    else if (!strcmp(cmd, "bobsled")) {
+      // Read sink parameters 
+      double mass, px, py, pz, vx, vy, vz;
+      int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id;
+      if (fscanf(fp, "%lf%lf%lf%lf%1f%1f%1f%1d%1d%1d%1d", &mass, &px, &py, &pz, &vx, &vy, &vz, &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id) != 11)
+      {
+        fprintf(stderr, "Unable to read bobsled at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+
+      // Read shape
+      R3Shape *sled = ReadShape(fp, command_number, filename);
+      if (!sled) {
+        fprintf(stderr, "Unable to read sled body mesh at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+      R3Shape *skates = ReadShape(fp, command_number, filename);
+      if (!skates) {
+        fprintf(stderr, "Unable to sled skate mesh at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+      R3Shape *helmets = ReadShape(fp, command_number, filename);
+      if (!helmets) {
+        fprintf(stderr, "Unable to read helmet mesh at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+      R3Shape *masks = ReadShape(fp, command_number, filename);
+      if (!masks) {
+        fprintf(stderr, "Unable to read helmet mesh at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+
+      // Get materials
+      R3Material *sled_material = group_materials[depth];
+      if (sled_mat_id >= 0) {
+        if (sled_mat_id < (int) materials.size()) {
+          sled_material = materials[sled_mat_id];
+        }
+        else {
+          fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+          return 0;
+        }
+      }
+      R3Material *skates_material = group_materials[depth];
+      if (skates_mat_id >= 0) {
+        if (skates_mat_id < (int) materials.size()) {
+          skates_material = materials[skates_mat_id];
+        }
+        else {
+          fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+          return 0;
+        }
+      }
+      else printf("fuck");
+      R3Material *helmets_material = group_materials[depth];
+      if (helmets_mat_id >= 0) {
+        if (helmets_mat_id < (int) materials.size()) {
+          helmets_material = materials[helmets_mat_id];
+        }
+        else {
+          fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+          return 0;
+        }
+      }
+      R3Material *masks_material = group_materials[depth];
+      if (masks_mat_id >= 0) {
+        if (masks_mat_id < (int) materials.size()) {
+          masks_material = materials[masks_mat_id];
+        }
+        else {
+          fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+          return 0;
+        }
+      }
+
+      // Create bobsled
+      R3Bobsled *bobsled = new R3Bobsled();
+      bobsled->mass = mass;
+      bobsled->position = R3Point(px, py, pz);
+      bobsled->velocity = R3Vector(vx, vy, vz);
+      bobsled->sled = sled;
+      bobsled->skates = skates;
+      bobsled->helmets = helmets;
+      bobsled->masks = masks;
+      bobsled->sled_material = sled_material;
+      bobsled->skates_material = skates_material;
+      bobsled->helmets_material = helmets_material;
+      bobsled->masks_material = masks_material;
+      bobsled->track = NULL;
+      bobsled->camera = NULL;
+      bobsled->transformation = R3identity_matrix;
+
+      // Add bobsled to scene
+      bobsleds.push_back(bobsled);
+
+      // Update scene bounding box
+      bbox.Union(sled->mesh->bbox);
+      bbox.Union(skates->mesh->bbox);
+      bbox.Union(helmets->mesh->bbox);
+      bbox.Union(masks->mesh->bbox);
+    }
+    else if (!strcmp(cmd, "track")) {
+      // Read sink parameters 
+      double cof;
+      int type, isCovered, m;
+      if (fscanf(fp, "%lf%ld%ld%1d", &cof, &type, &isCovered, &m) != 4) {
+        fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+
+      // Read shape
+      R3Shape *trackshape = ReadShape(fp, command_number, filename);
+      if (!trackshape) {
+        fprintf(stderr, "Unable to read track mesh at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+
+      // Create particle sink
+      R3Track *track = new R3Track();
+      track->cof = cof;
+      track->isCovered = isCovered;
+      track->type = (R3TrackType) type;
+
+	  if (type == TRACK_STRAIGHT) {
+		  R3Point straight_start(0, 20, 25);
+		  R3Point straight_end(0, 20, -25);
+		  R3Plane straight_endplane(straight_end, (straight_end - straight_start));
+		  R3Vector straight_side(-20, 0, 0);
+		  straight_start.Transform(current_transformation);
+		  track->start = straight_start;
+		  straight_end.Transform(current_transformation);
+		  track->end = straight_end;
+		  track->along = straight_end - straight_start;
+		  track->startNormal = R3Vector(0, 1, 0);
+		  track->endNormal = R3Vector(0, 1, 0);
+		  straight_endplane.Transform(current_transformation);
+		  track->endPlane = straight_endplane;
+		  straight_side.Transform(current_transformation);
+		  track->side = straight_side;
+		  track->radius = straight_side.Length();
+	  }
+
+      // Add bobsled to scene
+      track_segments.push_back(track);
+
+      // Update scene bounding box
+      bbox.Union(trackshape->mesh->bbox);
     }
     else if (!strcmp(cmd, "particle")) {
       // Read position and velocity
@@ -810,6 +962,11 @@ Read(const char *filename, R3Node *node)
         }
       }
 
+      // push onto stack and update current transformation
+      R3Matrix Rmatrix = R3Matrix(matrix);
+      transformations.push_back(Rmatrix);
+      current_transformation.Transform(Rmatrix);
+
       // Create new group node
       R3Node *node = new R3Node();
       node->transformation = R3Matrix(matrix);
@@ -834,6 +991,10 @@ Read(const char *filename, R3Node *node)
       group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
+
+      R3Matrix Rmatrix = transformations.back();
+      transformations.pop_back();
+      current_transformation.Transform(Rmatrix.Inverse());
     }
     else if (!strcmp(cmd, "material")) {
       // Read data
