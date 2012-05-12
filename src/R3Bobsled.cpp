@@ -28,34 +28,47 @@ double ANGLE_SHIFT = 0.016;
 // Updating Bobsled
 ////////////////////////////////////////////////////////////
 
-void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, bool force_left, bool force_right) {
+void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, 
+				   bool force_left, bool force_right)
+{
+	// update each sled in the scene
 	for (int i = 0; i < scene->NBobsleds(); i++) {
+		
+		// get the current sled and its track segment
 		R3Bobsled *bobsled = scene->Bobsled(i);
-        R3Ray along_ray(bobsled->track->start, bobsled->track->along, false);
-		double r = R3Distance(bobsled->position, along_ray);
+		R3Track *track = bobsled->track;
+
+		// find the closest point on the along vector of the track
+		R3Vector temp(bobsled->position - track->start);
+        temp.Project(track->along);
+        R3Point center_point(track->start);
+        center_point += temp;
+		double r = R3Distance(center_point, bobsled->position);
 		R3Vector force(R3null_vector);
 		force = Force(bobsled, r);
 		R3Vector velocity(R3null_vector);
 		velocity = bobsled->velocity + delta_time * force/bobsled->mass;
 		
 		// Forward translation on a straight track
-		R3Track *track = bobsled->track;
 		R3Vector v_along(R3null_vector);
 		if (track->type == TRACK_STRAIGHT) {
 			v_along = bobsled->velocity.Dot(track->along) * track->along;
-			//bobsled->position.Translate(v_along);
-            bobsled->velocity.Print();
+			bobsled->position.Translate(v_along);
             bobsled->sled->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
             bobsled->skates->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
             bobsled->helmets->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+            bobsled->masks->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+			bobsled->camera->eye += v_along;
 		}
 		
 		// Side rotation on a straight track
 		R3Vector v_side(R3null_vector);
 		R3Vector rotate_vector(R3null_vector);
+		R3Line rotate_line(track->start, track->along);
 		if (track->type == TRACK_STRAIGHT) {
 			v_side = bobsled->velocity.Dot(track->side) * track->side;
 			rotate_vector = track->along;
+			
 		}
         R3Point new_point(bobsled->position + delta_time * v_side);
         R3Vector dist_vect(bobsled->position - new_point);
@@ -66,7 +79,12 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, bool 
         if (force_left)
             delta_theta -= ANGLE_SHIFT;
         bobsled->little_theta += delta_theta;
-        bobsled->position.Rotate(rotate_vector, delta_theta);
+
+        //bobsled->position.Rotate(rotate_vector, delta_theta);
+		bobsled->sled->mesh->Rotate(delta_theta, rotate_line);
+		bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
+		bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
+		bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
         
         // check if over the edge
         if (bobsled->little_theta > M_PI/4) {
@@ -80,6 +98,8 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, bool 
             bobsled->track = track->next;
             bobsled->big_theta = 0;
         }
+
+		bobsled->velocity = velocity;
 	}
   /*  
     // do forward translation

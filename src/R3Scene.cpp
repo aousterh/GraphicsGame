@@ -445,6 +445,8 @@ Read(const char *filename, R3Node *node)
 		  track->side = straight_side;
 		  track->radius = straight_side.Length();
 		  track->next = NULL;
+		  track->along.Normalize();
+		  track->side.Normalize();
 	  }
 
       // Add track to scene
