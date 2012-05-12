@@ -20,45 +20,36 @@ using namespace std;
 #   define FALSE false
 #endif
 
-<<<<<<< HEAD
-enum angle_shift 0.016
 
-R3Bobsled::
-R3Bobsled(void)
-  : position(R3null_point),
-    velocity(R3null_vector),
-    mass(0),
-    main_theta(0),
-    inside_theta(0)
-{
-  // Initialize material
-	material = NULL;
-  
-  // Initialize mesh
-  mesh = NULL;
-}
+//enum ANGLE_SHIFT 0.016
 
-int R3Bobsled::
-Read(const char *filename)
-{
-  // do stuff?
-  // read in mesh?
-}
-=======
->>>>>>> 1326cd87873ec13084d934af14a7f58bf700b7f2
 
 ////////////////////////////////////////////////////////////
 // Updating Bobsled
 ////////////////////////////////////////////////////////////
 
 void UpdateBobsled(R3Scene scene, R3Node *node, double current_time, double delta_time, bool force_left, bool force_right) {
-  /*  R3Bobsled bobsled(this);
-    double half_height = .5 * node->bbox.YLength();
-    //R3Vector along(this.track->rotate_vector);
-    R3Vector force(R3null_vector);
-    force = Force(bobsled, half_height);
-    R3Vector velocity(R3null_vector);
-    velocity = this.velocity + delta_time * force/this.mass;
+	for (int i = 0; i < scene.NBobsleds; i++) {
+		R3Bobsled *bobsled = scene.Bobsled(i);
+		double r = R3Ditance(bobsled->position, bobsled->track->along);
+		R3Vector force(R3null_vector);
+		force = Force(bobsled, r);
+		R3Vector velocity(R3null_vector);
+		velocity = bobsled->velocity + delta_time * force/bobsled->mass;
+		
+		// Forward translation on a straight track
+		R3Track *track = bobsled->track;
+		R3Vector v_along(R3null_vector);
+		if (track->type == TRACK_STRAIGHT) {
+			v_along = bobsled->velocity.Dot(track->along) * track->along;
+			bobsled->position.Translate(v_along);
+		}
+		
+		// Side rotation on a straight track
+		R3Vector v_side(R3null_vector);
+		
+	}
+  /*  
     // do forward translation
     R3Vector v_along(R3null_vector);
     if(this.track->isCurved) {
