@@ -138,9 +138,9 @@ UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
     return force;
 }*/
 
-void R3Bobsled::
+/*void R3Bobsled::
 UpdateBobsled(R3Node *node, double current_time, double delta_time,
               bool force_left, bool force_right)
 {
 	// fprintf(stderr, "UpdateBobsled unimplemented!\n");
-}
+}*/

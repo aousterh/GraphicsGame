@@ -52,7 +52,6 @@ struct R3Shape {
   R3Mesh *mesh;
   R3Segment *segment;
   R3Circle *circle;
-  R3Bobsled *bobsled;
 };  
 
 struct R3Material {
@@ -221,7 +220,7 @@ struct R3Scene {
   vector<R3ParticleSink *> particle_sinks;
   vector<R3ParticleSpring *> particle_springs;
   vector<R3Light *> lights;
-  vector<R3Track *> track_segments;s
+  vector<R3Track *> track_segments;
   vector<R3Bobsled *> bobsleds;
   R3Vector gravity;
   R3Camera camera;
