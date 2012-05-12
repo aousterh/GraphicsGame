@@ -1,5 +1,6 @@
 // Include file for the R3 scene stuff
 
+
 #define R3Rgb R2Pixel
 
 
@@ -14,6 +15,7 @@ typedef enum {
   R3_MESH_SHAPE,
   R3_SEGMENT_SHAPE,
   R3_CIRCLE_SHAPE,
+  R3_BOBSLED_SHAPE,
   R3_NUM_SHAPE_TYPES
 } R3ShapeType;
 
@@ -39,7 +41,6 @@ typedef enum {
 
 
 
-
 // Scene element definitions
 
 struct R3Shape {
@@ -51,6 +52,7 @@ struct R3Shape {
   R3Mesh *mesh;
   R3Segment *segment;
   R3Circle *circle;
+  R3Bobsled *bobsled;
 };  
 
 struct R3Material {
@@ -91,6 +93,7 @@ struct R3Camera {
 struct R3Node {
   struct R3Node *parent;
   vector<struct R3Node *> children;
+  vector<struct R3Bobsled *> bobsleds;
   R3Shape *shape;
   R3Matrix transformation;
   R3Material *material;
@@ -218,7 +221,7 @@ struct R3Scene {
   vector<R3ParticleSink *> particle_sinks;
   vector<R3ParticleSpring *> particle_springs;
   vector<R3Light *> lights;
-  vector<R3Track *> track_segments;
+  vector<R3Track *> track_segments;s
   vector<R3Bobsled *> bobsleds;
   R3Vector gravity;
   R3Camera camera;

@@ -8,10 +8,13 @@
 
 #include "R3/R3.h"
 #include "R3Scene.h"
+#include "R3Bobsled.h"
+#include "R3Track.h"
 #include "particle.h"
 #include "R3Bobsled.h"
 #include "cos426_opengl.h"
 #include <cmath>
+#include "Mountain.h"
 
 
 ////////////////////////////////////////////////////////////
@@ -33,6 +36,9 @@ static const char *video_prefix = "./video-frames/";
 static int integration_type = EULER_INTEGRATION;
 
 
+//Mountain
+Mountain * m = NULL; //new Mountain();
+
 
 // Display variables
 
@@ -52,6 +58,12 @@ static int save_image = 0;
 static int save_video = 0;
 static int num_frames_to_record = -1; 
 static int quit = 0;
+static int num_bobsleds = 0;
+// forces left and right for players
+// p1 is A-S-D-W, p2 is left-down-right-up
+static bool *force_left;
+static bool *force_right;
+
 
 
 // GLUT variables 
@@ -156,6 +168,8 @@ void DrawShape(R3Shape *shape)
   else if (shape->type == R3_MESH_SHAPE) shape->mesh->Draw();
   else if (shape->type == R3_SEGMENT_SHAPE) shape->segment->Draw();
   else if (shape->type == R3_CIRCLE_SHAPE) shape->circle->Draw();
+  else if (shape->type == R3_BOBSLED_SHAPE)
+    fprintf(stderr, "Drawing bobsleds unimplemented");
   else fprintf(stderr, "Unrecognized shape type: %d\n", shape->type);
 }
 
@@ -568,6 +582,66 @@ void DrawCamera(R3Scene *scene)
 }
 
 
+void DrawMountain()
+{
+	R3Material * mat = new R3Material();
+	mat->emission = R3Rgb(0, 0, 0, 0);
+	mat->ka = R3Rgb(1, 1, 1, 1);
+	mat->kd = R3Rgb(1, 1, 1, 1);
+	mat->ks = R3Rgb(1, 1, 1, 1);
+	mat->kt = R3Rgb(0, 0, 0, 0);
+	mat->shininess = 10;
+	mat->texture = NULL;
+	LoadMaterial(mat);
+	delete mat;
+
+	for (int i = 0; i < m->width - 1; i++)
+	{
+		for (int j = 0; j < m->height - 1; j++)
+		{
+			glBegin(GL_POLYGON);
+
+			R3Point p1(i, m->heights[i][j], j);
+			R3Point p2(i, m->heights[i][j+1], j+1);
+			R3Point p3(i+1, m->heights[i+1][j+1], j+1);
+			R3Vector v = p2 - p1;
+			R3Vector u = p3 - p1;
+			R3Vector norm = v;
+			norm.Cross(u);
+			norm.Normalize();
+
+			glNormal3d(norm[0], norm[1], norm[2]);
+			glVertex3d(i, m->heights[i][j], j);
+			glVertex3d(i, m->heights[i][j+1], j+1);
+			glVertex3d(i+1, m->heights[i+1][j+1], j+1);
+			glEnd();
+
+			/*glColor3d(1.0, 1.0, 1.0);
+			glLineWidth(5);
+			glBegin(GL_LINES);
+			glVertex3d(i, m->heights[i][j], j);
+			R3Point asdf(i, m->heights[i][j], j);
+			R3Point end = asdf + norm * 2;
+			glVertex3d(end[0], end[1], end[2]);
+			glEnd();*/
+
+
+			glBegin(GL_POLYGON);
+
+			R3Point p4(i+1, m->heights[i+1][j], j);
+			v = p4 - p1;
+			u = p3 - p1;
+			norm = u;
+			norm.Cross(v);
+			norm.Normalize();
+			glNormal3d(norm[0], norm[1], norm[2]);
+			glVertex3d(i, m->heights[i][j], j);
+			glVertex3d(i+1, m->heights[i+1][j+1], j+1);
+			glVertex3d(i+1, m->heights[i+1][j], j);
+			glEnd();
+		}
+	}
+}
 
 void DrawBobsleds(R3Scene *scene)
 {
@@ -638,6 +712,7 @@ void DrawScene(R3Scene *scene)
   // Draw nodes recursively
   DrawNode(scene, scene->root);
   DrawBobsleds(scene);
+  //DrawMountain();
 }
 
 
@@ -783,6 +858,53 @@ void DrawParticleSprings(R3Scene *scene)
 }
 
 
+void UpdateBobsleds(R3Scene *scene)
+{
+  // Get current time (in seconds) since start of execution
+  double current_time = GetTime();
+  static double previous_time = 0;
+  
+  static double time_lost_taking_videos = 0; // for switching back and forth
+  // between recording and not
+  // recording smoothly
+  
+  // program just started up?
+  if (previous_time == 0) previous_time = current_time;
+  
+  // time passed since starting
+  double delta_time = current_time - previous_time;
+  
+  if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
+    delta_time = VIDEO_FRAME_DELAY;    
+    // ... but we need to keep track how much time we gained and lost so that we can arbitrarily switch back and forth ...
+    time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
+  } else { // real time simulation
+    delta_time = current_time - previous_time;
+  }
+  
+  // Update Bobsled positions
+  for (int i = 0; i < num_bobsleds; i++)
+  {
+    R3Bobsled *bobsled = scene->bobsleds[i];
+    bobsled->UpdateBobsled(bobsled->node, current_time - time_lost_taking_videos,
+                           delta_time, force_left[i], force_right[i]);
+    force_left[i] = false;
+    force_right[i] = false;
+  }
+  
+  // Remember previous time
+  previous_time = current_time;
+}
+
+void DrawBobsleds(R3Scene *scene)
+{
+  // Draw Bobsleds
+  for (int i = 0; i < num_bobsleds; i++)
+  {
+    R3Node *node = scene->bobsleds[i]->node;
+    DrawNode(scene, node);
+  }
+}
 
 // Overlays the Map on top of existing content
 void DrawMap(double x_start, double y_start, double x_width, double y_width)
@@ -807,6 +929,7 @@ void DrawMap(double x_start, double y_start, double x_width, double y_width)
   glEnable(GL_BLEND);
   
   DrawScene(map);
+  DrawBobsleds(scene);
   
   glDisable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ZERO);
@@ -925,12 +1048,20 @@ void GLUTRedraw(void)
 
   int x[2] = {0, GLUTwindow_width/2};
   
+  // update the bobsled positions
+  UpdateBobsleds(scene);
+  
   for (int i = 0; i < 2; i++)
   {
+  /*  R3Node *node = bobsled_nodes[i];
+    R3Bobsled *bobsled = node->shape->bobsled;*/
+    
     glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
     // Load camera
-    LoadCamera(&camera);  // TODO: load camera of bobsled! will be easy, Ricky.
+    LoadCamera(&camera);
+    // TODO: load camera of bobsled! will be easy, Ricky.
+    // switch to being fixed behind bobsled!!!
     
     // Load scene lights
     LoadLights(scene);
@@ -952,10 +1083,14 @@ void GLUTRedraw(void)
     
     // Draw particle springs
     DrawParticleSprings(scene);
-
+    
     // Draw scene surfaces
     if (show_faces) {
       glEnable(GL_LIGHTING);
+      
+      // Draw bobsleds
+      DrawBobsleds(scene);
+      
       DrawScene(scene);
     }
     
@@ -964,6 +1099,10 @@ void GLUTRedraw(void)
       glDisable(GL_LIGHTING);
       glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+      
+      // Draw bobsleds
+      DrawBobsleds(scene);
+      
       DrawScene(scene);
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -1120,13 +1259,20 @@ void GLUTSpecial(int key, int x, int y)
 
   // Process keyboard button event 
   switch (key) {
-  case GLUT_KEY_F1:
-    save_image = 1;
-    break;
-  case GLUT_KEY_F2:
-    save_video = save_video ^ 1;
-    break;
+    case GLUT_KEY_F1:
+      save_image = 1;
+      break;
+    case GLUT_KEY_F2:
+      save_video = save_video ^ 1;
+      break;
+    case GLUT_KEY_LEFT:
+      force_left[1] = true;
+      break;
+    case GLUT_KEY_RIGHT:
+      force_right[1] = true;
+      break;
   }
+  
 
   // Remember mouse position 
   GLUTmouse[0] = x;
@@ -1148,6 +1294,11 @@ void GLUTKeyboard(unsigned char key, int x, int y)
 
   // Process keyboard button event 
   switch (key) {
+  case 'A':
+  case 'a':
+    force_left[0] = true;
+    break;
+      
   case 'B':
   case 'b':
     show_bboxes = !show_bboxes;
@@ -1156,6 +1307,11 @@ void GLUTKeyboard(unsigned char key, int x, int y)
   case 'C':
   case 'c':
     show_camera = !show_camera;
+    break;
+      
+  case 'D':
+  case 'd':
+    force_right[0] = true;
     break;
 
   case 'E':
@@ -1303,7 +1459,6 @@ void GLUTInit(int *argc, char **argv)
 // SCENE READING
 ////////////////////////////////////////////////////////////
 
-
 R3Scene *
 ReadScene(const char *filename)
 {
@@ -1322,6 +1477,12 @@ ReadScene(const char *filename)
 
   // Remember initial camera
   camera = scene->camera;
+  
+  // TODO: initialize bobsled positions and masses!!!
+  num_bobsleds = scene->bobsleds.size();
+  
+  force_left = new bool[num_bobsleds];
+  force_right = new bool[num_bobsleds];
 
   // Return scene
   return scene;
