@@ -114,6 +114,10 @@ struct R3Track {
 	R3Vector side;			// vector from center to right edge
 	double cof;				// coefficient of friction
 	double radius;			// track radius
+	R3Track *next;
+	R3Shape *track_shape;
+	R3Material *material;
+	R3Matrix transformation;
 };
 
 struct R3Bobsled {
@@ -131,6 +135,8 @@ struct R3Bobsled {
     R3Track *track;                 // current section of track that this bobsled is on
     R3Camera *camera;               // bobsled's camera    
     R3Matrix transformation;
+	double big_theta;
+	double little_theta;
 };
 
 
@@ -209,6 +215,8 @@ struct R3Scene {
   R3Particle *Particle(int k) const;
   int NBobsleds(void) const;
   R3Bobsled *Bobsled(int k) const;
+  int NTracks(void) const;
+  R3Track *Track(int k) const;
 
   // I/O functions
   int Read(const char *filename, R3Node *root = NULL);
@@ -254,6 +262,21 @@ Bobsled(int k) const
 {
   // Return kth light
   return bobsleds[k];
+}
+
+
+inline int R3Scene::
+NTracks(void) const
+{
+  // Return number of bobsleds
+  return track_segments.size();
+}
+
+inline R3Track *R3Scene::
+Track(int k) const
+{
+  // Return kth light
+  return track_segments[k];
 }
 
 

@@ -319,7 +319,6 @@ Read(const char *filename, R3Node *node)
           return 0;
         }
       }
-      else printf("fuck");
       R3Material *helmets_material = group_materials[depth];
       if (helmets_mat_id >= 0) {
         if (helmets_mat_id < (int) materials.size()) {
@@ -354,9 +353,11 @@ Read(const char *filename, R3Node *node)
       bobsled->skates_material = skates_material;
       bobsled->helmets_material = helmets_material;
       bobsled->masks_material = masks_material;
-      bobsled->track = NULL;
+      bobsled->track = NULL;//track_segments[0];
       bobsled->camera = NULL;
       bobsled->transformation = R3identity_matrix;
+	  bobsled->big_theta = 0;
+	  bobsled->little_theta = 0;
 
       // Add bobsled to scene
       bobsleds.push_back(bobsled);
@@ -371,7 +372,7 @@ Read(const char *filename, R3Node *node)
       // Read sink parameters 
       double cof;
       int type, isCovered, m;
-      if (fscanf(fp, "%lf%ld%ld%1d", &cof, &type, &isCovered, &m) != 4) {
+      if (fscanf(fp, "%ld%lf%ld%1d", &type, &cof, &isCovered, &m) != 4) {
         fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
         return 0;
       }
@@ -383,11 +384,26 @@ Read(const char *filename, R3Node *node)
         return 0;
       }
 
-      // Create particle sink
+	  // get track material
+	  R3Material *track_material = group_materials[depth];
+      if (m >= 0) {
+        if (m < (int) materials.size()) {
+          track_material = materials[m];
+        }
+        else {
+          fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+          return 0;
+        }
+      }
+
+      // Create track segment
       R3Track *track = new R3Track();
       track->cof = cof;
       track->isCovered = isCovered;
       track->type = (R3TrackType) type;
+	  track->material = track_material;
+	  track->transformation = current_transformation;
+	  track->track_shape = trackshape;
 
 	  if (type == TRACK_STRAIGHT) {
 		  R3Point straight_start(0, 20, 25);
@@ -406,10 +422,15 @@ Read(const char *filename, R3Node *node)
 		  straight_side.Transform(current_transformation);
 		  track->side = straight_side;
 		  track->radius = straight_side.Length();
+		  track->next = NULL;
 	  }
 
-      // Add bobsled to scene
+      // Add track to scene
+	  int NSegments = track_segments.size();
       track_segments.push_back(track);
+	  if (NSegments != 0) {
+		  track_segments[NSegments - 1]->next = track_segments[NSegments];
+	  }
 
       // Update scene bounding box
       bbox.Union(trackshape->mesh->bbox);
