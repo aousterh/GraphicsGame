@@ -11,6 +11,7 @@
 #include "particle.h"
 #include "cos426_opengl.h"
 #include <cmath>
+#include "Mountain.h"
 
 
 ////////////////////////////////////////////////////////////
@@ -31,6 +32,9 @@ static char *output_image_name = NULL;
 static const char *video_prefix = "./video-frames/";
 static int integration_type = EULER_INTEGRATION;
 
+
+//Mountain
+Mountain * m = new Mountain();
 
 
 // Display variables
@@ -567,11 +571,73 @@ void DrawCamera(R3Scene *scene)
 }
 
 
+void DrawMountain()
+{
+	R3Material * mat = new R3Material();
+	mat->emission = R3Rgb(0, 0, 0, 0);
+	mat->ka = R3Rgb(1, 1, 1, 1);
+	mat->kd = R3Rgb(1, 1, 1, 1);
+	mat->ks = R3Rgb(1, 1, 1, 1);
+	mat->kt = R3Rgb(0, 0, 0, 0);
+	mat->shininess = 10;
+	mat->texture = NULL;
+	LoadMaterial(mat);
+	delete mat;
+
+	for (int i = 0; i < m->width - 1; i++)
+	{
+		for (int j = 0; j < m->height - 1; j++)
+		{
+			glBegin(GL_POLYGON);
+
+			R3Point p1(i, m->heights[i][j], j);
+			R3Point p2(i, m->heights[i][j+1], j+1);
+			R3Point p3(i+1, m->heights[i+1][j+1], j+1);
+			R3Vector v = p2 - p1;
+			R3Vector u = p3 - p1;
+			R3Vector norm = v;
+			norm.Cross(u);
+			norm.Normalize();
+
+			glNormal3d(norm[0], norm[1], norm[2]);
+			glVertex3d(i, m->heights[i][j], j);
+			glVertex3d(i, m->heights[i][j+1], j+1);
+			glVertex3d(i+1, m->heights[i+1][j+1], j+1);
+			glEnd();
+
+			/*glColor3d(1.0, 1.0, 1.0);
+			glLineWidth(5);
+			glBegin(GL_LINES);
+			glVertex3d(i, m->heights[i][j], j);
+			R3Point asdf(i, m->heights[i][j], j);
+			R3Point end = asdf + norm * 2;
+			glVertex3d(end[0], end[1], end[2]);
+			glEnd();*/
+
+
+			glBegin(GL_POLYGON);
+
+			R3Point p4(i+1, m->heights[i+1][j], j);
+			v = p4 - p1;
+			u = p3 - p1;
+			norm = u;
+			norm.Cross(v);
+			norm.Normalize();
+			glNormal3d(norm[0], norm[1], norm[2]);
+			glVertex3d(i, m->heights[i][j], j);
+			glVertex3d(i+1, m->heights[i+1][j+1], j+1);
+			glVertex3d(i+1, m->heights[i+1][j], j);
+			glEnd();
+		}
+	}
+}
 
 void DrawScene(R3Scene *scene) 
 {
   // Draw nodes recursively
   DrawNode(scene, scene->root);
+
+  DrawMountain();
 }
 
 
