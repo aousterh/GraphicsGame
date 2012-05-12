@@ -60,10 +60,10 @@ struct R3MeshFace {
 
   // Data
   vector<R3MeshVertex *> vertices;
+  vector<R2Point *> faceTexCoords;
   R3Plane plane;
   int id;
 };
-
 
 
 ////////////////////////////////////////////////////////////
@@ -167,6 +167,7 @@ struct R3Mesh {
   // Data
   vector<R3MeshVertex *> vertices;
   vector<R3MeshFace *> faces;
+  vector<R2Point *> texCoords;
   R3Box bbox;
 };
 

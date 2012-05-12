@@ -891,7 +891,8 @@ Read(const char *filename, R3Node *node)
       R3Bobsled *bobsled = new R3Bobsled();
       bobsled->velocity = R3Vector(0, 0, 0);
       bobsled->node = node;
-      // TODO: set position and mass somewhere?
+      bobsled->track = NULL;
+      // TODO: set position and mass and track somewhere?
       
       bobsleds.push_back(bobsled);
     }

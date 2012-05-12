@@ -152,6 +152,7 @@
     <ClCompile Include="jpeg\jquant1.c" />
     <ClCompile Include="jpeg\jquant2.c" />
     <ClCompile Include="jpeg\jutils.c" />
+    <ClCompile Include="R3Bobsled.cpp" />
     <ClCompile Include="R3\R3Box.cpp" />
     <ClCompile Include="R3\R3Circle.cpp" />
     <ClCompile Include="R3\R3Cone.cpp" />
@@ -188,6 +189,8 @@
     <ClInclude Include="jpeg\jpegint.h" />
     <ClInclude Include="jpeg\jpeglib.h" />
     <ClInclude Include="jpeg\jversion.h" />
+    <ClInclude Include="R3Bobsled.h" />
+    <ClInclude Include="R3Track.h" />
     <ClInclude Include="R3\R3.h" />
     <ClInclude Include="R3\R3Box.h" />
     <ClInclude Include="R3\R3Circle.h" />
