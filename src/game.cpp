@@ -36,7 +36,7 @@ static int integration_type = EULER_INTEGRATION;
 
 
 //Mountain
-Mountain * m = NULL; //new Mountain();
+Mountain * m = new Mountain();
 
 
 // Display variables
@@ -329,7 +329,7 @@ void LoadMapCamera(R3Camera *map_camera, R3Scene *map)
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
   glMultMatrixd(camera_matrix);
-  //glTranslated(-(map_camera->eye[0]), -(map_camera->eye[1]), -(map_camera->eye[2]));
+  glTranslated(-(map_camera->eye[0]), -(map_camera->eye[1]), -(map_camera->eye[2]));
 }
 
 
@@ -577,8 +577,16 @@ void DrawCamera(R3Scene *scene)
   if (lighting) glEnable(GL_LIGHTING);
 }
 
+double IntersectGroundPlane(R3Plane p, R3Ray r)
+{
+	double vDotN = r.Vector().Dot(p.Normal());
+	if (vDotN == 0) return -1.0;
 
-void DrawMountain()
+	double t = -(p.Normal().Dot(r.Start().Vector()) + p.D()) / vDotN;
+	return t;
+}
+
+void DrawMountain(R3Scene * scene)
 {
 	R3Material * mat = new R3Material();
 	mat->emission = R3Rgb(0, 0, 0, 0);
@@ -591,7 +599,102 @@ void DrawMountain()
 	LoadMaterial(mat);
 	delete mat;
 
-	for (int i = 0; i < m->width - 1; i++)
+	//ground plane
+	R3Vector ground_normal(0, 1, 0);
+	R3Point ground_pt(0, -100, 0);
+	R3Plane ground(ground_pt, ground_normal);
+
+	R3Camera * cam = scene->bobsleds[0]->camera;
+
+	double d = cam->neardist;
+	//FIXME really weird
+	double tanTheta = tan(cam->xfov / 1.5);
+
+	R3Point bl = cam->eye + d * cam->towards
+			- d * tanTheta * cam->up
+			- d * tanTheta * cam->right;
+
+	R3Point br = cam->eye + d * cam->towards
+			- d * tanTheta * cam->up
+			+ d * tanTheta * cam->right;
+
+	R3Ray rray(br, br - cam->eye);
+	R3Ray lray(bl, bl - cam->eye);
+
+	//intersect with ground plane
+	double t1 = IntersectGroundPlane(ground, rray);
+	double t2 = IntersectGroundPlane(ground, lray);
+	if (t1 < 0 || t2 < 0) return;
+
+	R3Point r = rray.Point(t1);
+	R3Point l = lray.Point(t2);
+	R3Vector axis(1, 0, 0);
+	R3Vector v1(r[0], 0, r[2]);
+	R3Vector v2(l[0], 0, l[2]);
+	v1.Normalize();
+	v2.Normalize();
+
+	double theta1 = acos(v1.Dot(axis));
+	double theta2 = acos(v2.Dot(axis));
+	if (v1[2] < 0) theta1 += 3.14159;
+	if (v2[2] < 0) theta2 += 3.14159;
+
+	theta1 /= (2.0 * 3.14159);
+	theta2 /= (2.0 * 3.14159);
+
+	const double mountainDist = 2000.0;
+
+	int dist = R3Distance((v1 * mountainDist).Point(), (v2 * mountainDist).Point());
+
+	int index = (double) m->width * theta1;
+	printf("start index %f %d\n", theta1, dist);
+
+	R3Point cur = (v1 * mountainDist).Point();
+	R3Vector next = (v2 * mountainDist).Point() - (v1 * mountainDist).Point();
+	next.Normalize();
+	for (int i = 0; i < dist; i++)
+	{
+		for (int j = 0; j < m->height; j++)
+		{
+			R3Point nextPt = cur + next;
+			R3Point p1(cur[0], m->heights[(i + index) % m->width][j], cur[2]);
+			R3Point p2(cur[0], m->heights[(i + index) % m->width][j+1], nextPt[2]);
+			R3Point p3(nextPt[0], m->heights[(i + 1 + index) % m->width][j+1], nextPt[2]);
+			R3Point p4(nextPt[0], m->heights[(i + 1 + index) % m->width][j], cur[2]);
+
+			glBegin(GL_POLYGON);
+
+			R3Vector v = p2 - p1;
+			R3Vector u = p3 - p1;
+			R3Vector norm = v;
+			norm.Cross(u);
+			norm.Normalize();
+
+			glNormal3d(norm[0], norm[1], norm[2]);
+			glVertex3d(p1[0], p1[1], p1[2]);
+			glVertex3d(p2[0], p2[1], p2[2]);
+			glVertex3d(p3[0], p3[1], p3[2]);
+			glEnd();
+
+			glBegin(GL_POLYGON);
+
+			v = p4 - p1;
+			u = p3 - p1;
+			norm = u;
+			norm.Cross(v);
+			norm.Normalize();
+
+			glNormal3d(norm[0], norm[1], norm[2]);
+			glVertex3d(p1[0], p1[1], p1[2]);
+			glVertex3d(p3[0], p3[1], p3[2]);
+			glVertex3d(p4[0], p4[1], p4[2]);
+			glEnd();
+
+			cur = nextPt;
+		}
+	}
+
+	/*for (int i = 0; i < m->width - 1; i++)
 	{
 		for (int j = 0; j < m->height - 1; j++)
 		{
@@ -621,7 +724,7 @@ void DrawMountain()
 			glVertex3d(end[0], end[1], end[2]);
 			glEnd();*/
 
-
+/*
 			glBegin(GL_POLYGON);
 
 			R3Point p4(i+1, m->heights[i+1][j], j);
@@ -636,7 +739,7 @@ void DrawMountain()
 			glVertex3d(i+1, m->heights[i+1][j], j);
 			glEnd();
 		}
-	}
+	}*/
 }
 
 void DrawBobsleds(R3Scene *scene)
@@ -667,12 +770,12 @@ void DrawBobsleds(R3Scene *scene)
 
   // Update particles
 
-  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, false, false);
+  //UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, false, false);
 
   
   // Draw all bobsleds
   glEnable(GL_LIGHTING);
-  for (int i = 0; i < scene->NBobsleds(); i++) {
+  for (int i = 0; i < 1 /*scene->NBobsleds()*/; i++) {
     R3Bobsled *bobsled = scene->Bobsled(i);
 
     // Push transformation onto stack
@@ -698,6 +801,8 @@ void DrawBobsleds(R3Scene *scene)
     // Restore previous transformation
     glPopMatrix();
   }
+    // Remember previous time
+    previous_time = current_time;
 }
 
 void DrawTracks(R3Scene *scene)
@@ -724,10 +829,10 @@ void DrawTracks(R3Scene *scene)
 void DrawScene(R3Scene *scene) 
 {
   // Draw nodes recursively
+  DrawMountain(scene);
   DrawNode(scene, scene->root);
   DrawBobsleds(scene);
   DrawTracks(scene);
-  //DrawMountain();
 }
 
 
