@@ -696,10 +696,26 @@ void DrawBobsleds(R3Scene *scene)
     // Restore previous transformation
     glPopMatrix();
   }
+}
 
+void DrawTracks(R3Scene *scene)
+{
+  // Draw all tracks
+  glEnable(GL_LIGHTING);
+  for (int i = 0; i < scene->NTracks(); i++) {
+    R3Track *track = scene->Track(i);
 
-  // Remember previous time
-  previous_time = current_time;
+    // Push transformation onto stack
+    glPushMatrix();
+    LoadMatrix(&track->transformation);
+
+    // Load track material
+    LoadMaterial(track->material);
+    DrawShape(track->track_shape);
+
+    // Restore previous transformation
+    glPopMatrix();
+  }
 }
 
 
@@ -708,6 +724,7 @@ void DrawScene(R3Scene *scene)
   // Draw nodes recursively
   DrawNode(scene, scene->root);
   DrawBobsleds(scene);
+  DrawTracks(scene);
   //DrawMountain();
 }
 
@@ -996,9 +1013,7 @@ void GLUTRedraw(void)
   
   for (int i = 0; i < 2; i++)
   {
-  /*  R3Node *node = bobsled_nodes[i];
-    R3Bobsled *bobsled = node->shape->bobsled;*/
-    
+	R3Bobsled *bobsled = scene->Bobsled(i);
     glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
     // Load camera

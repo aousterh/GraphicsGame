@@ -72,20 +72,10 @@ particle_gravity
 	0 -9.81 0
 
 # snow
-#particle_source
-#	1 0 1 0 15 2
-#	100 0 10
-#	circle	0 70 0	0 -1 0	100
-
-bobsled
-	100 0 0 0 0 0 0 0 1 3 4
-	mesh models/scenes/OBJ_models/sled_body.obj
-	mesh models/scenes/OBJ_models/sled_blades.obj
-	mesh models/scenes/OBJ_models/twohelmets.obj
-	mesh models/scenes/OBJ_models/twomasks.obj
-		
-mesh
-	2 0 models/scenes/OBJ_models/groundplane.obj
+particle_source
+	1 0 1 0 100 2
+	100 5 10
+	circle	0 500 0	0 -1 0	1000
 	
 begin
 	5
@@ -101,9 +91,10 @@ begin
 	0 0 1 0
 	0 0 0 1
 	
-	mesh
-		5 1 models/scenes/OBJ_models/track_straight.obj
-
+	track
+		0 0.01 0 5
+		mesh models/scenes/OBJ_models/track_straight.obj
+		
 	end
 	
 	begin
@@ -113,9 +104,10 @@ begin
 	0 0 1 -50
 	0 0 0 1
 	
-	mesh
-		5 1 models/scenes/OBJ_models/track_straight.obj
-
+	track
+		0 0.01 0 5
+		mesh models/scenes/OBJ_models/track_straight.obj
+		
 	end
 	
 	begin
@@ -125,9 +117,10 @@ begin
 	0 0 1 -100
 	0 0 0 1
 	
-	mesh
-		5 1 models/scenes/OBJ_models/track_straight.obj
-
+	track
+		0 0.01 0 5
+		mesh models/scenes/OBJ_models/track_straight.obj
+		
 	end
 	
 	begin
@@ -137,8 +130,19 @@ begin
 	0 0 1 -150
 	0 0 0 1
 	
-	mesh
-		5 1 models/scenes/OBJ_models/track_straight.obj
-
+	track
+		0 0.01 0 5
+		mesh models/scenes/OBJ_models/track_straight.obj
+		
 	end	
 end
+
+bobsled
+	100 0 0 0 0 0 0 0 1 3 4
+	mesh models/scenes/OBJ_models/sled_body.obj
+	mesh models/scenes/OBJ_models/sled_blades.obj
+	mesh models/scenes/OBJ_models/twohelmets.obj
+	mesh models/scenes/OBJ_models/twomasks.obj
+		
+mesh
+	2 0 models/scenes/OBJ_models/groundplane.obj
