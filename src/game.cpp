@@ -9,7 +9,6 @@
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "R3Bobsled.h"
-#include "R3Track.h"
 #include "particle.h"
 #include "R3Bobsled.h"
 #include "cos426_opengl.h"
@@ -58,7 +57,6 @@ static int save_image = 0;
 static int save_video = 0;
 static int num_frames_to_record = -1; 
 static int quit = 0;
-static int num_bobsleds = 0;
 // forces left and right for players
 // p1 is A-S-D-W, p2 is left-down-right-up
 static bool *force_left;
@@ -168,8 +166,6 @@ void DrawShape(R3Shape *shape)
   else if (shape->type == R3_MESH_SHAPE) shape->mesh->Draw();
   else if (shape->type == R3_SEGMENT_SHAPE) shape->segment->Draw();
   else if (shape->type == R3_CIRCLE_SHAPE) shape->circle->Draw();
-  else if (shape->type == R3_BOBSLED_SHAPE)
-    fprintf(stderr, "Drawing bobsleds unimplemented");
   else fprintf(stderr, "Unrecognized shape type: %d\n", shape->type);
 }
 
@@ -857,55 +853,6 @@ void DrawParticleSprings(R3Scene *scene)
   if (lighting) glEnable(GL_LIGHTING);
 }
 
-
-void UpdateBobsleds(R3Scene *scene)
-{
-  // Get current time (in seconds) since start of execution
-  double current_time = GetTime();
-  static double previous_time = 0;
-  
-  static double time_lost_taking_videos = 0; // for switching back and forth
-  // between recording and not
-  // recording smoothly
-  
-  // program just started up?
-  if (previous_time == 0) previous_time = current_time;
-  
-  // time passed since starting
-  double delta_time = current_time - previous_time;
-  
-  if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
-    delta_time = VIDEO_FRAME_DELAY;    
-    // ... but we need to keep track how much time we gained and lost so that we can arbitrarily switch back and forth ...
-    time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
-  } else { // real time simulation
-    delta_time = current_time - previous_time;
-  }
-  
-  // Update Bobsled positions
-  for (int i = 0; i < num_bobsleds; i++)
-  {
-    R3Bobsled *bobsled = scene->bobsleds[i];
-    bobsled->UpdateBobsled(bobsled->node, current_time - time_lost_taking_videos,
-                           delta_time, force_left[i], force_right[i]);
-    force_left[i] = false;
-    force_right[i] = false;
-  }
-  
-  // Remember previous time
-  previous_time = current_time;
-}
-
-void DrawBobsleds(R3Scene *scene)
-{
-  // Draw Bobsleds
-  for (int i = 0; i < num_bobsleds; i++)
-  {
-    R3Node *node = scene->bobsleds[i]->node;
-    DrawNode(scene, node);
-  }
-}
-
 // Overlays the Map on top of existing content
 void DrawMap(double x_start, double y_start, double x_width, double y_width)
 {
@@ -929,7 +876,6 @@ void DrawMap(double x_start, double y_start, double x_width, double y_width)
   glEnable(GL_BLEND);
   
   DrawScene(map);
-  DrawBobsleds(scene);
   
   glDisable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ZERO);
@@ -1048,9 +994,6 @@ void GLUTRedraw(void)
 
   int x[2] = {0, GLUTwindow_width/2};
   
-  // update the bobsled positions
-  UpdateBobsleds(scene);
-  
   for (int i = 0; i < 2; i++)
   {
   /*  R3Node *node = bobsled_nodes[i];
@@ -1087,10 +1030,6 @@ void GLUTRedraw(void)
     // Draw scene surfaces
     if (show_faces) {
       glEnable(GL_LIGHTING);
-      
-      // Draw bobsleds
-      DrawBobsleds(scene);
-      
       DrawScene(scene);
     }
     
@@ -1099,10 +1038,6 @@ void GLUTRedraw(void)
       glDisable(GL_LIGHTING);
       glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
       glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      
-      // Draw bobsleds
-      DrawBobsleds(scene);
-      
       DrawScene(scene);
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
@@ -1477,10 +1412,7 @@ ReadScene(const char *filename)
 
   // Remember initial camera
   camera = scene->camera;
-  
-  // TODO: initialize bobsled positions and masses!!!
-  num_bobsleds = scene->bobsleds.size();
-  
+  int num_bobsleds = scene->NBobsleds();
   force_left = new bool[num_bobsleds];
   force_right = new bool[num_bobsleds];
 
