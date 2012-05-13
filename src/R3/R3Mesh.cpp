@@ -826,7 +826,7 @@ Draw(void) const
 
       R2Point * p2 = face->faceTexCoords[j];
       glTexCoord2d(p2->X(), p2->Y());
-
+      glColor4f(0.23, 0.78, 0.32, 0.3);
       glVertex3d(p[0], p[1], p[2]);
     }
     glEnd();

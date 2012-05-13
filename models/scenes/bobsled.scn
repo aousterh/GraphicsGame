@@ -11,11 +11,15 @@
 #    rate velocity angle_cutoff 
 #    source_shape
 
+dir_light
+  1 1 1
+  0.5 -0.5 0
+
 # sled texture
 material
-	0.2 0.2 0.2
-	0.3 0.3 1.0
-	0.2 0.2 0.2
+	1 0 0
+	1 0 0
+	1 0 0
 	0.0 0.0 0.0
 	0.0 0.0 0.0
 	100.0 1.0 ../textures/flag.jpg
@@ -41,7 +45,7 @@ material
 # helmet texture
 material
 	0.2 0.2 0.2
-	1.0 0.0 0.0
+	1.0 0 0
 	1.0 1.0 1.0
 	0.0 0.0 0.0
 	0.0 0.0 0.0
