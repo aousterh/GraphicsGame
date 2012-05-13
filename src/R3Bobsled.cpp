@@ -79,9 +79,11 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->big_percent += percent;
             //dist_to_start.Project(bobsled->track->startNormal);
             //double percent = dist/(2*M_PI*bobsled->big_r);
-            new_along = bobsled->big_percent * track->endNormal + (1 - bobsled->big_percent) * track->startNormal;
-            new_along.Normalize();
+            //new_along = bobsled->big_percent * track->endPlane->Normal() + (1 - bobsled->big_percent) * track->along;
+            
+            //new_along.Normalize();
             R3Line rotate_line(track->center_pivot);
+            new_along.Rotate(rotate_line.Vector(), delta_theta);
             bobsled->position.Rotate(rotate_line, delta_theta);
             bobsled->sled->mesh->Rotate(delta_theta, rotate_line);
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
@@ -165,10 +167,13 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             if (bobsled->track->type == TRACK_TURN_RIGHT || bobsled->track->type == TRACK_TURN_LEFT) {
                 printf("in curved track\n");
                 R3Vector dist_to_start(bobsled->position - bobsled->track->start);
-                dist_to_start.Project(bobsled->track->startNormal);
-                double percent = dist_to_start.Length()/(2*M_PI*big_r);
-                bobsled->big_percent = percent;
-                bobsled->track->along = bobsled->track->startNormal;
+                dist_to_start.Project(bobsled->track->along);
+                R3Vector vect_radius(track->center_point - position);
+                double delta_theta = dist_to_start.Length()/vect_radius.Length();
+                //double percent = dist_to_start.Length()/(2*M_PI*big_r);
+                //bobsled->big_percent = percent;
+                R3Line rotate_line(bobsled->track->center_pivot);
+                bobsled->track->along.Rotate(bobsled->track->center_pivot.Vector(), delta_theta);
             }
             else
                 bobsled->big_percent = 0;
@@ -207,7 +212,6 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
     }
     
     else {
-        printf("in else\n");
         R3Vector normal(track->center_point - bobsled->position);
         normal.Normalize();
         double dot = fg.Dot(normal);
