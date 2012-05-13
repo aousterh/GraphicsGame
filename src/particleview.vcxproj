@@ -98,6 +98,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="game.cpp" />
+    <ClCompile Include="Mountain.cpp" />
     <ClCompile Include="particle.cpp" />
     <ClCompile Include="R2\R2Distance.cpp" />
     <ClCompile Include="R2\R2Image.cpp" />
@@ -170,6 +171,7 @@
     <ClCompile Include="R3Scene.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Mountain.h" />
     <ClInclude Include="R2\R2.h" />
     <ClInclude Include="R2\R2Distance.h" />
     <ClInclude Include="R2\R2Image.h" />

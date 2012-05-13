@@ -186,6 +186,7 @@ void LoadMaterial(R3Material *material, bool transparent)
   
   // Check if same as current
   static R3Material *current_material = NULL;
+  //if (material == current_material) return;
   current_material = material;
 
   // Compute "opacity"
@@ -706,10 +707,11 @@ void DrawMountain(R3Scene * scene)
 
 	//ground plane
 	R3Vector ground_normal(0, 1, 0);
-	R3Point ground_pt(0, -100, 0);
+	R3Point ground_pt(0, -50, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
-	R3Camera * cam = scene->bobsleds[0]->camera;
+	//FIXME change this
+	R3Camera * cam = &camera;//scene->bobsleds[0]->camera;
 
 	double d = cam->neardist;
 	//FIXME really weird
@@ -749,23 +751,72 @@ void DrawMountain(R3Scene * scene)
 
 	const double mountainDist = 2000.0;
 
-	int dist = R3Distance((v1 * mountainDist).Point(), (v2 * mountainDist).Point());
+	R3Point startPt = (v1 * mountainDist).Point();
+	R3Point endPt = (v2 * mountainDist).Point();
+
+	///////TEMP//////////////////////////////////////
+	startPt += cam->eye;
+	endPt += cam->eye;
+	startPt[1] = -ground.D();
+	endPt[1] = -ground.D();
+	///////TEMP//////////////////////////////////////
+
+
+	int dist = R3Distance(startPt, endPt);
 
 	int index = (double) m->width * theta1;
-	printf("start index %f %d\n", theta1, dist);
+//	printf("start index %f %d\n", theta1, dist);
+//	printf("towards ");
+//	cam->towards.Print();
+//	printf("\n");
 
-	R3Point cur = (v1 * mountainDist).Point();
-	R3Vector next = (v2 * mountainDist).Point() - (v1 * mountainDist).Point();
+	R3Point cur = startPt;
+	R3Vector next = endPt - startPt;
+	R3Vector back(0, 1, 0);
+	back.Cross(next);
+	back.Flip();
+
+	back.Normalize();
 	next.Normalize();
+
+	///////TEMP//////////////////////////////////////
+	dist /= 3;
+	next *= 3;
+	/////END TEMP//////////////////////////////////
+
+	//front polygon
 	for (int i = 0; i < dist; i++)
 	{
+		glBegin(GL_POLYGON);
+		R3Point nextPt = cur + next;
+
+		glNormal3d(-cam->towards[0], -cam->towards[1], -cam->towards[2]);
+		glColor3d(1, 1, 1);
+		glVertex3d(cur[0], -ground.D(), cur[2]);
+		glVertex3d(cur[0], m->heights[(i + index) % m->width][0], cur[2]);
+		glVertex3d(nextPt[0], m->heights[(i + 1 + index) % m->width][0], nextPt[2]);
+		glVertex3d(nextPt[0], -ground.D(), nextPt[2]);
+		glEnd();
+
+		cur = nextPt;
+	}
+
+	cur = startPt;
+	for (int i = 0; i < dist; i++)
+	{
+		R3Point nextPt = cur + next;
+
+		R3Point anchor = cur;
+		R3Point over = nextPt;
+		R3Point overUp = over + back;
 		for (int j = 0; j < m->height; j++)
 		{
-			R3Point nextPt = cur + next;
-			R3Point p1(cur[0], m->heights[(i + index) % m->width][j], cur[2]);
-			R3Point p2(cur[0], m->heights[(i + index) % m->width][j+1], nextPt[2]);
-			R3Point p3(nextPt[0], m->heights[(i + 1 + index) % m->width][j+1], nextPt[2]);
-			R3Point p4(nextPt[0], m->heights[(i + 1 + index) % m->width][j], cur[2]);
+			R3Point nextDepth =	anchor + back;
+
+			R3Point p1(anchor[0], m->heights[(i + index) % m->width][j], anchor[2]);
+			R3Point p2(nextDepth[0], m->heights[(i + index) % m->width][j+1], nextDepth[2]);
+			R3Point p3(overUp[0], m->heights[(i + 1 + index) % m->width][j+1], overUp[2]);
+			R3Point p4(over[0], m->heights[(i + 1 + index) % m->width][j], over[2]);
 
 			glBegin(GL_POLYGON);
 
@@ -795,8 +846,11 @@ void DrawMountain(R3Scene * scene)
 			glVertex3d(p4[0], p4[1], p4[2]);
 			glEnd();
 
-			cur = nextPt;
+			anchor = nextDepth;
+			over += back;
+			overUp += back;
 		}
+		cur = nextPt;
 	}
 
 	/*for (int i = 0; i < m->width - 1; i++)
@@ -820,7 +874,7 @@ void DrawMountain(R3Scene * scene)
 			glVertex3d(i+1, m->heights[i+1][j+1], j+1);
 			glEnd();
 
-			/*glColor3d(1.0, 1.0, 1.0);
+			glColor3d(1.0, 1.0, 1.0);
 			glLineWidth(5);
 			glBegin(GL_LINES);
 			glVertex3d(i, m->heights[i][j], j);
@@ -874,6 +928,7 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
   }
 
   // Update particles
+
 
   UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
     force_left[0] = false;
@@ -938,7 +993,7 @@ void DrawTracks(R3Scene *scene, bool transparent)
 void DrawScene(R3Scene *scene) 
 {
   // Draw nodes recursively
-  //DrawMountain(scene);
+  DrawMountain(scene);
   DrawNode(scene, scene->root);
   DrawBobsleds(scene, true, false);
   DrawTracks(scene, false);
@@ -1228,11 +1283,11 @@ void GLUTRedraw(void)
   
   for (int i = 0; i < scene->NBobsleds(); i++)
   {
-	R3Bobsled *bobsled = scene->Bobsled(i);
+    R3Bobsled *bobsled = scene->Bobsled(i);
     glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
     // Load camera
-	LoadCamera(bobsled->camera);
+	  LoadCamera(bobsled->camera);
 
     // Load scene lights
     LoadLights(scene);
