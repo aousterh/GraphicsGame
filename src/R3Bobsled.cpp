@@ -165,7 +165,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             else
                 bobsled->big_percent = 0;
         }
-
+        bobsled->along = new_along;
 		bobsled->velocity = velocity;
 	}
 }
