@@ -651,12 +651,16 @@ void DrawMountain(R3Scene * scene)
 
 	R3Point cur = (v1 * mountainDist).Point();
 	R3Vector next = (v2 * mountainDist).Point() - (v1 * mountainDist).Point();
+	R3Vector back(0, 1, 0);
+	back.Cross(next);
+
+	back.Normalize();
 	next.Normalize();
 	for (int i = 0; i < dist; i++)
 	{
+		R3Point nextPt = cur + next;
 		for (int j = 0; j < m->height; j++)
 		{
-			R3Point nextPt = cur + next;
 			R3Point p1(cur[0], m->heights[(i + index) % m->width][j], cur[2]);
 			R3Point p2(cur[0], m->heights[(i + index) % m->width][j+1], nextPt[2]);
 			R3Point p3(nextPt[0], m->heights[(i + 1 + index) % m->width][j+1], nextPt[2]);
@@ -689,9 +693,8 @@ void DrawMountain(R3Scene * scene)
 			glVertex3d(p3[0], p3[1], p3[2]);
 			glVertex3d(p4[0], p4[1], p4[2]);
 			glEnd();
-
-			cur = nextPt;
 		}
+		cur = nextPt;
 	}
 
 	/*for (int i = 0; i < m->width - 1; i++)
@@ -770,7 +773,7 @@ void DrawBobsleds(R3Scene *scene)
 
   // Update particles
 
-  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, false, false);
+  //UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, false, false);
 
   
   // Draw all bobsleds
