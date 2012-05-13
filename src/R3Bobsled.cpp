@@ -215,21 +215,25 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
     }
     
     else {
-        //R3Vector normal(track->center_point - bobsled->position);
+        R3Vector normal(track->center_point - bobsled->position);
         //R3Vector normal(0, 1, 0);
-        R3Vector normal(R3null_vector);
-        normal = bobsled->big_percent * bobsled->track->endNormal + (1 - bobsled->big_percent) * bobsled->track->startNormal;
-        
+        /*R3Vector init_normal(R3null_vector);
+        R3Track *track(bobsled->track);
+        init_normal = bobsled->big_percent * track->endNormal + (1 - bobsled->big_percent) * track->startNormal;
+        R3Point little_center(track->center_point);
+        little_center += -1 * init_normal * (track->big_radius - track->radius);
+        R3Vector normal(little_center - bobsled->position); */
         normal.Normalize();
         double dot = fg.Dot(normal);
         R3Vector centripetal(R3null_vector);
         centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / r;
         centripetal = centripetal.Length() * normal;
-        R3Vector big_centripetal(R3null_vector);
-        double R = R3Distance(bobsled->position, bobsled->track->center_point);
-        big_centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / R;
-        big_centripetal = big_centripetal.Length() * normal;
-        fn = fg.Dot(normal) * normal + centripetal + big_centripetal;
+        //R3Vector big_normal(track->center_point - bobsled->position);
+        //R3Vector big_centripetal(R3null_vector);
+        //double R = R3Distance(bobsled->position, bobsled->track->center_point);
+        //big_centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / R;
+        //big_centripetal = big_centripetal.Length() * big_normal;
+        fn = fg.Dot(normal) * normal;// + centripetal + big_centripetal;
     }
     // force of friction
     R3Vector fk(R3null_vector);
