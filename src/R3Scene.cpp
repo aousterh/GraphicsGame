@@ -450,6 +450,90 @@ Read(const char *filename, R3Node *node)
 		  track->along.Normalize();
 		  track->side.Normalize();
 	  }
+	  else if (type == TRACK_APPROACH_RIGHT) {
+		  R3Point approach_start(0, 0, 25);
+		  R3Point approach_end(0, 0, -25);
+		  R3Plane approach_endplane(approach_end, (approach_end - approach_start));
+		  R3Vector approach_side(-20, 0, 0);
+		  approach_start.Transform(current_transformation);
+		  track->start = approach_start;
+		  approach_end.Transform(current_transformation);
+		  track->end = approach_end;
+		  track->along = approach_end - approach_start;
+		  track->startNormal = R3Vector(0, 1, 0);
+		  track->endNormal = R3Vector(1, 0, 0);
+		  approach_endplane.Transform(current_transformation);
+		  track->endPlane = approach_endplane;
+		  approach_side.Transform(current_transformation);
+		  track->side = approach_side;
+		  track->radius = approach_side.Length();
+		  track->next = NULL;
+		  track->along.Normalize();
+		  track->side.Normalize();
+	  }
+	  else if (type == TRACK_APPROACH_LEFT) {
+		  R3Point approach_start(0, 0, 25);
+		  R3Point approach_end(0, 0, -25);
+		  R3Plane approach_endplane(approach_end, (approach_end - approach_start));
+		  R3Vector approach_side(-20, 0, 0);
+		  approach_start.Transform(current_transformation);
+		  track->start = approach_start;
+		  approach_end.Transform(current_transformation);
+		  track->end = approach_end;
+		  track->along = approach_end - approach_start;
+		  track->startNormal = R3Vector(0, 1, 0);
+		  track->endNormal = R3Vector(-1, 0, 0);
+		  approach_endplane.Transform(current_transformation);
+		  track->endPlane = approach_endplane;
+		  approach_side.Transform(current_transformation);
+		  track->side = approach_side;
+		  track->radius = approach_side.Length();
+		  track->next = NULL;
+		  track->along.Normalize();
+		  track->side.Normalize();
+	  }
+	  else if (type == TRACK_TURN_RIGHT) {
+		  R3Point turn_start(0, 0, 25);
+		  R3Point turn_end(0, 0, -25);
+		  R3Plane turn_endplane(turn_end, (turn_end - turn_start));
+		  R3Vector turn_side(-20, 0, 0);
+		  turn_start.Transform(current_transformation);
+		  track->start = turn_start;
+		  turn_end.Transform(current_transformation);
+		  track->end = turn_end;
+		  track->along = turn_end - turn_start;
+		  track->startNormal = R3Vector(1, 0, 0);
+		  track->endNormal = R3Vector(0, 0, 1);
+		  turn_endplane.Transform(current_transformation);
+		  track->endPlane = turn_endplane;
+		  turn_side.Transform(current_transformation);
+		  track->side = turn_side;
+		  track->radius = turn_side.Length();
+		  track->next = NULL;
+		  track->along.Normalize();
+		  track->side.Normalize();
+	  }
+	  else if (type == TRACK_TURN_LEFT) {
+		  R3Point turn_start(0, 0, 25);
+		  R3Point turn_end(0, 0, -25);
+		  R3Plane turn_endplane(turn_end, (turn_end - turn_start));
+		  R3Vector turn_side(-20, 0, 0);
+		  turn_start.Transform(current_transformation);
+		  track->start = turn_start;
+		  turn_end.Transform(current_transformation);
+		  track->end = turn_end;
+		  track->along = turn_end - turn_start;
+		  track->startNormal = R3Vector(1, 0, 0);
+		  track->endNormal = R3Vector(0, 0, 1);
+		  turn_endplane.Transform(current_transformation);
+		  track->endPlane = turn_endplane;
+		  turn_side.Transform(current_transformation);
+		  track->side = turn_side;
+		  track->radius = turn_side.Length();
+		  track->next = NULL;
+		  track->along.Normalize();
+		  track->side.Normalize();
+	  }
 
       // Add track to scene
 	  int NSegments = track_segments.size();
