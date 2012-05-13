@@ -14,6 +14,9 @@
 #include "cos426_opengl.h"
 #include <cmath>
 #include "Mountain.h"
+//#include <al.h>
+//#include <alc.h>
+//#include <alut.h>
 
 
 ////////////////////////////////////////////////////////////
@@ -22,6 +25,32 @@
 
 static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS 
 
+
+////////////////////////////////////////////////////////////
+// OPEN AL STUFF
+////////////////////////////////////////////////////////////
+/*#define NUM_BUFFERS 1
+#define NUM_SOURCES 1
+#define NUM_ENVIRONMENTS 1
+
+ALfloat listenerPos[]={0.0,0.0,4.0};
+ALfloat listenerVel[]={0.0,0.0,0.0};
+ALfloat listenerOri[]={0.0,0.0,1.0, 0.0,1.0,0.0};
+
+ALfloat source0Pos[]={ -2.0, 0.0, 0.0};
+ALfloat source0Vel[]={ 0.0, 0.0, 0.0};
+
+ALuint  buffer[NUM_BUFFERS];
+ALuint  source[NUM_SOURCES];
+ALuint  environment[NUM_ENVIRONMENTS];
+
+ALsizei size,freq;
+ALenum  format;
+ALvoid  *data;
+ALboolean al_bool;
+*/
+
+
 ////////////////////////////////////////////////////////////
 // GLOBAL VARIABLES
 ////////////////////////////////////////////////////////////
@@ -29,7 +58,6 @@ static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS
 // Program arguments
 
 static char *input_scene_name = NULL;
-static char *input_map_name = NULL;
 static char *output_image_name = NULL;
 static const char *video_prefix = "./video-frames/";
 static int integration_type = EULER_INTEGRATION;
@@ -42,9 +70,9 @@ Mountain * m = new Mountain();
 // Display variables
 
 static R3Scene *scene = NULL;
-static R3Scene *map = NULL;
 static R3Camera camera;
 static R3Camera map_camera;
+static R3Box *map_bbox;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -181,18 +209,19 @@ void LoadMatrix(R3Matrix *matrix)
 }
 
 
-
-void LoadMaterial(R3Material *material) 
+void LoadMaterial(R3Material *material, bool transparent) 
 {
   GLfloat c[4];
-
+  
   // Check if same as current
   static R3Material *current_material = NULL;
-  if (material == current_material) return;
+  //if (material == current_material) return;
   current_material = material;
 
   // Compute "opacity"
   double opacity = 1 - material->kt.Luminance();
+  if (transparent)
+    opacity *= 0.5;
 
   // Load ambient
   c[0] = material->ka[0];
@@ -226,8 +255,9 @@ void LoadMaterial(R3Material *material)
   c[0] = material->shininess;
   glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, c[0]);
 
+  
   // Load texture
-  if (material->texture) {
+  if (material->texture && !transparent) {
     if (material->texture_index <= 0) {
       // Create texture in OpenGL
       GLuint texture_index;
@@ -279,7 +309,6 @@ void LoadMaterial(R3Material *material)
 }
 
 
-
 void LoadCamera(R3Camera *camera)
 {
   // Set projection transformation
@@ -299,27 +328,34 @@ void LoadCamera(R3Camera *camera)
 }
 
 
-void LoadMapCamera(R3Camera *map_camera, R3Scene *map)
+void LoadMapCamera(R3Camera *map_camera, R3Box *bbox)
 {
-  const int scale = 10;
+ // const int scale = 10;
   
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  R3Box& bbox = map->BBox();
-  double x_min = min(bbox.XMin(), bbox.XMax());
-  double x_max = max(bbox.XMin(), bbox.XMax());
-  double y_min = min(bbox.YMin(), bbox.YMax());
-  double y_max = max(bbox.YMin(), bbox.YMax());
-  double z_min = min(bbox.ZMin(), bbox.ZMax());
-  double z_max = max(bbox.ZMin(), bbox.ZMax());
-//  double x_avg = (bbox.XMin() + bbox.XMax()) / 2;
-//  double y_avg = (bbox.YMin() + bbox.YMax()) / 2;
- // double z_avg = (bbox.ZMin() + bbox.ZMax()) / 2;
- // double dimension = max(x_max - x_avg, z_max - z_avg);
-  glOrtho(x_min * scale, x_max * scale, y_min * scale, y_max * scale, z_min * scale, z_max * scale);
-/*  glOrtho(x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension); */
- /* printf("%f %f %f %f %f %f\n", x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension);*/
+//  printf("x min, x max, y min, y max, z min, z max: %f %f %f %f %f %f\n", bbox->XMin(), bbox->XMax(), bbox->YMin(), bbox->YMax(), bbox->ZMin(), bbox->ZMax());
+/*  double x_min = min(bbox->XMin(), bbox->XMax());
+  double x_max = max(bbox->XMin(), bbox->XMax());
+  double y_min = min(bbox->YMin(), bbox->YMax());
+  double y_max = max(bbox->YMin(), bbox->YMax());
+  double z_min = min(bbox->ZMin(), bbox->ZMax());
+  double z_max = max(bbox->ZMin(), bbox->ZMax());
+  double x_avg = (bbox->XMin() + bbox->XMax()) / 2;
+  double y_avg = (bbox->YMin() + bbox->YMax()) / 2;
+  double z_avg = (bbox->ZMin() + bbox->ZMax()) / 2;
+  double dimension = max(x_max - x_avg, z_max - z_avg);*/
+//  printf("dim: %f\n", dimension);
+//  printf("eye y: %f\n", map_camera->eye.Y());
+  double dnear = min(map_camera->eye.Y() - bbox->YMin(), map_camera->eye.Y() - bbox->YMax());
+  double dfar = max(map_camera->eye.Y() - bbox->YMin(), map_camera->eye.Y() - bbox->YMax());
+//  printf("near, far: %f %f\n", dnear, dfar);
+  glOrtho(-600, 360, -525, 75, dnear, dfar);  // -600, 3600, -105, 1050, -5250, 750);
+ // glOrtho(x_min * scale, x_max * scale, y_min * scale, y_max * scale, z_min * scale, z_max * scale);
+//  printf("%f %f %f %f %f %f\n", x_min * scale, x_max * scale, y_min * scale, y_max * scale, z_min * scale, z_max * scale);
+  //glOrtho(x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension);
+//  printf("%f %f %f %f %f %f\n", x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension);
   
   // Set camera transformation
   R3Vector t = -(map_camera->towards);
@@ -441,7 +477,7 @@ void DrawNode(R3Scene *scene, R3Node *node)
   LoadMatrix(&node->transformation);
 
   // Load material
-  if (node->material) LoadMaterial(node->material);
+  if (node->material) LoadMaterial(node->material, false);
 
   // Draw shape
   if (node->shape) DrawShape(node->shape);
@@ -596,7 +632,7 @@ void DrawMountain(R3Scene * scene)
 	mat->kt = R3Rgb(0, 0, 0, 0);
 	mat->shininess = 10;
 	mat->texture = NULL;
-	LoadMaterial(mat);
+	LoadMaterial(mat, false);
 	delete mat;
 
 	//ground plane
@@ -604,6 +640,7 @@ void DrawMountain(R3Scene * scene)
 	R3Point ground_pt(0, -50, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
+	//FIXME change this
 	R3Camera * cam = &camera;//scene->bobsleds[0]->camera;
 
 	double d = cam->neardist;
@@ -644,16 +681,27 @@ void DrawMountain(R3Scene * scene)
 
 	const double mountainDist = 2000.0;
 
-	int dist = R3Distance((v1 * mountainDist).Point(), (v2 * mountainDist).Point());
+	R3Point startPt = (v1 * mountainDist).Point();
+	R3Point endPt = (v2 * mountainDist).Point();
+
+	///////TEMP//////////////////////////////////////
+	startPt += cam->eye;
+	endPt += cam->eye;
+	startPt[1] = -ground.D();
+	endPt[1] = -ground.D();
+	///////TEMP//////////////////////////////////////
+
+
+	int dist = R3Distance(startPt, endPt);
 
 	int index = (double) m->width * theta1;
-	printf("start index %f %d\n", theta1, dist);
-	printf("towards ");
-	cam->towards.Print();
-	printf("\n");
+//	printf("start index %f %d\n", theta1, dist);
+//	printf("towards ");
+//	cam->towards.Print();
+//	printf("\n");
 
-	R3Point cur = (v1 * mountainDist).Point();
-	R3Vector next = (v2 * mountainDist).Point() - (v1 * mountainDist).Point();
+	R3Point cur = startPt;
+	R3Vector next = endPt - startPt;
 	R3Vector back(0, 1, 0);
 	back.Cross(next);
 	back.Flip();
@@ -666,6 +714,8 @@ void DrawMountain(R3Scene * scene)
 	next *= 3;
 	/////END TEMP//////////////////////////////////
 
+
+	glDisable(GL_LIGHTING);
 	//front polygon
 	for (int i = 0; i < dist; i++)
 	{
@@ -682,8 +732,9 @@ void DrawMountain(R3Scene * scene)
 
 		cur = nextPt;
 	}
+	glEnable(GL_LIGHTING);
 
-	cur = (v1 * mountainDist).Point();
+	cur = startPt;
 	for (int i = 0; i < dist; i++)
 	{
 		R3Point nextPt = cur + next;
@@ -756,7 +807,7 @@ void DrawMountain(R3Scene * scene)
 			glVertex3d(i+1, m->heights[i+1][j+1], j+1);
 			glEnd();
 
-			/*glColor3d(1.0, 1.0, 1.0);
+			glColor3d(1.0, 1.0, 1.0);
 			glLineWidth(5);
 			glBegin(GL_LINES);
 			glVertex3d(i, m->heights[i][j], j);
@@ -783,7 +834,7 @@ void DrawMountain(R3Scene * scene)
 	}*/
 }
 
-void DrawBobsleds(R3Scene *scene)
+void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
 {
   // Get current time (in seconds) since start of execution
   double current_time = GetTime();
@@ -816,9 +867,8 @@ void DrawBobsleds(R3Scene *scene)
     force_left[0] = false;
     force_right[0] = false;
 
-  
-  // Draw all bobsleds
   glEnable(GL_LIGHTING);
+  // Draw all bobsleds
   for (int i = 0; i < 1 /*scene->NBobsleds()*/; i++) {
     R3Bobsled *bobsled = scene->Bobsled(i);
 
@@ -827,32 +877,35 @@ void DrawBobsleds(R3Scene *scene)
     LoadMatrix(&bobsled->transformation);
 
     // Load sled material
-    LoadMaterial(bobsled->sled_material);
+    LoadMaterial(bobsled->sled_material, transparent);
     DrawShape(bobsled->sled);
     
     // Load sled material
-    LoadMaterial(bobsled->skates_material);
+    LoadMaterial(bobsled->skates_material, transparent);
     DrawShape(bobsled->skates);
 
     // Load sled material
-    LoadMaterial(bobsled->helmets_material);
+    LoadMaterial(bobsled->helmets_material, transparent);
     DrawShape(bobsled->helmets);
 
     // Load sled material
-    LoadMaterial(bobsled->masks_material);
+    LoadMaterial(bobsled->masks_material, transparent);
     DrawShape(bobsled->masks);
 
     // Restore previous transformation
     glPopMatrix();
   }
-    // Remember previous time
+  
+  // Remember previous time
+  if (update_time)
     previous_time = current_time;
 }
 
-void DrawTracks(R3Scene *scene)
+void DrawTracks(R3Scene *scene, bool transparent)
 {
-  // Draw all tracks
   glEnable(GL_LIGHTING);
+  
+  // Draw all tracks
   for (int i = 0; i < scene->NTracks(); i++) {
     R3Track *track = scene->Track(i);
 
@@ -861,7 +914,7 @@ void DrawTracks(R3Scene *scene)
     LoadMatrix(&track->transformation);
 
     // Load track material
-    LoadMaterial(track->material);
+    LoadMaterial(track->material, transparent);
     DrawShape(track->track_shape);
 
     // Restore previous transformation
@@ -872,11 +925,20 @@ void DrawTracks(R3Scene *scene)
 
 void DrawScene(R3Scene *scene) 
 {
-  // Draw nodes recursively
+  // Draw fog - will only do this for part of the track
+  // so that Ricky can see the mountains
+  float fog_color[3] = {0.9f, 0.9f, 0.9f};
+  glEnable(GL_FOG);
+  glFogi(GL_FOG_MODE, GL_LINEAR);
+  glFogfv(GL_FOG_COLOR, fog_color);
+  glFogi(GL_FOG_START, 100);
+  glFogi(GL_FOG_END, 800);
+  
   DrawMountain(scene);
   DrawNode(scene, scene->root);
-  DrawBobsleds(scene);
-  DrawTracks(scene);
+  DrawBobsleds(scene, true, false);
+  DrawTracks(scene, false);
+  glDisable(GL_FOG);
 }
 
 
@@ -946,7 +1008,7 @@ void DrawParticleSources(R3Scene *scene)
 
   // Draw all particle sources
   glEnable(GL_LIGHTING);
-  LoadMaterial(&source_material);
+  LoadMaterial(&source_material, false);
   for (int i = 0; i < scene->NParticleSources(); i++) {
     R3ParticleSource *source = scene->ParticleSource(i);
     DrawShape(source->shape);
@@ -984,7 +1046,7 @@ void DrawParticleSinks(R3Scene *scene)
 
   // Draw all particle sinks
   glEnable(GL_LIGHTING);
-  LoadMaterial(&sink_material);
+  LoadMaterial(&sink_material, false);
   for (int i = 0; i < scene->NParticleSinks(); i++) {
     R3ParticleSink *sink = scene->ParticleSink(i);
     DrawShape(sink->shape);
@@ -1028,22 +1090,21 @@ void DrawMap(double x_start, double y_start, double x_width, double y_width)
   glViewport(x_start, y_start, x_width, y_width);
   
   // Load map camera
-  LoadMapCamera(&map_camera, map);
+  LoadMapCamera(&map_camera, map_bbox);
   
-  // Load map lights
-  LoadLights(map);
+  // Load scene lights
+  LoadLights(scene);
   
-  // Draw scene camera
-  DrawCamera(scene);
+  // Do not draw scene camera
   
-  // Draw scene lights
-  DrawLights(scene);
+  // Do not draw scene lights
   
   glDepthMask(false);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
   
-  DrawScene(map);
+  DrawTracks(scene, true);
+  DrawBobsleds(scene, false, true);
   
   glDisable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ZERO);
@@ -1164,13 +1225,11 @@ void GLUTRedraw(void)
   
   for (int i = 0; i < scene->NBobsleds(); i++)
   {
-	R3Bobsled *bobsled = scene->Bobsled(i);
+    R3Bobsled *bobsled = scene->Bobsled(i);
     glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
     // Load camera
-    //FIXME change this
-	LoadCamera(bobsled->camera);
-	//LoadCamera(&camera);
+	  LoadCamera(bobsled->camera);
 
     // Load scene lights
     LoadLights(scene);
@@ -1209,11 +1268,13 @@ void GLUTRedraw(void)
     }
     
     // draw another transparent image in bottom left corner, on top
-    /*if (i == 0)
-      DrawMap(0, 0, GLUTwindow_width * 0.2, GLUTwindow_height * 0.4);
+    glDisable(GL_LIGHTING);
+    if (i == 0)
+      DrawMap(0, 0, GLUTwindow_width * 0.1, GLUTwindow_height * 0.2);
     else if (i == 1)
-      DrawMap(GLUTwindow_width * 0.8, 0, GLUTwindow_width * 0.2, GLUTwindow_height * 0.4);
-*/
+      //DrawMap(GLUTwindow_width / 2, 0, GLUTwindow_width / 2, GLUTwindow_height);
+      DrawMap(GLUTwindow_width * 0.9, 0, GLUTwindow_width * 0.1, GLUTwindow_height * 0.2);
+
     // Save image
     if (save_image) {
       char image_name[256];
@@ -1520,7 +1581,80 @@ void GLUTCreateMenu(void)
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
+/*
+void ALinit(void)
+{
+	ALCcontext *context;
+	ALCdevice *device;
+ 
+	device = alcOpenDevice(NULL);
+	if (device == NULL)
+	{
+		printf("shit");
+	}
+ 
+	//Create a context
+	context=alcCreateContext(device,NULL);
+ 
+	//Set active context
+	alcMakeContextCurrent(context);
+ 
+	// Clear Error Code
+	alGetError();
+	char*     alBuffer;         //data for the buffer
+	ALenum alFormatBuffer;		//buffer format
+	ALsizei   alFreqBuffer;     //frequency
+	long       alBufferLen;     //bit depth
+	ALboolean    alLoop;        //loop
+	unsigned int alSource;      //source
+	unsigned int alSampleSet;
+ 
+	printf("loading wav file\n");
 
+	//load the wave file
+	alutLoadWAVFile("../aladdin_cant_believe.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer, &alLoop);
+ 
+	//create a source
+	alGenSources(1, &alSource);
+ 
+	//create  buffer
+	alGenBuffers(1, &alSampleSet);
+ 
+	//put the data into our sampleset buffer
+	alBufferData(alSampleSet, alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+ 
+	//assign the buffer to this source
+	alSourcei(alSource, AL_BUFFER, alSampleSet);
+ 
+	//release the data
+	alutUnloadWAV(alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+	
+	alSourcei(alSource,AL_LOOPING,AL_TRUE);
+ 
+	//play
+	alSourcePlay(alSource);
+ /*
+	//to stop
+	alSourceStop(alSource);
+	alDeleteSources(1,&alSource);
+ 
+	//delete our buffer
+	alDeleteBuffers(1,&alSampleSet);
+ 
+	context=alcGetCurrentContext();
+ 
+	//Get device for active context
+	device=alcGetContextsDevice(context);
+ 
+	//Disable context
+	alcMakeContextCurrent(NULL);
+ 
+	//Release context(s)
+	alcDestroyContext(context);
+ 
+	//Close device
+	alcCloseDevice(device);
+}*/
 
 void GLUTInit(int *argc, char **argv)
 {
@@ -1586,39 +1720,32 @@ ReadScene(const char *filename)
   return scene;
 }
 
-R3Scene *
-ReadMap(const char *filename)
+void SetMapCamera(R3Scene *scene)
 {
-  // Allocate scene
-  R3Scene *map = new R3Scene();
-  if (!map) {
-    fprintf(stderr, "Unable to allocate map\n");
-    return NULL;
+  // determine bounding box of tracks
+  R3Box *bbox = new R3Box(R3null_box);
+  for (unsigned int i = 0; i < scene->track_segments.size(); i++)
+  {
+    R3Track *track = scene->track_segments[i];
+    bbox->Union(track->bbox);
   }
-  
-  // Read file
-  if (!map->Read(filename)) {
-    fprintf(stderr, "Unable to read map from %s\n", filename);
-    return NULL;
-  }
+  map_bbox = bbox;
   
   // determine camera looking down from above (-y direction)
-  R3Box& bbox = map->BBox();
-  double x_avg = (bbox.XMax() + bbox.XMin()) / 2;
-  double z_avg = (bbox.ZMax() + bbox.ZMin()) / 2;
-  double x_width = abs(bbox.XMax() - bbox.XMin());
-  double z_width = abs(bbox.ZMax() - bbox.ZMin());
-  double y_eye = max(bbox.YMax(), bbox.YMin()) + max(x_width, z_width);
+  double x_avg = (bbox->XMax() + bbox->XMin()) / 2;
+  double z_avg = (bbox->ZMax() + bbox->ZMin()) / 2;
+  double x_width = abs(bbox->XMax() - bbox->XMin());
+  double z_width = abs(bbox->ZMax() - bbox->ZMin());
+  double y_eye = max(bbox->YMax(), bbox->YMin()) + max(x_width, z_width);
   map_camera.eye = R3Point(x_avg, y_eye, z_avg);
-  map_camera.towards = R3Vector(0, -1, 0);
-  map_camera.up = R3Vector(0, 0, -1);
+ // printf("eye: %f %f %f\n", map_camera.eye.X(), map_camera.eye.Y(), map_camera.eye.Z());
+  map_camera.towards = R3Vector(0, -1, 0);  // looking down in -Y
+  map_camera.up = R3Vector(0, 0, -1);       // bobsleds move in -Z direction
   map_camera.right = map_camera.towards;
   map_camera.right.Cross(map_camera.up);
   map_camera.towards.Normalize();
   map_camera.up.Normalize();
   map_camera.right.Normalize();
-  
-  return map;
 }
 
 
@@ -1636,9 +1763,8 @@ ParseArgs(int argc, char **argv)
   // Parse arguments
   argc--; argv++;
   while (argc > 0) {
-    if ((*argv)[0] == '-') {
-      if (!strcmp(*argv, "-map")) { argc--; argv++; input_map_name = *argv; }
-/*      if (!strcmp(*argv, "-help")) { print_usage = 1; }
+/*    if ((*argv)[0] == '-') {
+     if (!strcmp(*argv, "-help")) { print_usage = 1; }
       else if (!strcmp(*argv, "-exit_immediately")) { quit = 1; }
       else if (!strcmp(*argv, "-output_image")) { argc--; argv++; output_image_name = *argv; }
       else if (!strcmp(*argv, "-video_prefix")) { argc--; argv++; video_prefix = *argv; }
@@ -1651,13 +1777,11 @@ ParseArgs(int argc, char **argv)
         //GLUTwindow_height = 256;
         save_video = 1;
       }
-      else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }*/
+      else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
       argv++; argc--;
-    }
-    else if (!input_scene_name) {
+    }*/
+    if (!input_scene_name) {
       input_scene_name = *argv;
-      if (!input_map_name)
-        input_map_name = *argv;
       argc--; argv++;
     }
     else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
@@ -1688,12 +1812,15 @@ main(int argc, char **argv)
   // Initialize GLUT
   GLUTInit(&argc, argv);
 
+  // Initialize AL
+  //ALinit();
+
   // Read scene
   scene = ReadScene(input_scene_name);
   if (!scene) exit(-1);
   
-  // Make map copy of scene
-  map = ReadMap(input_map_name);
+  // Make map camera
+  SetMapCamera(scene);
   
   // Run GLUT interface
   GLUTMainLoop();
@@ -1706,7 +1833,7 @@ main(int argc, char **argv)
 
 
 
-
+// TODO: add animation to beginning: http://www.swiftless.com/tutorials/opengl/texture_animation.html
 
 
 

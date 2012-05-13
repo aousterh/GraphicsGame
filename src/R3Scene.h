@@ -32,8 +32,6 @@ typedef enum {
 	TRACK_STRAIGHT,
 	TRACK_APPROACH_RIGHT,
 	TRACK_APPROACH_LEFT,
-	TRACK_EXIT_RIGHT,
-	TRACK_EXIT_LEFT,
 	TRACK_TURN_RIGHT,
 	TRACK_TURN_LEFT,
 	NUM_TRACK_TYPES
@@ -119,6 +117,9 @@ struct R3Track {
 	R3Shape *track_shape;
 	R3Material *material;
 	R3Matrix transformation;
+	R3Box bbox;
+	R3Point center_point;
+	R3Line center_pivot;
 };
 
 struct R3Bobsled {
