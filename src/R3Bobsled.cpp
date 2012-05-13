@@ -38,7 +38,8 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 		// get the current sled and its track segment
 		R3Bobsled *bobsled = scene->Bobsled(i);
 		R3Track *track = bobsled->track;
-        
+        double big_r;
+        R3Vector new_along(track->along);
         
         //printf("z0: %f\n", bobsled->velocity.Z());
 
@@ -53,6 +54,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 		force = Force(bobsled, r);
 		R3Vector velocity(R3null_vector);
 		velocity = bobsled->velocity + delta_time * force/bobsled->mass;
+        
 		// Forward translation on a straight track
 		R3Vector v_along(R3null_vector);
 		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
@@ -64,6 +66,28 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->masks->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
 			bobsled->camera->eye += v_along;
 		}
+        
+        // Forward translation on a curved track
+        if (track->type == TRACK_TURN_LEFT || track->type == TRACK_TURN_RIGHT) {
+            R3Vector vel_along = (bobsled->velocity.Dot(track->along)) * track->along;
+            R3Point new_point(position + delta_time * bobsled->velocity);
+            R3Vector dist_vect(position - new_point);
+            double dist = dist_vect.Dot(track->along);
+            R3Vector vect_radius(track->center - position);
+            double delta_theta = dist/vect_radius.Length();
+            double percent = delta_theta/(M_PI/2);
+            bobsled->big_percent += percent;
+            dist_to_start.Project(bobsled->track->startNormal);
+            double percent = dist_to_start.Length()/(2*M_PI*bobsled->track->big_r);
+            new_along = bobsled->big_percent * track->endNormal + (1 - bobsled->big_percent) * track->startNormal;
+            new_along.Normalize();
+            R3Vector rotate_line(track->center_pivot);
+            bobsled->position.Rotate(rotate_line, delta_theta);
+            bobsled->sled->mesh->Rotate(delta_theta, rotate_line);
+            bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
+            bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
+            bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
+        }
 		
 		// Side rotation on a straight track
 		R3Vector v_side(R3null_vector);
@@ -131,7 +155,15 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
         double dist_plane = to_plane.Dot(track->endPlane.Normal());
         if (dist_plane <= 0) {
             bobsled->track = track->next;
-            bobsled->big_theta = 0;
+            if (bobsled->track->type == TRACK_TURN_RIGHT || bobsled->track->type == TRACK_TURN_LEFT) {
+                R3Vector dist_to_start(bobsled->position - bobsled->track->start);
+                dist_to_start.Project(bobsled->track->startNormal);
+                double percent = dist_to_start.Length()/(2*M_PI*big_radius);
+                bobsled->big_percent = percent;
+                bobsled->track->along = bobsled->track->startNormal;
+            }
+            else
+                bobsled->big_percent = 0;
         }
 
 		bobsled->velocity = velocity;
@@ -151,7 +183,7 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
     fg = bobsled->mass * gravity;
     // normal force
     R3Vector fn(R3null_vector);
-    if (track->type == TRACK_STRAIGHT) {
+    if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
         R3Vector temp(bobsled->position - track->start);
         temp.Project(track->along);
         R3Point center_point(track->start);
@@ -160,6 +192,16 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
         normal.Normalize();
         double dot = fg.Dot(normal);
         //printf("\ndot = %f\n", dot);
+        R3Vector centripetal(R3null_vector);
+        centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / r;
+        centripetal = centripetal.Length() * normal;
+        fn = fg.Dot(normal) * normal + centripetal;
+    }
+    
+    else {
+        R3Vector normal(track->center - bobsled->position);
+        normal.Normalize();
+        double dot = fg.Dot(normal);
         R3Vector centripetal(R3null_vector);
         centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / r;
         centripetal = centripetal.Length() * normal;
@@ -174,4 +216,5 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
     //force = fk + fn;
     return force;
 }
+
     

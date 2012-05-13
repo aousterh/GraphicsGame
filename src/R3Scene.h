@@ -114,6 +114,7 @@ struct R3Track {
 	R3Vector side;			// vector from center to right edge
 	double cof;				// coefficient of friction
 	double radius;			// track radius
+    double big_radius;
 	R3Track *next;
 	R3Shape *track_shape;
 	R3Material *material;
@@ -135,7 +136,7 @@ struct R3Bobsled {
     R3Track *track;                 // current section of track that this bobsled is on
     R3Camera *camera;               // bobsled's camera    
     R3Matrix transformation;
-	double big_theta;
+	double big_percent;
 	double little_theta;
 	R3Box bbox;
 };
