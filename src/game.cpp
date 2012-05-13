@@ -925,11 +925,20 @@ void DrawTracks(R3Scene *scene, bool transparent)
 
 void DrawScene(R3Scene *scene) 
 {
-  // Draw nodes recursively
+  // Draw fog - will only do this for part of the track
+  // so that Ricky can see the mountains
+  float fog_color[3] = {0.9f, 0.9f, 0.9f};
+  glEnable(GL_FOG);
+  glFogi(GL_FOG_MODE, GL_LINEAR);
+  glFogfv(GL_FOG_COLOR, fog_color);
+  glFogi(GL_FOG_START, 100);
+  glFogi(GL_FOG_END, 800);
+  
   DrawMountain(scene);
   DrawNode(scene, scene->root);
   DrawBobsleds(scene, true, false);
   DrawTracks(scene, false);
+  glDisable(GL_FOG);
 }
 
 
