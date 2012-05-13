@@ -21,7 +21,8 @@ using namespace std;
 #endif
 
 
-double ANGLE_SHIFT = 0.016;
+double ANGLE_SHIFT = .16;
+
 
 
 ////////////////////////////////////////////////////////////
@@ -31,7 +32,7 @@ double ANGLE_SHIFT = 0.016;
 void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, 
 				   bool force_left, bool force_right)
 {
-    printf("delta_time = %f\n", delta_time);
+    //printf("delta_time = %f\n", delta_time);
 	// update each sled in the scene
 	for (int i = 0; i < scene->NBobsleds(); i++) {
 		
@@ -41,26 +42,19 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 
 		// find the closest point on the along vector of the track
         R3Point position(bobsled->position);
-		R3Vector temp(bobsled->position - track->start);
-        temp.Project(track->along);
+		R3Vector ve_along(bobsled->position - track->start);
+        ve_along.Project(track->along);
         R3Point center_point(track->start);
-        center_point += temp;
+        center_point += ve_along;
 		double r = R3Distance(center_point, bobsled->position);
-        printf("r = %f", r);
 		R3Vector force(R3null_vector);
 		force = Force(bobsled, r);
 		R3Vector velocity(R3null_vector);
 		velocity = bobsled->velocity + delta_time * force/bobsled->mass;
-		//velocity.Print();
-        printf("\n");
 		// Forward translation on a straight track
 		R3Vector v_along(R3null_vector);
-		if (track->type == TRACK_STRAIGHT) {
+		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
 			v_along = bobsled->velocity.Dot(track->along) * track->along;
-            //printf("\n");
-            //v_along.Print();
-            //printf("track along = ");
-            //track->along.Print();
 			bobsled->position.Translate(v_along);
             bobsled->sled->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
             bobsled->skates->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
@@ -76,44 +70,40 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 		R3Vector rotate_vector(R3null_vector);
 		R3Line rotate_line(track->start, track->along);
         double sign;
-        //printf("\n rotate_line = ");
-        //rotate_line.Print();
-		if (track->type == TRACK_STRAIGHT) {
-            R3Vector temp(position - track->start);
+        R3Vector temp(position - track->start);
+		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
+            //R3Vector temp(position - track->start);
             temp.Project(track->along);
             R3Point center_point(track->start);
             center_point += temp;
-            center_point.Print();
-            printf("\n");
             R3Vector normal(center_point - position);
             normal.Normalize();
-            printf("normal = ");
-            normal.Print();
             temp = track->along;
             temp.Cross(normal);
             temp.Normalize();
             sign = bobsled->velocity.Dot(temp);
 			v_side = sign * temp;
 			rotate_vector = track->along;
-            /*v_side = bobsled->velocity.Dot(track->side) * track-side;
-			rotate_vector = track->along;
-            v_down = bobsled->velocity.Dot(down) * down;*/
 			
 		}
-        v_side.Print();
+
         R3Point new_point(position + delta_time * v_side);
         R3Vector dist_vect(position - new_point);
         double delta_dist = dist_vect.Length();
         if (sign > 0)
             delta_dist *= -1;
         double delta_theta = delta_dist / r;
-        //double delta_theta = delta_dist / track->radius;
-        if (force_right)
-            delta_theta += ANGLE_SHIFT;
-        if (force_left)
+        if (force_right) {
+            double v_change = (ANGLE_SHIFT * r) / delta_time;
+            velocity += v_change * temp;
             delta_theta -= ANGLE_SHIFT;
+        }
+        if (force_left) {
+            double v_change = (ANGLE_SHIFT * r) / delta_time;
+            velocity -= v_change * temp;
+            delta_theta += ANGLE_SHIFT;
+        }
         bobsled->little_theta += delta_theta;
-        printf("\n delta theta = %f", delta_theta);
 
         bobsled->position.Rotate(rotate_line, delta_theta);
 		bobsled->sled->mesh->Rotate(delta_theta, rotate_line);
@@ -159,7 +149,7 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
         R3Vector normal(center_point - bobsled->position);
         normal.Normalize();
         double dot = fg.Dot(normal);
-        printf("\ndot = %f\n", dot);
+        //printf("\ndot = %f\n", dot);
         R3Vector centripetal(R3null_vector);
         centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / r;
         centripetal = centripetal.Length() * normal;

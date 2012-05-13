@@ -141,13 +141,27 @@ begin
 	
 	track
 		0 0.01 0 5
-		mesh OBJ_models/track_straight.obj
+		mesh OBJ_models/track_approach_left.obj
+		
+	end	
+	
+		
+	begin
+	5
+	1 0 0 0
+	0 1 0 15
+	0 0 1 -200
+	0 0 0 1
+	
+	track
+		0 0.01 0 5
+		mesh OBJ_models/track_turn_left.obj
 		
 	end	
 end
 
 bobsled
-	100 0 0 0 -350 0 -20 0 1 3 4
+	100 0 0 0 0 0 -10 0 1 3 4
 	mesh OBJ_models/sled_body.obj
 	mesh OBJ_models/sled_blades.obj
 	mesh OBJ_models/twohelmets.obj

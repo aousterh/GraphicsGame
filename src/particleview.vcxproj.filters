@@ -255,6 +255,9 @@
     <ClCompile Include="R3Bobsled.cpp">
       <Filter>Main Program\Main Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Mountain.cpp">
+      <Filter>Main Program\Main Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="R2\R2.h">
@@ -366,6 +369,9 @@
       <Filter>Main Program\Main Header Files</Filter>
     </ClInclude>
     <ClInclude Include="R3Bobsled.h">
+      <Filter>Main Program\Main Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Mountain.h">
       <Filter>Main Program\Main Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -773,7 +773,10 @@ void DrawBobsleds(R3Scene *scene)
 
   // Update particles
 
-  //UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, false, false);
+
+  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
+    force_left[0] = false;
+    force_right[0] = false;
 
   
   // Draw all bobsleds
@@ -832,7 +835,7 @@ void DrawTracks(R3Scene *scene)
 void DrawScene(R3Scene *scene) 
 {
   // Draw nodes recursively
-  DrawMountain(scene);
+  //DrawMountain(scene);
   DrawNode(scene, scene->root);
   DrawBobsleds(scene);
   DrawTracks(scene);
@@ -1166,11 +1169,11 @@ void GLUTRedraw(void)
     }
     
     // draw another transparent image in bottom left corner, on top
-    if (i == 0)
+    /*if (i == 0)
       DrawMap(0, 0, GLUTwindow_width * 0.2, GLUTwindow_height * 0.4);
     else if (i == 1)
       DrawMap(GLUTwindow_width * 0.8, 0, GLUTwindow_width * 0.2, GLUTwindow_height * 0.4);
-
+*/
     // Save image
     if (save_image) {
       char image_name[256];
