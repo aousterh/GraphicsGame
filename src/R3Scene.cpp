@@ -363,7 +363,7 @@ Read(const char *filename, R3Node *node)
 
       bobsled->transformation = current_transformation;
 
-	  bobsled->big_theta = 0;
+	  bobsled->big_percent = 0;
 	  bobsled->little_theta = 0;
 
       // Add bobsled to scene
@@ -396,7 +396,7 @@ Read(const char *filename, R3Node *node)
       // Read sink parameters 
       double cof;
       int type, isCovered, m;
-      if (fscanf(fp, "%ld%lf%ld%ld", &type, &cof, &isCovered, &m) != 4) {
+      if (fscanf(fp, "%d%f%d%d", &type, &cof, &isCovered, &m) != 4) {
         fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
         return 0;
       }
@@ -420,6 +420,7 @@ Read(const char *filename, R3Node *node)
         }
       }
 
+        printf("type = %d\n", type);
       // Create track segment
       R3Track *track = new R3Track();
       track->cof = cof;
