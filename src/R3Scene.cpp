@@ -529,31 +529,48 @@ Read(const char *filename, R3Node *node)
 		  track->center_pivot = R3Line(track->center_point, center_line); 
 	  }
 	  else if (type == TRACK_TURN_LEFT) {
+		  
+		  // set beginning and end track points along central axis
 		  R3Point turn_start(0, 0, 25);
 		  R3Point turn_end(-50, 0, -25);
-		  R3Plane turn_endplane(turn_end, R3Vector(-1,0,0));
-		  R3Vector turn_side(-20, 0, 0);
 		  turn_start.Transform(current_transformation);
-		  track->start = turn_start;
 		  turn_end.Transform(current_transformation);
+		  track->start = turn_start;
 		  track->end = turn_end;
+
+		  // set end plane of track
+		  R3Vector turn_endplane_normal = R3Vector(-1, 0, 0);
+		  turn_endplane_normal.Transform(current_transformation);
+		  R3Plane turn_endplane(turn_end, turn_endplane_normal);
+		  track->endPlane = turn_endplane;
+
+		  // set initial along vector for track 
 		  track->along = R3Vector(0,0,-1);
 		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
 		  track->startNormal = R3Vector(-1, 0, 0);
 		  track->endNormal = R3Vector(0, 0, 1);
-		  turn_endplane.Transform(current_transformation);
-		  track->endPlane = turn_endplane;
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector turn_side(-20, 0, 0);
 		  turn_side.Transform(current_transformation);
 		  track->side = turn_side;
-		  track->radius = turn_side.Length();
-		  track->next = NULL;
-		  track->along.Normalize();
 		  track->side.Normalize();
+
+		  // set center line of large curve
 		  track->center_point = R3Point(-50, 0, 25);
 		  track->center_point.Transform(current_transformation);
 		  R3Vector center_line(0, 1, 0);
 		  center_line.Transform(current_transformation);
 		  track->center_pivot = R3Line(track->center_point, center_line); 
+
+		  // set other fields
+		  track->radius = turn_side.Length();
+		  track->next = NULL;
 	  }
 
       // Add track to scene
