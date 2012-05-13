@@ -116,6 +116,7 @@ struct R3Track {
 	R3Shape *track_shape;
 	R3Material *material;
 	R3Matrix transformation;
+  R3Box bbox;
 };
 
 struct R3Bobsled {

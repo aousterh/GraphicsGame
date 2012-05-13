@@ -425,9 +425,11 @@ Read(const char *filename, R3Node *node)
       track->cof = cof;
       track->isCovered = isCovered;
       track->type = (R3TrackType) type;
-	  track->material = track_material;
-	  track->transformation = current_transformation;
-	  track->track_shape = trackshape;
+      track->material = track_material;
+      track->transformation = current_transformation;
+      track->track_shape = trackshape;
+      track->bbox = trackshape->mesh->bbox;
+      track->bbox.Transform(track->transformation);
 
 	  if (type == TRACK_STRAIGHT) {
 		  R3Point straight_start(0, 0, 25);
