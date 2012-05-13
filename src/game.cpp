@@ -685,6 +685,8 @@ void DrawMountain(R3Scene * scene)
 	next *= 3;
 	/////END TEMP//////////////////////////////////
 
+
+	glDisable(GL_LIGHTING);
 	//front polygon
 	for (int i = 0; i < dist; i++)
 	{
@@ -701,6 +703,7 @@ void DrawMountain(R3Scene * scene)
 
 		cur = nextPt;
 	}
+	glEnable(GL_LIGHTING);
 
 	cur = startPt;
 	for (int i = 0; i < dist; i++)
