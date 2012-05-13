@@ -72,7 +72,7 @@ Mountain::Mountain()
 
 	for (int k = 0; k < 6; k++)
 	{
-		double range = 200.0;
+		double range = 100.0;
 		int radius = width > height ? height : width;
 		radius--;
 		while (radius > 1)
