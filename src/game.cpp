@@ -14,9 +14,21 @@
 #include "cos426_opengl.h"
 #include <cmath>
 #include "Mountain.h"
+
+/*
+#include <OpenAL/al.h>
+#include <OpenAL/alc.h>
+#include "../AL/include/alut.h"
+*/
+
 //#include <al.h>
 //#include <alc.h>
 //#include <alut.h>
+
+//#include <SDLMain.h>
+#include <SDL/SDL.h>
+#include <SDL/SDL_mixer.h>
+
 
 
 ////////////////////////////////////////////////////////////
@@ -29,7 +41,8 @@ static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS
 ////////////////////////////////////////////////////////////
 // OPEN AL STUFF
 ////////////////////////////////////////////////////////////
-/*#define NUM_BUFFERS 1
+/*
+#define NUM_BUFFERS 1
 #define NUM_SOURCES 1
 #define NUM_ENVIRONMENTS 1
 
@@ -49,6 +62,7 @@ ALenum  format;
 ALvoid  *data;
 ALboolean al_bool;
 */
+
 
 
 ////////////////////////////////////////////////////////////
@@ -863,7 +877,7 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
   // Update particles
 
 
-  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
+  //UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
     force_left[0] = false;
     force_right[0] = false;
 
@@ -1580,8 +1594,8 @@ void GLUTCreateMenu(void)
   // Attach main menu to right mouse button
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
-/*
-void ALinit(void)
+
+/*void ALinit(void)
 {
 	ALCcontext *context;
 	ALCdevice *device;
@@ -1598,6 +1612,37 @@ void ALinit(void)
 	//Set active context
 	alcMakeContextCurrent(context);
  
+	alListener3f(AL_POSITION, 0, 0, 0);
+	alListener3f(AL_VELOCITY, 0, 0, 0);
+	alListener3f(AL_ORIENTATION, 0, 0, -1);
+
+	ALuint source;
+	alGenSources(1, &source);
+
+	alSourcef(source, AL_PITCH, 1);
+	alSourcef(source, AL_GAIN, 1);
+	alSource3f(source, AL_POSITION, 0, 0, 0);
+	alSource3f(source, AL_VELOCITY, 0, 0, 0);
+	alSourcei(source, AL_LOOPING, AL_FALSE);
+}*/
+
+/*void ALinit(void)
+{
+	ALCcontext *context;
+	ALCdevice *device;
+
+	device = alcOpenDevice(NULL);
+	if (device == NULL)
+	{
+		printf("shit");
+	}
+
+	//Create a context
+	context=alcCreateContext(device,NULL);
+
+	//Set active context
+	alcMakeContextCurrent(context);
+
 	// Clear Error Code
 	alGetError();
 	char*     alBuffer;         //data for the buffer
@@ -1607,53 +1652,54 @@ void ALinit(void)
 	ALboolean    alLoop;        //loop
 	unsigned int alSource;      //source
 	unsigned int alSampleSet;
- 
+
 	printf("loading wav file\n");
 
 	//load the wave file
 	alutLoadWAVFile("../aladdin_cant_believe.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer, &alLoop);
- 
+
 	//create a source
 	alGenSources(1, &alSource);
- 
+
 	//create  buffer
 	alGenBuffers(1, &alSampleSet);
- 
+
 	//put the data into our sampleset buffer
 	alBufferData(alSampleSet, alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
- 
+
 	//assign the buffer to this source
 	alSourcei(alSource, AL_BUFFER, alSampleSet);
- 
+
 	//release the data
 	alutUnloadWAV(alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
-	
+
 	alSourcei(alSource,AL_LOOPING,AL_TRUE);
- 
+
 	//play
 	alSourcePlay(alSource);
- /*
+
 	//to stop
 	alSourceStop(alSource);
 	alDeleteSources(1,&alSource);
- 
+
 	//delete our buffer
 	alDeleteBuffers(1,&alSampleSet);
- 
+
 	context=alcGetCurrentContext();
- 
+
 	//Get device for active context
 	device=alcGetContextsDevice(context);
- 
+
 	//Disable context
 	alcMakeContextCurrent(NULL);
- 
+
 	//Release context(s)
 	alcDestroyContext(context);
- 
+
 	//Close device
 	alcCloseDevice(device);
-}*/
+}
+*/
 
 void GLUTInit(int *argc, char **argv)
 {
@@ -1686,6 +1732,46 @@ void GLUTInit(int *argc, char **argv)
   glutFullScreen();
 }
 
+void SDLInit()
+{
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+		fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
+		return;
+	}
+
+	int audio_rate = 22050;
+	Uint16 audio_format = AUDIO_S16SYS;
+	int audio_channels = 2;
+	int audio_buffers = 4096;
+
+	if(Mix_OpenAudio(audio_rate, audio_format, audio_channels, audio_buffers) != 0) {
+		fprintf(stderr, "Unable to initialize audio: %s\n", Mix_GetError());
+		exit(1);
+	}
+
+	Mix_Chunk *sound = NULL;
+
+	// (Note: Mix_LoadWAV() can also read AIFF, RIFF, OGG, and VOC files.)
+	sound = Mix_LoadWAV("../test.wav");
+	if(sound == NULL) {
+		fprintf(stderr, "Unable to load WAV file: %s\n", Mix_GetError());
+	}
+
+	int channel;
+
+	channel = Mix_PlayChannel(-1, sound, 0);
+	if(channel == -1) {
+		fprintf(stderr, "Unable to play WAV file: %s\n", Mix_GetError());
+	}
+
+	//cleanup can probably get rid of/move this
+	while(Mix_Playing(channel) != 0);
+
+	Mix_FreeChunk(sound);
+
+	Mix_CloseAudio();
+	SDL_Quit();
+}
 
 
 
@@ -1813,6 +1899,7 @@ main(int argc, char **argv)
 
   // Initialize AL
   //ALinit();
+  SDLInit();
 
   // Read scene
   scene = ReadScene(input_scene_name);

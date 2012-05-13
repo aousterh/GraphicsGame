@@ -6,7 +6,7 @@
 # List of source files
 #
 
-SRCS=game.cpp particle.cpp R3Scene.cpp R3Bobsled.cpp Mountain.cpp
+SRCS=game.cpp particle.cpp R3Scene.cpp R3Bobsled.cpp Mountain.cpp $(wildcard ../AL/srcs/*.c)
 OBJS=$(SRCS:.cpp=.o)
 
 #
@@ -27,7 +27,7 @@ LIBS=R3/libR3.a R2/libR2.a jpeg/libjpeg.a
 #
 UNAME := $(shell uname)
 ifneq (,$(findstring Darwin,$(UNAME)))
-	GLLIBS = -framework GLUT -framework OpenGL
+	GLLIBS = -framework GLUT -framework OpenGL `sdl-config --libs` -lSDL_mixer
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
 	GLLIBS = -lglut32 -lglut -lGLU -lGL
