@@ -29,7 +29,6 @@ static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS
 // Program arguments
 
 static char *input_scene_name = NULL;
-static char *input_map_name = NULL;
 static char *output_image_name = NULL;
 static const char *video_prefix = "./video-frames/";
 static int integration_type = EULER_INTEGRATION;
@@ -42,9 +41,9 @@ Mountain * m = new Mountain();
 // Display variables
 
 static R3Scene *scene = NULL;
-static R3Scene *map = NULL;
 static R3Camera camera;
 static R3Camera map_camera;
+static R3Box *map_bbox;
 static int show_faces = 1;
 static int show_edges = 0;
 static int show_bboxes = 0;
@@ -181,18 +180,18 @@ void LoadMatrix(R3Matrix *matrix)
 }
 
 
-
-void LoadMaterial(R3Material *material) 
+void LoadMaterial(R3Material *material, bool transparent) 
 {
   GLfloat c[4];
-
+  
   // Check if same as current
   static R3Material *current_material = NULL;
-  if (material == current_material) return;
   current_material = material;
 
   // Compute "opacity"
   double opacity = 1 - material->kt.Luminance();
+  if (transparent)
+    opacity *= 0.5;
 
   // Load ambient
   c[0] = material->ka[0];
@@ -226,8 +225,9 @@ void LoadMaterial(R3Material *material)
   c[0] = material->shininess;
   glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, c[0]);
 
+  
   // Load texture
-  if (material->texture) {
+  if (material->texture && !transparent) {
     if (material->texture_index <= 0) {
       // Create texture in OpenGL
       GLuint texture_index;
@@ -279,6 +279,104 @@ void LoadMaterial(R3Material *material)
 }
 
 
+void LoadMaterialAsTransparent(R3Material *material) 
+{
+  GLfloat c[4];
+  
+  // Check if same as current
+  static R3Material *current_material = NULL;
+  if (material == current_material) return;
+  current_material = material;
+  
+  // Compute "opacity"
+  double opacity = 1 - material->kt.Luminance();
+  
+  // Load ambient
+  c[0] = material->ka[0];
+  c[1] = material->ka[1];
+  c[2] = material->ka[2];
+  c[3] = opacity;
+  glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, c);
+  
+  // Load diffuse
+  c[0] = material->kd[0];
+  c[1] = material->kd[1];
+  c[2] = material->kd[2];
+  c[3] = opacity;
+  glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, c);
+  
+  // Load specular
+  c[0] = material->ks[0];
+  c[1] = material->ks[1];
+  c[2] = material->ks[2];
+  c[3] = opacity;
+  glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, c);
+  
+  // Load emission
+  c[0] = material->emission.Red();
+  c[1] = material->emission.Green();
+  c[2] = material->emission.Blue();
+  c[3] = opacity;
+  glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, c);
+  
+  // Load shininess
+  c[0] = material->shininess;
+  glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, c[0]);
+  
+  // Load texture
+  if (material->texture) {
+    if (material->texture_index <= 0) {
+      // Create texture in OpenGL
+      GLuint texture_index;
+      glGenTextures(1, &texture_index);
+      material->texture_index = (int) texture_index;
+      glBindTexture(GL_TEXTURE_2D, material->texture_index); 
+      R2Image *image = material->texture;
+      int npixels = image->NPixels();
+      R2Pixel *pixels = image->Pixels();
+      GLfloat *buffer = new GLfloat [ 4 * npixels ];
+      R2Pixel *pixelsp = pixels;
+      GLfloat *bufferp = buffer;
+      for (int j = 0; j < npixels; j++) { 
+        *(bufferp++) = pixelsp->Red();
+        *(bufferp++) = pixelsp->Green();
+        *(bufferp++) = pixelsp->Blue();
+        *(bufferp++) = 0.5;
+        pixelsp++;
+      }
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_S,GL_REPEAT);
+      glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_WRAP_T,GL_REPEAT);
+      //glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+      glTexImage2D(GL_TEXTURE_2D, 0, 4, image->Width(), image->Height(), 0, GL_RGBA, GL_FLOAT, buffer);
+      delete [] buffer;
+    }
+    
+    // Select texture
+    glBindTexture(GL_TEXTURE_2D, material->texture_index); 
+    glEnable(GL_TEXTURE_2D);
+  }
+  else {
+    glDisable(GL_TEXTURE_2D);
+  }
+  
+  // Enable blending for transparent surfaces
+  if (opacity < 1) {
+    glDepthMask(false);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+  }
+  else {
+    glDisable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ZERO);
+    glDepthMask(true);
+  }
+}
+
+
+
 
 void LoadCamera(R3Camera *camera)
 {
@@ -299,27 +397,34 @@ void LoadCamera(R3Camera *camera)
 }
 
 
-void LoadMapCamera(R3Camera *map_camera, R3Scene *map)
+void LoadMapCamera(R3Camera *map_camera, R3Box *bbox)
 {
-  const int scale = 10;
+ // const int scale = 10;
   
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  R3Box& bbox = map->BBox();
-  double x_min = min(bbox.XMin(), bbox.XMax());
-  double x_max = max(bbox.XMin(), bbox.XMax());
-  double y_min = min(bbox.YMin(), bbox.YMax());
-  double y_max = max(bbox.YMin(), bbox.YMax());
-  double z_min = min(bbox.ZMin(), bbox.ZMax());
-  double z_max = max(bbox.ZMin(), bbox.ZMax());
-//  double x_avg = (bbox.XMin() + bbox.XMax()) / 2;
-//  double y_avg = (bbox.YMin() + bbox.YMax()) / 2;
- // double z_avg = (bbox.ZMin() + bbox.ZMax()) / 2;
- // double dimension = max(x_max - x_avg, z_max - z_avg);
-  glOrtho(x_min * scale, x_max * scale, y_min * scale, y_max * scale, z_min * scale, z_max * scale);
-/*  glOrtho(x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension); */
- /* printf("%f %f %f %f %f %f\n", x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension);*/
+//  printf("x min, x max, y min, y max, z min, z max: %f %f %f %f %f %f\n", bbox->XMin(), bbox->XMax(), bbox->YMin(), bbox->YMax(), bbox->ZMin(), bbox->ZMax());
+/*  double x_min = min(bbox->XMin(), bbox->XMax());
+  double x_max = max(bbox->XMin(), bbox->XMax());
+  double y_min = min(bbox->YMin(), bbox->YMax());
+  double y_max = max(bbox->YMin(), bbox->YMax());
+  double z_min = min(bbox->ZMin(), bbox->ZMax());
+  double z_max = max(bbox->ZMin(), bbox->ZMax());
+  double x_avg = (bbox->XMin() + bbox->XMax()) / 2;
+  double y_avg = (bbox->YMin() + bbox->YMax()) / 2;
+  double z_avg = (bbox->ZMin() + bbox->ZMax()) / 2;
+  double dimension = max(x_max - x_avg, z_max - z_avg);*/
+//  printf("dim: %f\n", dimension);
+//  printf("eye y: %f\n", map_camera->eye.Y());
+  double dnear = min(map_camera->eye.Y() - bbox->YMin(), map_camera->eye.Y() - bbox->YMax());
+  double dfar = max(map_camera->eye.Y() - bbox->YMin(), map_camera->eye.Y() - bbox->YMax());
+//  printf("near, far: %f %f\n", dnear, dfar);
+  glOrtho(-600, 360, -525, 75, dnear, dfar);  // -600, 3600, -105, 1050, -5250, 750);
+ // glOrtho(x_min * scale, x_max * scale, y_min * scale, y_max * scale, z_min * scale, z_max * scale);
+//  printf("%f %f %f %f %f %f\n", x_min * scale, x_max * scale, y_min * scale, y_max * scale, z_min * scale, z_max * scale);
+  //glOrtho(x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension);
+//  printf("%f %f %f %f %f %f\n", x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension);
   
   // Set camera transformation
   R3Vector t = -(map_camera->towards);
@@ -441,7 +546,7 @@ void DrawNode(R3Scene *scene, R3Node *node)
   LoadMatrix(&node->transformation);
 
   // Load material
-  if (node->material) LoadMaterial(node->material);
+  if (node->material) LoadMaterial(node->material, false);
 
   // Draw shape
   if (node->shape) DrawShape(node->shape);
@@ -596,7 +701,7 @@ void DrawMountain(R3Scene * scene)
 	mat->kt = R3Rgb(0, 0, 0, 0);
 	mat->shininess = 10;
 	mat->texture = NULL;
-	LoadMaterial(mat);
+	LoadMaterial(mat, false);
 	delete mat;
 
 	//ground plane
@@ -742,7 +847,7 @@ void DrawMountain(R3Scene * scene)
 	}*/
 }
 
-void DrawBobsleds(R3Scene *scene)
+void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
 {
   // Get current time (in seconds) since start of execution
   double current_time = GetTime();
@@ -774,9 +879,8 @@ void DrawBobsleds(R3Scene *scene)
     force_left[0] = false;
     force_right[0] = false;
 
-  
-  // Draw all bobsleds
   glEnable(GL_LIGHTING);
+  // Draw all bobsleds
   for (int i = 0; i < 1 /*scene->NBobsleds()*/; i++) {
     R3Bobsled *bobsled = scene->Bobsled(i);
 
@@ -785,32 +889,35 @@ void DrawBobsleds(R3Scene *scene)
     LoadMatrix(&bobsled->transformation);
 
     // Load sled material
-    LoadMaterial(bobsled->sled_material);
+    LoadMaterial(bobsled->sled_material, transparent);
     DrawShape(bobsled->sled);
     
     // Load sled material
-    LoadMaterial(bobsled->skates_material);
+    LoadMaterial(bobsled->skates_material, transparent);
     DrawShape(bobsled->skates);
 
     // Load sled material
-    LoadMaterial(bobsled->helmets_material);
+    LoadMaterial(bobsled->helmets_material, transparent);
     DrawShape(bobsled->helmets);
 
     // Load sled material
-    LoadMaterial(bobsled->masks_material);
+    LoadMaterial(bobsled->masks_material, transparent);
     DrawShape(bobsled->masks);
 
     // Restore previous transformation
     glPopMatrix();
   }
-    // Remember previous time
+  
+  // Remember previous time
+  if (update_time)
     previous_time = current_time;
 }
 
-void DrawTracks(R3Scene *scene)
+void DrawTracks(R3Scene *scene, bool transparent)
 {
-  // Draw all tracks
   glEnable(GL_LIGHTING);
+  
+  // Draw all tracks
   for (int i = 0; i < scene->NTracks(); i++) {
     R3Track *track = scene->Track(i);
 
@@ -819,7 +926,7 @@ void DrawTracks(R3Scene *scene)
     LoadMatrix(&track->transformation);
 
     // Load track material
-    LoadMaterial(track->material);
+    LoadMaterial(track->material, transparent);
     DrawShape(track->track_shape);
 
     // Restore previous transformation
@@ -833,8 +940,8 @@ void DrawScene(R3Scene *scene)
   // Draw nodes recursively
   //DrawMountain(scene);
   DrawNode(scene, scene->root);
-  DrawBobsleds(scene);
-  DrawTracks(scene);
+  DrawBobsleds(scene, true, false);
+  DrawTracks(scene, false);
 }
 
 
@@ -904,7 +1011,7 @@ void DrawParticleSources(R3Scene *scene)
 
   // Draw all particle sources
   glEnable(GL_LIGHTING);
-  LoadMaterial(&source_material);
+  LoadMaterial(&source_material, false);
   for (int i = 0; i < scene->NParticleSources(); i++) {
     R3ParticleSource *source = scene->ParticleSource(i);
     DrawShape(source->shape);
@@ -942,7 +1049,7 @@ void DrawParticleSinks(R3Scene *scene)
 
   // Draw all particle sinks
   glEnable(GL_LIGHTING);
-  LoadMaterial(&sink_material);
+  LoadMaterial(&sink_material, false);
   for (int i = 0; i < scene->NParticleSinks(); i++) {
     R3ParticleSink *sink = scene->ParticleSink(i);
     DrawShape(sink->shape);
@@ -986,22 +1093,21 @@ void DrawMap(double x_start, double y_start, double x_width, double y_width)
   glViewport(x_start, y_start, x_width, y_width);
   
   // Load map camera
-  LoadMapCamera(&map_camera, map);
+  LoadMapCamera(&map_camera, map_bbox);
   
-  // Load map lights
-  LoadLights(map);
+  // Load scene lights
+  LoadLights(scene);
   
-  // Draw scene camera
-  DrawCamera(scene);
+  // Do not draw scene camera
   
-  // Draw scene lights
-  DrawLights(scene);
+  // Do not draw scene lights
   
   glDepthMask(false);
   glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
   glEnable(GL_BLEND);
   
-  DrawScene(map);
+  DrawTracks(scene, true);
+  DrawBobsleds(scene, false, true);
   
   glDisable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ZERO);
@@ -1165,11 +1271,13 @@ void GLUTRedraw(void)
     }
     
     // draw another transparent image in bottom left corner, on top
-    /*if (i == 0)
-      DrawMap(0, 0, GLUTwindow_width * 0.2, GLUTwindow_height * 0.4);
+    glDisable(GL_LIGHTING);
+    if (i == 0)
+      DrawMap(0, 0, GLUTwindow_width * 0.1, GLUTwindow_height * 0.2);
     else if (i == 1)
-      DrawMap(GLUTwindow_width * 0.8, 0, GLUTwindow_width * 0.2, GLUTwindow_height * 0.4);
-*/
+      //DrawMap(GLUTwindow_width / 2, 0, GLUTwindow_width / 2, GLUTwindow_height);
+      DrawMap(GLUTwindow_width * 0.9, 0, GLUTwindow_width * 0.1, GLUTwindow_height * 0.2);
+
     // Save image
     if (save_image) {
       char image_name[256];
@@ -1542,39 +1650,32 @@ ReadScene(const char *filename)
   return scene;
 }
 
-R3Scene *
-ReadMap(const char *filename)
+void SetMapCamera(R3Scene *scene)
 {
-  // Allocate scene
-  R3Scene *map = new R3Scene();
-  if (!map) {
-    fprintf(stderr, "Unable to allocate map\n");
-    return NULL;
+  // determine bounding box of tracks
+  R3Box *bbox = new R3Box(R3null_box);
+  for (unsigned int i = 0; i < scene->track_segments.size(); i++)
+  {
+    R3Track *track = scene->track_segments[i];
+    bbox->Union(track->bbox);
   }
-  
-  // Read file
-  if (!map->Read(filename)) {
-    fprintf(stderr, "Unable to read map from %s\n", filename);
-    return NULL;
-  }
+  map_bbox = bbox;
   
   // determine camera looking down from above (-y direction)
-  R3Box& bbox = map->BBox();
-  double x_avg = (bbox.XMax() + bbox.XMin()) / 2;
-  double z_avg = (bbox.ZMax() + bbox.ZMin()) / 2;
-  double x_width = abs(bbox.XMax() - bbox.XMin());
-  double z_width = abs(bbox.ZMax() - bbox.ZMin());
-  double y_eye = max(bbox.YMax(), bbox.YMin()) + max(x_width, z_width);
+  double x_avg = (bbox->XMax() + bbox->XMin()) / 2;
+  double z_avg = (bbox->ZMax() + bbox->ZMin()) / 2;
+  double x_width = abs(bbox->XMax() - bbox->XMin());
+  double z_width = abs(bbox->ZMax() - bbox->ZMin());
+  double y_eye = max(bbox->YMax(), bbox->YMin()) + max(x_width, z_width);
   map_camera.eye = R3Point(x_avg, y_eye, z_avg);
-  map_camera.towards = R3Vector(0, -1, 0);
-  map_camera.up = R3Vector(0, 0, -1);
+ // printf("eye: %f %f %f\n", map_camera.eye.X(), map_camera.eye.Y(), map_camera.eye.Z());
+  map_camera.towards = R3Vector(0, -1, 0);  // looking down in -Y
+  map_camera.up = R3Vector(0, 0, -1);       // bobsleds move in -Z direction
   map_camera.right = map_camera.towards;
   map_camera.right.Cross(map_camera.up);
   map_camera.towards.Normalize();
   map_camera.up.Normalize();
   map_camera.right.Normalize();
-  
-  return map;
 }
 
 
@@ -1592,9 +1693,8 @@ ParseArgs(int argc, char **argv)
   // Parse arguments
   argc--; argv++;
   while (argc > 0) {
-    if ((*argv)[0] == '-') {
-      if (!strcmp(*argv, "-map")) { argc--; argv++; input_map_name = *argv; }
-/*      if (!strcmp(*argv, "-help")) { print_usage = 1; }
+/*    if ((*argv)[0] == '-') {
+     if (!strcmp(*argv, "-help")) { print_usage = 1; }
       else if (!strcmp(*argv, "-exit_immediately")) { quit = 1; }
       else if (!strcmp(*argv, "-output_image")) { argc--; argv++; output_image_name = *argv; }
       else if (!strcmp(*argv, "-video_prefix")) { argc--; argv++; video_prefix = *argv; }
@@ -1607,13 +1707,11 @@ ParseArgs(int argc, char **argv)
         //GLUTwindow_height = 256;
         save_video = 1;
       }
-      else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }*/
+      else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
       argv++; argc--;
-    }
-    else if (!input_scene_name) {
+    }*/
+    if (!input_scene_name) {
       input_scene_name = *argv;
-      if (!input_map_name)
-        input_map_name = *argv;
       argc--; argv++;
     }
     else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
@@ -1648,8 +1746,8 @@ main(int argc, char **argv)
   scene = ReadScene(input_scene_name);
   if (!scene) exit(-1);
   
-  // Make map copy of scene
-  map = ReadMap(input_map_name);
+  // Make map camera
+  SetMapCamera(scene);
   
   // Run GLUT interface
   GLUTMainLoop();
