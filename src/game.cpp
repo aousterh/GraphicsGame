@@ -14,6 +14,9 @@
 #include "cos426_opengl.h"
 #include <cmath>
 #include "Mountain.h"
+#include <al.h>
+#include <alc.h>
+#include <alut.h>
 
 
 ////////////////////////////////////////////////////////////
@@ -21,6 +24,32 @@
 ////////////////////////////////////////////////////////////
 
 static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS 
+
+
+////////////////////////////////////////////////////////////
+// OPEN AL STUFF
+////////////////////////////////////////////////////////////
+#define NUM_BUFFERS 1
+#define NUM_SOURCES 1
+#define NUM_ENVIRONMENTS 1
+
+ALfloat listenerPos[]={0.0,0.0,4.0};
+ALfloat listenerVel[]={0.0,0.0,0.0};
+ALfloat listenerOri[]={0.0,0.0,1.0, 0.0,1.0,0.0};
+
+ALfloat source0Pos[]={ -2.0, 0.0, 0.0};
+ALfloat source0Vel[]={ 0.0, 0.0, 0.0};
+
+ALuint  buffer[NUM_BUFFERS];
+ALuint  source[NUM_SOURCES];
+ALuint  environment[NUM_ENVIRONMENTS];
+
+ALsizei size,freq;
+ALenum  format;
+ALvoid  *data;
+ALboolean al_bool;
+
+
 
 ////////////////////////////////////////////////////////////
 // GLOBAL VARIABLES
@@ -1553,6 +1582,80 @@ void GLUTCreateMenu(void)
 }
 
 
+void ALinit(void)
+{
+	ALCcontext *context;
+	ALCdevice *device;
+ 
+	device = alcOpenDevice(NULL);
+	if (device == NULL)
+	{
+		printf("shit");
+	}
+ 
+	//Create a context
+	context=alcCreateContext(device,NULL);
+ 
+	//Set active context
+	alcMakeContextCurrent(context);
+ 
+	// Clear Error Code
+	alGetError();
+	char*     alBuffer;         //data for the buffer
+	ALenum alFormatBuffer;		//buffer format
+	ALsizei   alFreqBuffer;     //frequency
+	long       alBufferLen;     //bit depth
+	ALboolean    alLoop;        //loop
+	unsigned int alSource;      //source
+	unsigned int alSampleSet;
+ 
+	printf("loading wav file\n");
+
+	//load the wave file
+	alutLoadWAVFile("../aladdin_cant_believe.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer, &alLoop);
+ 
+	//create a source
+	alGenSources(1, &alSource);
+ 
+	//create  buffer
+	alGenBuffers(1, &alSampleSet);
+ 
+	//put the data into our sampleset buffer
+	alBufferData(alSampleSet, alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+ 
+	//assign the buffer to this source
+	alSourcei(alSource, AL_BUFFER, alSampleSet);
+ 
+	//release the data
+	alutUnloadWAV(alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+	
+	alSourcei(alSource,AL_LOOPING,AL_TRUE);
+ 
+	//play
+	alSourcePlay(alSource);
+ /*
+	//to stop
+	alSourceStop(alSource);
+	alDeleteSources(1,&alSource);
+ 
+	//delete our buffer
+	alDeleteBuffers(1,&alSampleSet);
+ 
+	context=alcGetCurrentContext();
+ 
+	//Get device for active context
+	device=alcGetContextsDevice(context);
+ 
+	//Disable context
+	alcMakeContextCurrent(NULL);
+ 
+	//Release context(s)
+	alcDestroyContext(context);
+ 
+	//Close device
+	alcCloseDevice(device);
+*/
+}
 
 void GLUTInit(int *argc, char **argv)
 {
@@ -1709,6 +1812,9 @@ main(int argc, char **argv)
 
   // Initialize GLUT
   GLUTInit(&argc, argv);
+
+  // Initialize AL
+  ALinit();
 
   // Read scene
   scene = ReadScene(input_scene_name);
