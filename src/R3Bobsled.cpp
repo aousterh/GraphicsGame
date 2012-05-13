@@ -21,7 +21,7 @@ using namespace std;
 #endif
 
 
-double ANGLE_SHIFT = .16;
+double ANGLE_SHIFT = 5;
 
 
 
@@ -35,10 +35,12 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
     //printf("delta_time = %f\n", delta_time);
 	// update each sled in the scene
 	for (int i = 0; i < scene->NBobsleds(); i++) {
-		
 		// get the current sled and its track segment
 		R3Bobsled *bobsled = scene->Bobsled(i);
 		R3Track *track = bobsled->track;
+        
+        
+        //printf("z0: %f\n", bobsled->velocity.Z());
 
 		// find the closest point on the along vector of the track
         R3Point position(bobsled->position);
@@ -70,9 +72,9 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 		R3Vector rotate_vector(R3null_vector);
 		R3Line rotate_line(track->start, track->along);
         double sign;
-        R3Vector temp(position - track->start);
+        R3Vector temp(R3null_vector);
 		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
-            //R3Vector temp(position - track->start);
+            temp = position - track->start;
             temp.Project(track->along);
             R3Point center_point(track->start);
             center_point += temp;
@@ -89,19 +91,27 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 
         R3Point new_point(position + delta_time * v_side);
         R3Vector dist_vect(position - new_point);
+        R3Vector normal(center_point - position);
+        normal.Normalize();
+        temp = R3null_vector;
+        temp = track->along;
+        temp.Cross(normal);
+        temp.Normalize();
+        temp.SetZ(0);
         double delta_dist = dist_vect.Length();
         if (sign > 0)
             delta_dist *= -1;
         double delta_theta = delta_dist / r;
         if (force_right) {
-            double v_change = (ANGLE_SHIFT * r) / delta_time;
+            double v_change = (ANGLE_SHIFT * r) * delta_time;
+            //printf("z change: %f\n", temp.Z());
             velocity += v_change * temp;
-            delta_theta -= ANGLE_SHIFT;
+            //delta_theta -= ANGLE_SHIFT;
         }
         if (force_left) {
-            double v_change = (ANGLE_SHIFT * r) / delta_time;
+            double v_change = (ANGLE_SHIFT * r) * delta_time;
             velocity -= v_change * temp;
-            delta_theta += ANGLE_SHIFT;
+            //delta_theta += ANGLE_SHIFT;
         }
         bobsled->little_theta += delta_theta;
 
