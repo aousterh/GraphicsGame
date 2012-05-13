@@ -188,7 +188,7 @@ void LoadMaterial(R3Material *material)
 
   // Check if same as current
   static R3Material *current_material = NULL;
-  if (material == current_material) return;
+  //if (material == current_material) return;
   current_material = material;
 
   // Compute "opacity"
@@ -604,6 +604,7 @@ void DrawMountain(R3Scene * scene)
 	R3Point ground_pt(0, -50, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
+	//FIXME change this
 	R3Camera * cam = &camera;//scene->bobsleds[0]->camera;
 
 	double d = cam->neardist;
@@ -644,7 +645,18 @@ void DrawMountain(R3Scene * scene)
 
 	const double mountainDist = 2000.0;
 
-	int dist = R3Distance((v1 * mountainDist).Point(), (v2 * mountainDist).Point());
+	R3Point startPt = (v1 * mountainDist).Point();
+	R3Point endPt = (v2 * mountainDist).Point();
+
+	///////TEMP//////////////////////////////////////
+	startPt += cam->eye;
+	endPt += cam->eye;
+	startPt[1] = -ground.D();
+	endPt[1] = -ground.D();
+	///////TEMP//////////////////////////////////////
+
+
+	int dist = R3Distance(startPt, endPt);
 
 	int index = (double) m->width * theta1;
 	printf("start index %f %d\n", theta1, dist);
@@ -652,8 +664,8 @@ void DrawMountain(R3Scene * scene)
 	cam->towards.Print();
 	printf("\n");
 
-	R3Point cur = (v1 * mountainDist).Point();
-	R3Vector next = (v2 * mountainDist).Point() - (v1 * mountainDist).Point();
+	R3Point cur = startPt;
+	R3Vector next = endPt - startPt;
 	R3Vector back(0, 1, 0);
 	back.Cross(next);
 	back.Flip();
@@ -683,7 +695,7 @@ void DrawMountain(R3Scene * scene)
 		cur = nextPt;
 	}
 
-	cur = (v1 * mountainDist).Point();
+	cur = startPt;
 	for (int i = 0; i < dist; i++)
 	{
 		R3Point nextPt = cur + next;
@@ -1169,8 +1181,8 @@ void GLUTRedraw(void)
 
     // Load camera
     //FIXME change this
-	LoadCamera(bobsled->camera);
-	//LoadCamera(&camera);
+	//LoadCamera(bobsled->camera);
+	LoadCamera(&camera);
 
     // Load scene lights
     LoadLights(scene);
