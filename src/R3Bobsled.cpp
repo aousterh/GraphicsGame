@@ -74,7 +74,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             R3Vector dist_vect(new_point - position);
             double dist =  dist_vect.Length();
             R3Vector vect_radius(track->center_point - position);
-            double delta_theta = 100 * dist/vect_radius.Length();
+            double delta_theta = 10 * dist/vect_radius.Length();
             printf("delta_theta = %f\n", delta_theta);
             double percent = delta_theta/(M_PI/2);
             bobsled->big_percent += percent;
@@ -219,14 +219,14 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
     }
     
     else {
-        R3Vector normal(track->center_point - bobsled->position);
+        //R3Vector normal(track->center_point - bobsled->position);
         //R3Vector normal(0, 1, 0);
-        /*R3Vector init_normal(R3null_vector);
+        R3Vector init_normal(R3null_vector);
         R3Track *track(bobsled->track);
         init_normal = bobsled->big_percent * track->endNormal + (1 - bobsled->big_percent) * track->startNormal;
         R3Point little_center(track->center_point);
         little_center += -1 * init_normal * (track->big_radius - track->radius);
-        R3Vector normal(little_center - bobsled->position); */
+        R3Vector normal(little_center - bobsled->position); 
         normal.Normalize();
         double dot = fg.Dot(normal);
         R3Vector centripetal(R3null_vector);
