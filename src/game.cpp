@@ -14,9 +14,9 @@
 #include "cos426_opengl.h"
 #include <cmath>
 #include "Mountain.h"
-#include <al.h>
-#include <alc.h>
-#include <alut.h>
+//#include <al.h>
+//#include <alc.h>
+//#include <alut.h>
 
 
 ////////////////////////////////////////////////////////////
@@ -29,7 +29,7 @@ static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS
 ////////////////////////////////////////////////////////////
 // OPEN AL STUFF
 ////////////////////////////////////////////////////////////
-#define NUM_BUFFERS 1
+/*#define NUM_BUFFERS 1
 #define NUM_SOURCES 1
 #define NUM_ENVIRONMENTS 1
 
@@ -48,7 +48,7 @@ ALsizei size,freq;
 ALenum  format;
 ALvoid  *data;
 ALboolean al_bool;
-
+*/
 
 
 ////////////////////////////////////////////////////////////
@@ -1572,7 +1572,7 @@ void GLUTCreateMenu(void)
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-
+/*
 void ALinit(void)
 {
 	ALCcontext *context;
@@ -1645,8 +1645,7 @@ void ALinit(void)
  
 	//Close device
 	alcCloseDevice(device);
-*/
-}
+}*/
 
 void GLUTInit(int *argc, char **argv)
 {
@@ -1805,7 +1804,7 @@ main(int argc, char **argv)
   GLUTInit(&argc, argv);
 
   // Initialize AL
-  ALinit();
+  //ALinit();
 
   // Read scene
   scene = ReadScene(input_scene_name);

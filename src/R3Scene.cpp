@@ -496,8 +496,8 @@ Read(const char *filename, R3Node *node)
 	  }
 	  else if (type == TRACK_TURN_RIGHT) {
 		  R3Point turn_start(0, 0, 25);
-		  R3Point turn_end(0, 0, -25);
-		  R3Plane turn_endplane(turn_end, (turn_end - turn_start));
+		  R3Point turn_end(50, 0, -25);
+		  R3Plane turn_endplane(turn_end, R3Vector(1,0,0));
 		  R3Vector turn_side(-20, 0, 0);
 		  turn_start.Transform(current_transformation);
 		  track->start = turn_start;
@@ -514,18 +514,23 @@ Read(const char *filename, R3Node *node)
 		  track->next = NULL;
 		  track->along.Normalize();
 		  track->side.Normalize();
+		  track->center_point = R3Point(50, 0, 25);
+		  track->center_point.Transform(current_transformation);
+		  R3Vector center_line(0, 1, 0);
+		  center_line.Transform(current_transformation);
+		  track->center_pivot = R3Line(track->center_point, center_line); 
 	  }
 	  else if (type == TRACK_TURN_LEFT) {
 		  R3Point turn_start(0, 0, 25);
-		  R3Point turn_end(0, 0, -25);
-		  R3Plane turn_endplane(turn_end, (turn_end - turn_start));
+		  R3Point turn_end(-50, 0, -25);
+		  R3Plane turn_endplane(turn_end, R3Vector(-1,0,0));
 		  R3Vector turn_side(-20, 0, 0);
 		  turn_start.Transform(current_transformation);
 		  track->start = turn_start;
 		  turn_end.Transform(current_transformation);
 		  track->end = turn_end;
 		  track->along = turn_end - turn_start;
-		  track->startNormal = R3Vector(1, 0, 0);
+		  track->startNormal = R3Vector(-1, 0, 0);
 		  track->endNormal = R3Vector(0, 0, 1);
 		  turn_endplane.Transform(current_transformation);
 		  track->endPlane = turn_endplane;
@@ -535,6 +540,11 @@ Read(const char *filename, R3Node *node)
 		  track->next = NULL;
 		  track->along.Normalize();
 		  track->side.Normalize();
+		  track->center_point = R3Point(-50, 0, 25);
+		  track->center_point.Transform(current_transformation);
+		  R3Vector center_line(0, 1, 0);
+		  center_line.Transform(current_transformation);
+		  track->center_pivot = R3Line(track->center_point, center_line); 
 	  }
 
       // Add track to scene
