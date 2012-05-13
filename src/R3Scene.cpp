@@ -462,7 +462,8 @@ Read(const char *filename, R3Node *node)
 		  track->start = approach_start;
 		  approach_end.Transform(current_transformation);
 		  track->end = approach_end;
-		  track->along = approach_end - approach_start;
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
 		  track->startNormal = R3Vector(0, 1, 0);
 		  track->endNormal = R3Vector(1, 0, 0);
 		  approach_endplane.Transform(current_transformation);
@@ -483,7 +484,8 @@ Read(const char *filename, R3Node *node)
 		  track->start = approach_start;
 		  approach_end.Transform(current_transformation);
 		  track->end = approach_end;
-		  track->along = approach_end - approach_start;
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
 		  track->startNormal = R3Vector(0, 1, 0);
 		  track->endNormal = R3Vector(-1, 0, 0);
 		  approach_endplane.Transform(current_transformation);

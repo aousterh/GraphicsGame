@@ -1580,7 +1580,6 @@ void GLUTCreateMenu(void)
   // Attach main menu to right mouse button
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
-
 /*
 void ALinit(void)
 {

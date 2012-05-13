@@ -87,7 +87,10 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
             bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
-            bobsled->camera->eye += new_along;
+			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
+			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
+			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
+			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
         }
 		
 		// Side rotation on a straight track
