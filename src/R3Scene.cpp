@@ -386,6 +386,11 @@ Read(const char *filename, R3Node *node)
 	  sled_camera->up = R3Vector(0, 1, 0);
 	  sled_camera->right = R3Vector(1, 0, 0);
 	  sled_camera->eye = sled_center - 5 * sled_radius * sled_camera->towards + 0.5 * sled_radius * sled_camera->up;
+	 // sled_camera->towards = sled_center - sled_camera->eye;
+	 // sled_camera->right = R3Vector(1, 0, 0);
+	 // sled_camera->right.Transform(current_transformation);
+	 // sled_camera->up = R3Vector(sled_camera->right);
+	 // sled_camera->up.Cross(sled_camera->towards);
 	  sled_camera->xfov = 0.25;
 	  sled_camera->yfov = 0.25;
 	  sled_camera->neardist = 0.01 * sled_radius;
@@ -532,7 +537,8 @@ Read(const char *filename, R3Node *node)
 		  track->start = turn_start;
 		  turn_end.Transform(current_transformation);
 		  track->end = turn_end;
-		  track->along = turn_end - turn_start;
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
 		  track->startNormal = R3Vector(-1, 0, 0);
 		  track->endNormal = R3Vector(0, 0, 1);
 		  turn_endplane.Transform(current_transformation);
