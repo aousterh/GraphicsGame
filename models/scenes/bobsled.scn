@@ -146,18 +146,18 @@ begin
 	end	
 	
 		
-	begin
-	5
-	1 0 0 0
-	0 1 0 15
-	0 0 1 -200
-	0 0 0 1
-	
-	track
-		0 0.01 0 5
-		mesh OBJ_models/track_turn_left.obj
-		
-	end	
+#	begin
+#	5
+#	1 0 0 0
+#	0 1 0 15
+#	0 0 1 -200
+#	0 0 0 1
+#	
+#	track
+#		0 0.01 0 5
+#		mesh OBJ_models/track_turn_left.obj
+#		
+#	end	
 end
 
 bobsled
