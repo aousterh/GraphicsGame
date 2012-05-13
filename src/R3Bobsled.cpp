@@ -174,6 +174,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 //bobsled->big_percent = percent;
                 R3Line rotate_line(bobsled->track->center_pivot);
                 bobsled->track->along.Rotate(bobsled->track->center_pivot.Vector(), delta_theta);
+                bobsled->little_theta -= M_PI/2;
             }
             else
                 bobsled->big_percent = 0;
@@ -218,7 +219,11 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
         R3Vector centripetal(R3null_vector);
         centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / r;
         centripetal = centripetal.Length() * normal;
-        fn = fg.Dot(normal) * normal + centripetal;
+        R3Vector big_centripetal(R3null_vector);
+        double R = R3Distance(bobsled->position, bobsled->track->center_point);
+        big_centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / R;
+        big_centripetal = big_centripetal.Length() * normal;
+        fn = fg.Dot(normal) * normal + centripetal + big_centripetal;
     }
     // force of friction
     R3Vector fk(R3null_vector);
