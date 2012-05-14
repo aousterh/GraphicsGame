@@ -62,7 +62,6 @@ ALboolean al_bool;*/
 
 
 
-
 ////////////////////////////////////////////////////////////
 // GLOBAL VARIABLES
 ////////////////////////////////////////////////////////////
@@ -1094,6 +1093,8 @@ void DrawParticleSprings(R3Scene *scene)
   if (lighting) glEnable(GL_LIGHTING);
 }
 
+
+
 // Overlays the Map on top of existing content
 void DrawMap(double width, double height)
 {
@@ -1126,6 +1127,30 @@ void DrawMap(double width, double height)
   glBlendFunc(GL_ONE, GL_ZERO);
   glDepthMask(true);
   
+  
+  // Draw Time
+  char time_string [6] = {'0', '0', ':', '0', '0', '\n'};
+  char characters[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
+  
+  // draw the current time
+  double time = GetTime();
+  
+  
+  int tens = time / 10;
+  int zero = time - tens * 10;
+  int tenth = (time - tens * 10 - zero) / 0.1;
+  int hundredth = (time - tens * 10 - zero - tenth * 0.1) / 0.01;
+  
+  
+  time_string[0] = characters[tens];
+  time_string[1] = characters[zero];
+  time_string[3] = characters[tenth];
+  time_string[4] = characters[hundredth];
+  
+  
+  char *s = time_string;
+  glRasterPos3d(-100, 0, -800);
+  while (*s) glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *(s++));
 }
 
 
