@@ -21,11 +21,7 @@ using namespace std;
 #endif
 
 
-<<<<<<< HEAD
-double ANGLE_SHIFT = 2;
-=======
 double ANGLE_SHIFT = 1;
->>>>>>> 42cec3ead7f2830ea8beae81aaebf51aceb6a350
 
 
 
@@ -92,7 +88,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
         //printf("\n");
 		// Forward translation on a straight track
 		R3Vector v_along(R3null_vector);
-		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
+		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT || track->type == TRACK_FINISH) {
 			v_along = bobsled->velocity.Dot(track->along) * track->along * delta_time;
 			bobsled->position.Translate(v_along);
 			for (int j = 0; j < NUM_SLEDS; j++)
@@ -134,11 +130,6 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
             bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
-
-<<<<<<< HEAD
-			
-=======
->>>>>>> 42cec3ead7f2830ea8beae81aaebf51aceb6a350
 			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
 			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);

@@ -114,8 +114,8 @@ begin
 	0 0 0 1
 	
 	track
-		0 0.01 1 5
-		mesh OBJ_models/track_straight_tunnel.obj
+		0 0.01 0 5
+		mesh OBJ_models/track_straight.obj
 		
 	end
 	
@@ -127,8 +127,8 @@ begin
 	0 0 0 1
 	
 	track
-		0 0.01 1 5
-		mesh OBJ_models/track_straight_tunnel.obj
+		0 0.01 0 5
+		mesh OBJ_models/track_straight.obj
 		
 	end
 	
@@ -140,8 +140,8 @@ begin
 	0 0 0 1
 	
 	track
-		0 0.01 1 5
-		mesh OBJ_models/track_straight_tunnel.obj
+		0 0.01 0 5
+		mesh OBJ_models/track_straight.obj
 		
 	end
 
@@ -153,8 +153,8 @@ begin
 	0 0 0 1
 	
 	track
-		0 0.01 1 5
-		mesh OBJ_models/track_straight_tunnel.obj
+		0 0.01 0 5
+		mesh OBJ_models/track_straight.obj
 		
 	end
 	
@@ -166,8 +166,8 @@ begin
 	0 0 0 1
 	
 	track
-		0 0.01 1 5
-		mesh OBJ_models/track_straight_tunnel.obj
+		0 0.01 0 5
+		mesh OBJ_models/track_straight.obj
 		
 	end
 
@@ -179,8 +179,8 @@ begin
 	0 0 0 1
 	
 	track
-		0 0.01 1 5
-		mesh OBJ_models/track_straight_tunnel.obj
+		0 0.01 0 5
+		mesh OBJ_models/track_straight.obj
 		
 	end
 
@@ -192,8 +192,8 @@ begin
 	0 0 0 1
 	
 	track
-		0 0.01 1 5
-		mesh OBJ_models/track_straight_tunnel.obj
+		0 0.01 0 5
+		mesh OBJ_models/track_straight.obj
 		
 	end
 
@@ -205,8 +205,8 @@ begin
 	0 0 0 1
 	
 	track
-		0 0.01 1 5
-		mesh OBJ_models/track_straight_tunnel.obj
+		0 0.01 0 5
+		mesh OBJ_models/track_finish.obj
 		
 	end
 
