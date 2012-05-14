@@ -185,6 +185,27 @@ begin
 			
 		end
 	end
+	
+	begin
+	5
+	-1 0 0 0
+	0 1 0 0
+	0 0 -1 0
+	0 0 0 1
+	
+		begin
+		5
+		1 0 0 -50
+		0 1 0 15
+		0 0 1 -150
+		0 0 0 1
+		
+		track
+			1 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+		
+		end
+	end
 end
 
 bobsled
