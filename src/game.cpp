@@ -15,15 +15,10 @@
 #include <cmath>
 #include "Mountain.h"
 
-/*
-#include <OpenAL/al.h>
-#include <OpenAL/alc.h>
-#include "../AL/include/alut.h"
-*/
-
 //#include <al.h>
 //#include <alc.h>
 //#include <alut.h>
+
 
 //#include <SDLMain.h>
 //#include <SDL/SDL.h>
@@ -41,6 +36,9 @@ static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS
 ////////////////////////////////////////////////////////////
 // OPEN AL STUFF
 ////////////////////////////////////////////////////////////
+
+/*#define NUM_BUFFERS 1
+=======
 /*
 #define NUM_BUFFERS 1
 #define NUM_SOURCES 1
@@ -60,8 +58,8 @@ ALuint  environment[NUM_ENVIRONMENTS];
 ALsizei size,freq;
 ALenum  format;
 ALvoid  *data;
-ALboolean al_bool;
-*/
+ALboolean al_bool;*/
+
 
 
 
@@ -103,6 +101,7 @@ static int quit = 0;
 // p1 is A-S-D-W, p2 is left-down-right-up
 static bool *force_left;
 static bool *force_right;
+
 
 
 
@@ -342,15 +341,16 @@ void LoadCamera(R3Camera *camera)
 }
 
 
-void LoadMapCamera(R3Camera *map_camera, R3Box *bbox)
+void LoadMapCamera(R3Camera *map_camera, R3Box *bbox, double ratio)
 {
- // const int scale = 10;
+  // sketchy hacks
+  const int A = -300;
+  const int B = 500;
   
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-//  printf("x min, x max, y min, y max, z min, z max: %f %f %f %f %f %f\n", bbox->XMin(), bbox->XMax(), bbox->YMin(), bbox->YMax(), bbox->ZMin(), bbox->ZMax());
-/*  double x_min = min(bbox->XMin(), bbox->XMax());
+  double x_min = min(bbox->XMin(), bbox->XMax());
   double x_max = max(bbox->XMin(), bbox->XMax());
   double y_min = min(bbox->YMin(), bbox->YMax());
   double y_max = max(bbox->YMin(), bbox->YMax());
@@ -359,17 +359,24 @@ void LoadMapCamera(R3Camera *map_camera, R3Box *bbox)
   double x_avg = (bbox->XMin() + bbox->XMax()) / 2;
   double y_avg = (bbox->YMin() + bbox->YMax()) / 2;
   double z_avg = (bbox->ZMin() + bbox->ZMax()) / 2;
-  double dimension = max(x_max - x_avg, z_max - z_avg);*/
-//  printf("dim: %f\n", dimension);
-//  printf("eye y: %f\n", map_camera->eye.Y());
+  
   double dnear = min(map_camera->eye.Y() - bbox->YMin(), map_camera->eye.Y() - bbox->YMax());
   double dfar = max(map_camera->eye.Y() - bbox->YMin(), map_camera->eye.Y() - bbox->YMax());
-//  printf("near, far: %f %f\n", dnear, dfar);
-  glOrtho(-600, 360, -525, 75, dnear, dfar);  // -600, 3600, -105, 1050, -5250, 750);
- // glOrtho(x_min * scale, x_max * scale, y_min * scale, y_max * scale, z_min * scale, z_max * scale);
-//  printf("%f %f %f %f %f %f\n", x_min * scale, x_max * scale, y_min * scale, y_max * scale, z_min * scale, z_max * scale);
-  //glOrtho(x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension);
-//  printf("%f %f %f %f %f %f\n", x_avg - dimension, x_avg + dimension, y_min, y_max, z_avg - dimension, z_avg + dimension);
+  
+  double x_dim = x_max - x_avg;
+  double z_dim = z_max - z_avg;
+  
+  if (x_dim >= z_dim * ratio)
+  {
+    // limited by width
+    glOrtho(x_min, x_max, z_avg - x_dim / ratio - A, z_avg + x_dim / ratio + B, dnear, dfar); 
+  }
+  else
+  {
+    // limited by height
+    glOrtho(x_avg - z_dim * ratio, x_avg + z_dim * ratio, z_min - A, z_max + B, dnear, dfar);
+  }
+
   
   // Set camera transformation
   R3Vector t = -(map_camera->towards);
@@ -874,9 +881,9 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
     delta_time = current_time - previous_time;
   }
 
-  // Update particles
 
 
+  // Update bobsleds
   UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
     force_left[0] = false;
     force_right[0] = false;
@@ -922,7 +929,6 @@ void DrawTracks(R3Scene *scene, bool transparent)
   // Draw all tracks
   for (int i = 0; i < scene->NTracks(); i++) {
     R3Track *track = scene->Track(i);
-
     // Push transformation onto stack
     glPushMatrix();
     LoadMatrix(&track->transformation);
@@ -939,21 +945,12 @@ void DrawTracks(R3Scene *scene, bool transparent)
 
 void DrawScene(R3Scene *scene) 
 {
-  // Draw fog - will only do this for part of the track
-  // so that Ricky can see the mountains
-  float fog_color[3] = {0.9f, 0.9f, 0.9f};
-  glEnable(GL_FOG);
-  glFogi(GL_FOG_MODE, GL_LINEAR);
-  glFogfv(GL_FOG_COLOR, fog_color);
-  glFogi(GL_FOG_START, 100);
-  glFogi(GL_FOG_END, 800);
-  
   DrawMountain(scene);
   DrawNode(scene, scene->root);
   DrawBobsleds(scene, true, false);
   DrawTracks(scene, false);
-  glDisable(GL_FOG);
 }
+
 
 
 void DrawParticles(R3Scene *scene)
@@ -1098,13 +1095,18 @@ void DrawParticleSprings(R3Scene *scene)
 }
 
 // Overlays the Map on top of existing content
-void DrawMap(double x_start, double y_start, double x_width, double y_width)
+void DrawMap(double width, double height)
 {
-  // draw another transparent image in bottom left corner, on top
-  glViewport(x_start, y_start, x_width, y_width);
+  // draw another transparent image in center
+  // twice as tall as wide for now
+  double viewport_width = width * 0.2;
+  double viewport_height = width * 0.4;
+  glViewport((width - viewport_width) * 0.5, (height - viewport_height) * 0.5,
+             viewport_width, viewport_height);
+  double ratio = viewport_width / viewport_height;  // ratio of width to height
   
   // Load map camera
-  LoadMapCamera(&map_camera, map_bbox);
+  LoadMapCamera(&map_camera, map_bbox, ratio);
   
   // Load scene lights
   LoadLights(scene);
@@ -1280,14 +1282,6 @@ void GLUTRedraw(void)
       DrawScene(scene);
       glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
-    
-    // draw another transparent image in bottom left corner, on top
-    glDisable(GL_LIGHTING);
-    if (i == 0)
-      DrawMap(0, 0, GLUTwindow_width * 0.1, GLUTwindow_height * 0.2);
-    else if (i == 1)
-      //DrawMap(GLUTwindow_width / 2, 0, GLUTwindow_width / 2, GLUTwindow_height);
-      DrawMap(GLUTwindow_width * 0.9, 0, GLUTwindow_width * 0.1, GLUTwindow_height * 0.2);
 
     // Save image
     if (save_image) {
@@ -1303,6 +1297,10 @@ void GLUTRedraw(void)
       printf("Saved %s\n", image_name);
       save_image = 0;
     }
+    
+    // draw another transparent image in center, on top
+    glDisable(GL_LIGHTING);
+    DrawMap(GLUTwindow_width, GLUTwindow_height);
 
     // Save video
     if (save_video) {
@@ -1336,6 +1334,23 @@ void GLUTRedraw(void)
   // Swap buffers 
   glutSwapBuffers();
 }    
+
+
+void EnableFog()
+{
+  // Turn on fog
+  float fog_color[3] = {0.9f, 0.9f, 0.9f};
+  glEnable(GL_FOG);
+  glFogi(GL_FOG_MODE, GL_LINEAR);
+  glFogfv(GL_FOG_COLOR, fog_color);
+  glFogi(GL_FOG_START, 100);
+  glFogi(GL_FOG_END, 800);
+}
+
+void DisableFog()
+{
+  glDisable(GL_FOG);
+}
 
 
 void GLUTMotion(int x, int y)
@@ -1595,6 +1610,7 @@ void GLUTCreateMenu(void)
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
+
 /*void ALinit(void)
 {
 	ALCcontext *context;
@@ -1698,12 +1714,14 @@ void GLUTCreateMenu(void)
 
 	//Close device
 	alcCloseDevice(device);
-}
 */
+//}
+
 
 void GLUTInit(int *argc, char **argv)
 {
   // Open window 
+	printf("calling glutinit\n");
   glutInit(argc, argv);
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(GLUTwindow_width, GLUTwindow_height);
@@ -1732,9 +1750,11 @@ void GLUTInit(int *argc, char **argv)
   glutFullScreen();
 }
 
-//void SDLInit()
-//{
-	/*if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+
+/*
+void SDLInit()
+{
+	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
 		fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
 		return;
 	}
@@ -1770,14 +1790,15 @@ void GLUTInit(int *argc, char **argv)
 	Mix_FreeChunk(sound);
 
 	Mix_CloseAudio();
-	SDL_Quit();*/
-//}
+	SDL_Quit();
+}*/
 
 
 
 ////////////////////////////////////////////////////////////
 // SCENE READING
 ////////////////////////////////////////////////////////////
+
 
 R3Scene *
 ReadScene(const char *filename)
@@ -1800,10 +1821,26 @@ ReadScene(const char *filename)
   int num_bobsleds = scene->NBobsleds();
   force_left = new bool[num_bobsleds];
   force_right = new bool[num_bobsleds];
-
+  
   // Return scene
   return scene;
 }
+
+/*
+void FindShape(R3Node *node)
+{
+  if (node->shape != NULL && node->shape->type == R3_SPHERE_SHAPE)
+  {
+    test_box = new R3Box(node->shape->sphere->BBox());
+    
+    printf("test_box: %f %f %f %f %f %f\n", test_box->XMin(), test_box->XMax(), test_box->YMin(), test_box->YMax(), test_box->ZMin(), test_box->ZMax());
+  }
+  else
+  {
+    for (unsigned int i = 0; i < node->children.size(); i++)
+      FindShape(node->children[i]);
+  }
+}*/
 
 void SetMapCamera(R3Scene *scene)
 {
@@ -1816,6 +1853,7 @@ void SetMapCamera(R3Scene *scene)
   }
   map_bbox = bbox;
   
+  
   // determine camera looking down from above (-y direction)
   double x_avg = (bbox->XMax() + bbox->XMin()) / 2;
   double z_avg = (bbox->ZMax() + bbox->ZMin()) / 2;
@@ -1823,7 +1861,7 @@ void SetMapCamera(R3Scene *scene)
   double z_width = abs(bbox->ZMax() - bbox->ZMin());
   double y_eye = max(bbox->YMax(), bbox->YMin()) + max(x_width, z_width);
   map_camera.eye = R3Point(x_avg, y_eye, z_avg);
- // printf("eye: %f %f %f\n", map_camera.eye.X(), map_camera.eye.Y(), map_camera.eye.Z());
+//  printf("eye: %f %f %f\n", map_camera.eye.X(), map_camera.eye.Y(), map_camera.eye.Z());
   map_camera.towards = R3Vector(0, -1, 0);  // looking down in -Y
   map_camera.up = R3Vector(0, 0, -1);       // bobsleds move in -Z direction
   map_camera.right = map_camera.towards;
@@ -1894,12 +1932,13 @@ main(int argc, char **argv)
   // Parse program arguments
   if (!ParseArgs(argc, argv)) exit(1);
 
+  //SDLInit();
+
   // Initialize GLUT
   GLUTInit(&argc, argv);
 
   // Initialize AL
   //ALinit();
-  //SDLInit();
 
   // Read scene
   scene = ReadScene(input_scene_name);
