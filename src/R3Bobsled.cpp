@@ -21,11 +21,9 @@ using namespace std;
 #endif
 
 
-<<<<<<< HEAD
-double ANGLE_SHIFT = 2;
-=======
+
 double ANGLE_SHIFT = 1;
->>>>>>> 42cec3ead7f2830ea8beae81aaebf51aceb6a350
+
 
 
 
@@ -73,147 +71,145 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 		R3Bobsled *bobsled = scene->Bobsled(i);
 		R3Track *track = bobsled->track;
 
-        double big_r;
-        R3Vector new_along(track->along);
-        R3Vector new_normal(track->startNormal);
+        //if (!bobsled->isFalling) {
+            double big_r;
+            R3Vector new_along(track->along);
+            R3Vector new_normal(track->startNormal);
         
-		// find the closest point on the along vector of the track
-        R3Point position(bobsled->position);
-		R3Vector ve_along(bobsled->position - track->start);
-        ve_along.Project(track->along);
-        R3Point little_center(track->start);
-        little_center += ve_along;
-		double r = R3Distance(little_center, bobsled->position);
-		R3Vector force(R3null_vector);
-		force = Force(bobsled, r, delta_time);
-		R3Vector velocity(R3null_vector);
-		velocity = bobsled->velocity + delta_time * force/bobsled->mass;
-        //velocity.Print();
-        //printf("\n");
-		// Forward translation on a straight track
-		R3Vector v_along(R3null_vector);
-		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
-			v_along = bobsled->velocity.Dot(track->along) * track->along * delta_time;
-			bobsled->position.Translate(v_along);
-			for (int j = 0; j < NUM_SLEDS; j++)
-			{
-				bobsled->sleds[j]->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
-			}
-            bobsled->skates->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
-            bobsled->helmets->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
-            bobsled->masks->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
-			bobsled->camera->eye += v_along;
+            // find the closest point on the along vector of the track
+            R3Point position(bobsled->position);
+            R3Vector ve_along(bobsled->position - track->start);
+            ve_along.Project(track->along);
+            R3Point little_center(track->start);
+            little_center += ve_along;
+            double r = R3Distance(little_center, bobsled->position);
+            R3Vector force(R3null_vector);
+            force = Force(bobsled, r, delta_time);
+            R3Vector velocity(R3null_vector);
+            velocity = bobsled->velocity + delta_time * force/bobsled->mass;
+            //velocity.Print();
+            //printf("\n");
+            // Forward translation on a straight track
+            R3Vector v_along(R3null_vector);
+            if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
+                v_along = bobsled->velocity.Dot(track->along) * track->along * delta_time;
+                bobsled->position.Translate(v_along);
+                for (int j = 0; j < NUM_SLEDS; j++)
+                {
+                    bobsled->sleds[j]->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+                }
+                bobsled->skates->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+                bobsled->helmets->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+                bobsled->masks->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+                bobsled->camera->eye += v_along;
             
-		}
+            }
         
-        // Forward translation on a curved track
-        if (track->type == TRACK_TURN_LEFT || track->type == TRACK_TURN_RIGHT) {
-            R3Vector vel_along = (bobsled->velocity.Dot(track->along)) * track->along;
-            R3Point new_point(position + delta_time * vel_along);
-            R3Vector dist_vect(new_point - position);
-            double dist =  dist_vect.Length();
-            R3Vector vect_radius(track->center_point - position);
-            double delta_theta =  dist/vect_radius.Length();
-            //printf("delta_theta = %f\n", delta_theta);
-            double percent = delta_theta/(M_PI/2);
-            //bobsled->big_percent += percent;
-            //dist_to_start.Project(bobsled->track->startNormal);
-            //double percent = dist/(2*M_PI*bobsled->big_r);
-            //new_along = bobsled->big_percent * track->endPlane->Normal() + (1 - bobsled->big_percent) * track->along;
+            // Forward translation on a curved track
+            if (track->type == TRACK_TURN_LEFT || track->type == TRACK_TURN_RIGHT) {
+                R3Vector vel_along = (bobsled->velocity.Dot(track->along)) * track->along;
+                R3Point new_point(position + delta_time * vel_along);
+                R3Vector dist_vect(new_point - position);
+                double dist =  dist_vect.Length();
+                R3Vector vect_radius(track->center_point - position);
+                double delta_theta =  dist/vect_radius.Length();
+                //printf("delta_theta = %f\n", delta_theta);
+                double percent = delta_theta/(M_PI/2);
+                //bobsled->big_percent += percent;
+                //dist_to_start.Project(bobsled->track->startNormal);
+                //double percent = dist/(2*M_PI*bobsled->big_r);
+                //new_along = bobsled->big_percent * track->endPlane->Normal() + (1 - bobsled->big_percent) * track->along;
             
-            //new_along.Normalize();
-            R3Line rotate_line(track->center_pivot);
-            new_along.Rotate(rotate_line.Vector(), delta_theta);
-            new_normal.Rotate(rotate_line.Vector(), delta_theta);
-			R3Point old_position(bobsled->position);
-            bobsled->position.Rotate(rotate_line, delta_theta);
-			for (int j = 0; j < NUM_SLEDS; j++)
-			{
-				bobsled->sleds[j]->mesh->Rotate(delta_theta, rotate_line);
-			}
-            bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
-            bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
-            bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
+                //new_along.Normalize();
+                R3Line rotate_line(track->center_pivot);
+                new_along.Rotate(rotate_line.Vector(), delta_theta);
+                new_normal.Rotate(rotate_line.Vector(), delta_theta);
+                R3Point old_position(bobsled->position);
+                bobsled->position.Rotate(rotate_line, delta_theta);
+                for (int j = 0; j < NUM_SLEDS; j++)
+                {
+                    bobsled->sleds[j]->mesh->Rotate(delta_theta, rotate_line);
+                }
+                bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
+                bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
+                bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
 
-<<<<<<< HEAD
-			
-=======
->>>>>>> 42cec3ead7f2830ea8beae81aaebf51aceb6a350
-			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
-			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
-			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
-			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
-        }
+
+                bobsled->camera->eye.Rotate(rotate_line, delta_theta);
+                bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
+            }
 		
 		
-		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
-            // Side rotation on a straight track
-            R3Vector v_side(R3null_vector);
-            R3Vector v_down(R3null_vector);
-            R3Vector down(0, -1, 0);
-            R3Vector rotate_vector(R3null_vector);
-            R3Line rotate_line(track->start, track->along);
-            double sign;
-            R3Vector temp(R3null_vector);
-            temp = position - track->start;
-            temp.Project(track->along);
-            R3Point center_point(track->start);
-            center_point += temp;
-            R3Vector normal(center_point - position);
-            normal.Normalize();
-            temp = track->along;
-            temp.Cross(normal);
-            temp.Normalize();
-            sign = bobsled->velocity.Dot(temp);
-			v_side = sign * temp;
-			rotate_vector = track->along;
+            if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
+                // Side rotation on a straight track
+                R3Vector v_side(R3null_vector);
+                R3Vector v_down(R3null_vector);
+                R3Vector down(0, -1, 0);
+                R3Vector rotate_vector(R3null_vector);
+                R3Line rotate_line(track->start, track->along);
+                double sign;
+                R3Vector temp(R3null_vector);
+                temp = position - track->start;
+                temp.Project(track->along);
+                R3Point center_point(track->start);
+                center_point += temp;
+                R3Vector normal(center_point - position);
+                normal.Normalize();
+                temp = track->along;
+                temp.Cross(normal);
+                temp.Normalize();
+                sign = bobsled->velocity.Dot(temp);
+                v_side = sign * temp;
+                rotate_vector = track->along;
 			
             
             
-            R3Point new_point(position + delta_time * v_side);
-            R3Vector dist_vect(position - new_point);
-            //R3Vector normal(center_point - position);
-            //normal.Normalize();
-            temp = R3null_vector;
-            temp = track->along;
-            temp.Cross(normal);
-            temp.Normalize();
-            //temp.SetZ(0);
-            double delta_dist = dist_vect.Length();
-            if (sign > 0)
-                delta_dist *= -1;
-            double delta_theta = delta_dist / r;
-            if (force_right) {
-                double v_change = (ANGLE_SHIFT * r) * delta_time;
-                //printf("z change: %f\n", temp.Z());
-                velocity += v_change * temp;
-                //delta_theta -= ANGLE_SHIFT;
-            }
-            if (force_left) {
-                double v_change = (ANGLE_SHIFT * r) * delta_time;
-                velocity -= v_change * temp;
-                //delta_theta += ANGLE_SHIFT;
-            }
+                R3Point new_point(position + delta_time * v_side);
+                R3Vector dist_vect(position - new_point);
+                //R3Vector normal(center_point - position);
+                //normal.Normalize();
+                temp = R3null_vector;
+                temp = track->along;
+                temp.Cross(normal);
+                temp.Normalize();
+                //temp.SetZ(0);
+                double delta_dist = dist_vect.Length();
+                if (sign > 0)
+                    delta_dist *= -1;
+                double delta_theta = delta_dist / r;
+                if (force_right) {
+                    double v_change = (ANGLE_SHIFT * r) * delta_time;
+                    //printf("z change: %f\n", temp.Z());
+                    velocity += v_change * temp;
+                    //delta_theta -= ANGLE_SHIFT;
+                }
+                if (force_left) {
+                    double v_change = (ANGLE_SHIFT * r) * delta_time;
+                    velocity -= v_change * temp;
+                    //delta_theta += ANGLE_SHIFT;
+                }
             
-            // add vibration
-          if (bobsled->x_vibration != 0)
-            delta_theta += bobsled->x_vibration;
+                // add vibration
+                if (bobsled->x_vibration != 0)
+                    delta_theta += bobsled->x_vibration;
       
-            bobsled->little_theta += delta_theta;
+                bobsled->little_theta += delta_theta;
             
-            bobsled->position.Rotate(rotate_line, delta_theta);
-			for (int j = 0; j < NUM_SLEDS; j++)
-			{
-				bobsled->sleds[j]->mesh->Rotate(delta_theta, rotate_line);
-			}
-            bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
-            bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
-            bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
-			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
-			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
-			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
-			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
-        }
+                bobsled->position.Rotate(rotate_line, delta_theta);
+                for (int j = 0; j < NUM_SLEDS; j++)
+                {
+                    bobsled->sleds[j]->mesh->Rotate(delta_theta, rotate_line);
+                }
+                bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
+                bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
+                bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
+                bobsled->camera->eye.Rotate(rotate_line, delta_theta);
+                bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
+            }
         
         // Side rotation on a curved track
         

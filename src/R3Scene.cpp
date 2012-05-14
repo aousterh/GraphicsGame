@@ -366,6 +366,8 @@ Read(const char *filename, R3Node *node)
         bobsled->helmets_material = helmets_material;
         bobsled->masks_material = masks_material;
         bobsled->track = track_segments[0];
+        bobsled->isFalling = false;
+        bobsled->timeFalling = 0;
             
         bobsled->transformation = current_transformation;
             
