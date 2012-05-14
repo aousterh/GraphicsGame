@@ -1,0 +1,21 @@
+# Compiled Object files
+*.slo
+*.lo
+*.o
+
+# Compiled Dynamic libraries
+*.so
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+
+Temporary Files
+*~
+
+Weird Mac Files
+*.DS_Store
+
+Executable
+src/game

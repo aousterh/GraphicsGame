@@ -425,7 +425,6 @@ Read(const char *filename, R3Node *node)
         }
       }
 
-        printf("type = %d\n", type);
       // Create track segment
       R3Track *track = new R3Track();
       track->cof = cof;
