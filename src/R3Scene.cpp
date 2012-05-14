@@ -570,6 +570,7 @@ Read(const char *filename, R3Node *node)
 
 		  // set other fields
 		  track->radius = turn_side.Length();
+		  track->big_radius = (track->center_point - track->start).Length();
 		  track->next = NULL;
 	  }
 
