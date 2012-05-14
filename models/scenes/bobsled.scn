@@ -168,7 +168,7 @@ begin
 	0 0 0 1
 	
 	track
-		4 0.01 0 5
+		6 0.01 0 5
 		mesh OBJ_models/track_turn_left.obj
 		
 	end	
@@ -189,7 +189,7 @@ begin
 		0   0   0   1
 		
 		track
-			4 0.01 0 5
+			6 0.01 0 5
 			mesh OBJ_models/track_turn_left.obj
 			
 		end
@@ -210,8 +210,8 @@ begin
 		0   0   0   1
 		
 		track
-			0 0.01 0 5
-			mesh OBJ_models/track_straight.obj
+			4 0.01 0 5
+			mesh OBJ_models/track_exit_left.obj
 		
 		end
 	end
@@ -231,11 +231,76 @@ begin
 		0   0   0   1
 		
 		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+		
+		end
+	end
+	
+	begin
+	5
+	1 0 0 -100
+	0 1 0 15
+	0 0 1 -50
+	0 0 0 1
+	
+		begin
+		5
+		-1   0   0   0
+		0   1   0   0
+		0   0   -1   0
+		0   0   0   1
+		
+		track
 			0 0.01 1 5
 			mesh OBJ_models/track_straight_tunnel.obj
 		
 		end
 	end
+	
+	begin
+	5
+	1 0 0 -100
+	0 1 0 15
+	0 0 1 0
+	0 0 0 1
+	
+		begin
+		5
+		-1   0   0   0
+		0   1   0   0
+		0   0   -1   0
+		0   0   0   1
+		
+		track
+			0 0.01 1 5
+			mesh OBJ_models/track_straight_tunnel.obj
+		
+		end
+	end
+		
+	begin
+	5
+	1 0 0 -100
+	0 1 0 15
+	0 0 1 0
+	0 0 0 1
+	
+		begin
+		5
+		-1   0   0   0
+		0   1   0   0
+		0   0   -1   0
+		0   0   0   1
+		
+		track
+			5 0.01 0 5
+			mesh OBJ_models/track_turn_right.obj
+		
+		end
+	end
+	
+	
 end
 
 obstacle
