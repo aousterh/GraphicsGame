@@ -801,7 +801,7 @@ Read(const char *filename, R3Node *node)
 	  else if (type == TRACK_FINISH) {
 		  // set beginning and end track points along central axis
 		  R3Point straight_start(0, 0, 25);
-		  R3Point straight_end(0, 0, -25);
+		  R3Point straight_end(0, 0, -83);
 		  straight_start.Transform(current_transformation);
 		  straight_end.Transform(current_transformation);
 		  track->start = straight_start;
@@ -838,7 +838,6 @@ Read(const char *filename, R3Node *node)
 		  // set other fields
 		  track->big_radius = 0;
 		  track->next = NULL;
-		  track->cof = 1000000;
 	  }
       // Add track to scene
 	  int NSegments = track_segments.size();
