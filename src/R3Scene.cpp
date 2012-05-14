@@ -531,8 +531,8 @@ Read(const char *filename, R3Node *node)
 	  else if (type == TRACK_TURN_LEFT) {
 		  
 		  // set beginning and end track points along central axis
-		  R3Point turn_start(0, 0, 0);
-		  R3Point turn_end(-50, 0, -50);
+		  R3Point turn_start(-20, 0, 0);
+		  R3Point turn_end(-70, 0, -50);
 		  turn_start.Transform(current_transformation);
 		  turn_end.Transform(current_transformation);
 		  track->start = turn_start;
