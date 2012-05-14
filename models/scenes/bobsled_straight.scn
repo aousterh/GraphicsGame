@@ -207,6 +207,8 @@ begin
 	track
 		0 0.01 0 5
 		mesh OBJ_models/track_finish.obj
+
+	mesh 6 0 OBJ_models/finish_line.obj
 		
 	end
 
