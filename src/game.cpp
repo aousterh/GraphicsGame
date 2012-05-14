@@ -656,156 +656,158 @@ void DrawMountain(R3Scene * scene)
 
 	//ground plane
 	R3Vector ground_normal(0, 1, 0);
-	R3Point ground_pt(0, -50, 0);
+	R3Point ground_pt(0, -100, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
 	//FIXME change this
-	R3Camera * cam = &camera;//scene->bobsleds[0]->camera;
-
-	double d = cam->neardist;
-	//FIXME really weird
-	double tanTheta = tan(cam->xfov / 1.5);
-
-	R3Point bl = cam->eye + d * cam->towards
-			- d * tanTheta * cam->up
-			- d * tanTheta * cam->right;
-
-	R3Point br = cam->eye + d * cam->towards
-			- d * tanTheta * cam->up
-			+ d * tanTheta * cam->right;
-
-	R3Ray rray(br, br - cam->eye);
-	R3Ray lray(bl, bl - cam->eye);
-
-	//intersect with ground plane
-	double t1 = IntersectGroundPlane(ground, rray);
-	double t2 = IntersectGroundPlane(ground, lray);
-	if (t1 < 0 || t2 < 0) return;
-
-	R3Point r = rray.Point(t1);
-	R3Point l = lray.Point(t2);
-	R3Vector axis(1, 0, 0);
-	R3Vector v1(r[0], 0, r[2]);
-	R3Vector v2(l[0], 0, l[2]);
-	v1.Normalize();
-	v2.Normalize();
-
-	double theta1 = acos(v1.Dot(axis));
-	double theta2 = acos(v2.Dot(axis));
-	if (v1[2] < 0) theta1 += 3.14159;
-	if (v2[2] < 0) theta2 += 3.14159;
-
-	theta1 /= (2.0 * 3.14159);
-	theta2 /= (2.0 * 3.14159);
-
-	const double mountainDist = 2000.0;
-
-	R3Point startPt = (v1 * mountainDist).Point();
-	R3Point endPt = (v2 * mountainDist).Point();
-
-	///////TEMP//////////////////////////////////////
-	startPt += cam->eye;
-	endPt += cam->eye;
-	startPt[1] = -ground.D();
-	endPt[1] = -ground.D();
-	///////TEMP//////////////////////////////////////
-
-
-	int dist = R3Distance(startPt, endPt);
-
-	int index = (double) m->width * theta1;
-//	printf("start index %f %d\n", theta1, dist);
-//	printf("towards ");
-//	cam->towards.Print();
-//	printf("\n");
-
-	R3Point cur = startPt;
-	R3Vector next = endPt - startPt;
-	R3Vector back(0, 1, 0);
-	back.Cross(next);
-	back.Flip();
-
-	back.Normalize();
-	next.Normalize();
-
-	///////TEMP//////////////////////////////////////
-	dist /= 3;
-	next *= 3;
-	/////END TEMP//////////////////////////////////
-
-
-	glDisable(GL_LIGHTING);
-	//front polygon
-	for (int i = 0; i < dist; i++)
+	for (int k = 0; k < scene->NBobsleds(); k++)
 	{
-		glBegin(GL_POLYGON);
-		R3Point nextPt = cur + next;
+		R3Camera * cam = scene->bobsleds[k]->camera;
 
-		glNormal3d(-cam->towards[0], -cam->towards[1], -cam->towards[2]);
-		glColor3d(1, 1, 1);
-		glVertex3d(cur[0], -ground.D(), cur[2]);
-		glVertex3d(cur[0], m->heights[(i + index) % m->width][0], cur[2]);
-		glVertex3d(nextPt[0], m->heights[(i + 1 + index) % m->width][0], nextPt[2]);
-		glVertex3d(nextPt[0], -ground.D(), nextPt[2]);
-		glEnd();
+		double d = cam->neardist;
+		//FIXME really weird
+		double tanTheta = tan(cam->xfov / 1.5);
 
-		cur = nextPt;
-	}
-	glEnable(GL_LIGHTING);
+		R3Point bl = cam->eye + d * cam->towards
+				- d * tanTheta * cam->up
+				- d * tanTheta * cam->right;
 
-	cur = startPt;
-	for (int i = 0; i < dist; i++)
-	{
-		R3Point nextPt = cur + next;
+		R3Point br = cam->eye + d * cam->towards
+				- d * tanTheta * cam->up
+				+ d * tanTheta * cam->right;
 
-		R3Point anchor = cur;
-		R3Point over = nextPt;
-		R3Point overUp = over + back;
-		for (int j = 0; j < m->height; j++)
+		R3Ray rray(br, br - cam->eye);
+		R3Ray lray(bl, bl - cam->eye);
+
+		//intersect with ground plane
+		double t1 = IntersectGroundPlane(ground, rray);
+		double t2 = IntersectGroundPlane(ground, lray);
+		if (t1 < 0 || t2 < 0) return;
+
+		R3Point r = rray.Point(t1);
+		R3Point l = lray.Point(t2);
+		R3Vector axis(1, 0, 0);
+		R3Vector v1(r[0], 0, r[2]);
+		R3Vector v2(l[0], 0, l[2]);
+		v1.Normalize();
+		v2.Normalize();
+
+		double theta1 = acos(v1.Dot(axis));
+		double theta2 = acos(v2.Dot(axis));
+		if (v1[2] < 0) theta1 += 3.14159;
+		if (v2[2] < 0) theta2 += 3.14159;
+
+		theta1 /= (2.0 * 3.14159);
+		theta2 /= (2.0 * 3.14159);
+
+		const double mountainDist = 2000.0;
+
+		R3Point startPt = (v1 * mountainDist).Point();
+		R3Point endPt = (v2 * mountainDist).Point();
+
+		///////TEMP//////////////////////////////////////
+		startPt += cam->eye;
+		endPt += cam->eye;
+		startPt[1] = -ground.D();
+		endPt[1] = -ground.D();
+		///////TEMP//////////////////////////////////////
+
+
+		int dist = R3Distance(startPt, endPt);
+
+		int index = (double) m->width * theta1;
+		//	printf("start index %f %d\n", theta1, dist);
+		//	printf("towards ");
+		//	cam->towards.Print();
+		//	printf("\n");
+
+		R3Point cur = startPt;
+		R3Vector next = endPt - startPt;
+		R3Vector back(0, 1, 0);
+		back.Cross(next);
+		back.Flip();
+
+		back.Normalize();
+		next.Normalize();
+
+		///////TEMP//////////////////////////////////////
+		dist /= 3;
+		next *= 3;
+		/////END TEMP//////////////////////////////////
+
+
+		glDisable(GL_LIGHTING);
+		//front polygon
+		for (int i = 0; i < dist; i++)
 		{
-			R3Point nextDepth =	anchor + back;
-
-			R3Point p1(anchor[0], m->heights[(i + index) % m->width][j], anchor[2]);
-			R3Point p2(nextDepth[0], m->heights[(i + index) % m->width][j+1], nextDepth[2]);
-			R3Point p3(overUp[0], m->heights[(i + 1 + index) % m->width][j+1], overUp[2]);
-			R3Point p4(over[0], m->heights[(i + 1 + index) % m->width][j], over[2]);
-
 			glBegin(GL_POLYGON);
+			R3Point nextPt = cur + next;
 
-			R3Vector v = p2 - p1;
-			R3Vector u = p3 - p1;
-			R3Vector norm = v;
-			norm.Cross(u);
-			norm.Normalize();
-
-			glNormal3d(norm[0], norm[1], norm[2]);
-			glVertex3d(p1[0], p1[1], p1[2]);
-			glVertex3d(p2[0], p2[1], p2[2]);
-			glVertex3d(p3[0], p3[1], p3[2]);
+			glNormal3d(-cam->towards[0], -cam->towards[1], -cam->towards[2]);
+			glColor3d(1, 1, 1);
+			glVertex3d(cur[0], -ground.D(), cur[2]);
+			glVertex3d(cur[0], m->heights[(i + index) % m->width][0], cur[2]);
+			glVertex3d(nextPt[0], m->heights[(i + 1 + index) % m->width][0], nextPt[2]);
+			glVertex3d(nextPt[0], -ground.D(), nextPt[2]);
 			glEnd();
 
-			glBegin(GL_POLYGON);
-
-			v = p4 - p1;
-			u = p3 - p1;
-			norm = u;
-			norm.Cross(v);
-			norm.Normalize();
-
-			glNormal3d(norm[0], norm[1], norm[2]);
-			glVertex3d(p1[0], p1[1], p1[2]);
-			glVertex3d(p3[0], p3[1], p3[2]);
-			glVertex3d(p4[0], p4[1], p4[2]);
-			glEnd();
-
-			anchor = nextDepth;
-			over += back;
-			overUp += back;
+			cur = nextPt;
 		}
-		cur = nextPt;
-	}
+		glEnable(GL_LIGHTING);
 
-	/*for (int i = 0; i < m->width - 1; i++)
+		cur = startPt;
+		for (int i = 0; i < dist; i++)
+		{
+			R3Point nextPt = cur + next;
+
+			R3Point anchor = cur;
+			R3Point over = nextPt;
+			R3Point overUp = over + back;
+			for (int j = 0; j < m->height; j++)
+			{
+				R3Point nextDepth =	anchor + back;
+
+				R3Point p1(anchor[0], m->heights[(i + index) % m->width][j], anchor[2]);
+				R3Point p2(nextDepth[0], m->heights[(i + index) % m->width][j+1], nextDepth[2]);
+				R3Point p3(overUp[0], m->heights[(i + 1 + index) % m->width][j+1], overUp[2]);
+				R3Point p4(over[0], m->heights[(i + 1 + index) % m->width][j], over[2]);
+
+				glBegin(GL_POLYGON);
+
+				R3Vector v = p2 - p1;
+				R3Vector u = p3 - p1;
+				R3Vector norm = v;
+				norm.Cross(u);
+				norm.Normalize();
+
+				glNormal3d(norm[0], norm[1], norm[2]);
+				glVertex3d(p1[0], p1[1], p1[2]);
+				glVertex3d(p2[0], p2[1], p2[2]);
+				glVertex3d(p3[0], p3[1], p3[2]);
+				glEnd();
+
+				glBegin(GL_POLYGON);
+
+				v = p4 - p1;
+				u = p3 - p1;
+				norm = u;
+				norm.Cross(v);
+				norm.Normalize();
+
+				glNormal3d(norm[0], norm[1], norm[2]);
+				glVertex3d(p1[0], p1[1], p1[2]);
+				glVertex3d(p3[0], p3[1], p3[2]);
+				glVertex3d(p4[0], p4[1], p4[2]);
+				glEnd();
+
+				anchor = nextDepth;
+				over += back;
+				overUp += back;
+			}
+			cur = nextPt;
+		}
+
+		/*for (int i = 0; i < m->width - 1; i++)
 	{
 		for (int j = 0; j < m->height - 1; j++)
 		{
@@ -835,7 +837,7 @@ void DrawMountain(R3Scene * scene)
 			glVertex3d(end[0], end[1], end[2]);
 			glEnd();*/
 
-/*
+		/*
 			glBegin(GL_POLYGON);
 
 			R3Point p4(i+1, m->heights[i+1][j], j);
@@ -851,6 +853,7 @@ void DrawMountain(R3Scene * scene)
 			glEnd();
 		}
 	}*/
+	}
 }
 
 void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)

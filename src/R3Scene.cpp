@@ -531,74 +531,213 @@ Read(const char *filename, R3Node *node)
 		  track->next = NULL;
 	  }
 	  else if (type == TRACK_APPROACH_RIGHT) {
-		  R3Point approach_start(0, 0, 25);
-		  R3Point approach_end(0, 0, -25);
-		  R3Plane approach_endplane(approach_end, (approach_end - approach_start));
-		  R3Vector approach_side(-20, 0, 0);
-		  approach_start.Transform(current_transformation);
-		  track->start = approach_start;
-		  approach_end.Transform(current_transformation);
-		  track->end = approach_end;
+		  // set beginning and end track points along central axis
+		  R3Point right_approach_start(0, 0, 25);
+		  R3Point right_approach_end(0, 0, -25);
+		  right_approach_start.Transform(current_transformation);
+		  right_approach_end.Transform(current_transformation);
+		  track->start = right_approach_start;
+		  track->end = right_approach_end;
+
+		  // set end plane of track
+		  R3Vector right_approach_endplane_normal = R3Vector(0, 0, -1);
+		  right_approach_endplane_normal.Transform(current_transformation);
+		  R3Plane right_approach_endplane(right_approach_end, right_approach_endplane_normal);
+		  track->endPlane = right_approach_endplane;
+
+		  // set initial along vector for track 
 		  track->along = R3Vector(0,0,-1);
 		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
 		  track->startNormal = R3Vector(0, 1, 0);
 		  track->endNormal = R3Vector(1, 0, 0);
-		  approach_endplane.Transform(current_transformation);
-		  track->endPlane = approach_endplane;
-		  approach_side.Transform(current_transformation);
-		  track->side = approach_side;
-		  track->radius = approach_side.Length();
-		  track->next = NULL;
-		  track->along.Normalize();
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector right_approach_side(-20, 0, 0);
+		  right_approach_side.Transform(current_transformation);
+		  track->radius = right_approach_side.Length();
+		  track->side = right_approach_side;
 		  track->side.Normalize();
+
+		  // set center line of large curve
+		  track->center_point = R3zero_point;
+		  track->center_pivot = R3Line(R3null_point, R3zero_vector); 
+
+		  // set other fields
+		  track->big_radius = 0;
+		  track->next = NULL;
 	  }
 	  else if (type == TRACK_APPROACH_LEFT) {
-		  R3Point approach_start(0, 0, 25);
-		  R3Point approach_end(0, 0, -25);
-		  R3Plane approach_endplane(approach_end, (approach_end - approach_start));
-		  R3Vector approach_side(-20, 0, 0);
-		  approach_start.Transform(current_transformation);
-		  track->start = approach_start;
-		  approach_end.Transform(current_transformation);
-		  track->end = approach_end;
+		  // set beginning and end track points along central axis
+		  R3Point left_approach_start(0, 0, 25);
+		  R3Point left_approach_end(0, 0, -25);
+		  left_approach_start.Transform(current_transformation);
+		  left_approach_end.Transform(current_transformation);
+		  track->start = left_approach_start;
+		  track->end = left_approach_end;
+
+		  // set end plane of track
+		  R3Vector left_approach_endplane_normal = R3Vector(0, 0, -1);
+		  left_approach_endplane_normal.Transform(current_transformation);
+		  R3Plane left_approach_endplane(left_approach_end, left_approach_endplane_normal);
+		  track->endPlane = left_approach_endplane;
+
+		  // set initial along vector for track 
 		  track->along = R3Vector(0,0,-1);
 		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
 		  track->startNormal = R3Vector(0, 1, 0);
 		  track->endNormal = R3Vector(-1, 0, 0);
-		  approach_endplane.Transform(current_transformation);
-		  track->endPlane = approach_endplane;
-		  approach_side.Transform(current_transformation);
-		  track->side = approach_side;
-		  track->radius = approach_side.Length();
-		  track->next = NULL;
-		  track->along.Normalize();
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector left_approach_side(-20, 0, 0);
+		  left_approach_side.Transform(current_transformation);
+		  track->radius = left_approach_side.Length();
+		  track->side = left_approach_side;
 		  track->side.Normalize();
+
+		  // set center line of large curve
+		  track->center_point = R3zero_point;
+		  track->center_pivot = R3Line(R3null_point, R3zero_vector); 
+
+		  // set other fields
+		  track->big_radius = 0;
+		  track->next = NULL;
+	  }
+	  else if (type == TRACK_EXIT_RIGHT) {
+		  // set beginning and end track points along central axis
+		  R3Point right_approach_start(0, 0, 25);
+		  R3Point right_approach_end(0, 0, -25);
+		  right_approach_start.Transform(current_transformation);
+		  right_approach_end.Transform(current_transformation);
+		  track->start = right_approach_start;
+		  track->end = right_approach_end;
+
+		  // set end plane of track
+		  R3Vector right_approach_endplane_normal = R3Vector(0, 0, -1);
+		  right_approach_endplane_normal.Transform(current_transformation);
+		  R3Plane right_approach_endplane(right_approach_end, right_approach_endplane_normal);
+		  track->endPlane = right_approach_endplane;
+
+		  // set initial along vector for track 
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
+		  track->startNormal = R3Vector(1, 0, 0);
+		  track->endNormal = R3Vector(0, 1, 0);
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector right_approach_side(0, -20, 0);
+		  right_approach_side.Transform(current_transformation);
+		  track->radius = right_approach_side.Length();
+		  track->side = right_approach_side;
+		  track->side.Normalize();
+
+		  // set center line of large curve
+		  track->center_point = R3zero_point;
+		  track->center_pivot = R3Line(R3null_point, R3zero_vector); 
+
+		  // set other fields
+		  track->big_radius = 0;
+		  track->next = NULL;
+	  }
+	  else if (type == TRACK_EXIT_LEFT) {
+		  // set beginning and end track points along central axis
+		  R3Point left_approach_start(0, 0, 25);
+		  R3Point left_approach_end(0, 0, -25);
+		  left_approach_start.Transform(current_transformation);
+		  left_approach_end.Transform(current_transformation);
+		  track->start = left_approach_start;
+		  track->end = left_approach_end;
+
+		  // set end plane of track
+		  R3Vector left_approach_endplane_normal = R3Vector(0, 0, -1);
+		  left_approach_endplane_normal.Transform(current_transformation);
+		  R3Plane left_approach_endplane(left_approach_end, left_approach_endplane_normal);
+		  track->endPlane = left_approach_endplane;
+
+		  // set initial along vector for track 
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
+		  track->startNormal = R3Vector(-1, 0, 0);
+		  track->endNormal = R3Vector(0, 1, 0);
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector left_approach_side(0, 20, 0);
+		  left_approach_side.Transform(current_transformation);
+		  track->radius = left_approach_side.Length();
+		  track->side = left_approach_side;
+		  track->side.Normalize();
+
+		  // set center line of large curve
+		  track->center_point = R3zero_point;
+		  track->center_pivot = R3Line(R3null_point, R3zero_vector); 
+
+		  // set other fields
+		  track->big_radius = 0;
+		  track->next = NULL;
 	  }
 	  else if (type == TRACK_TURN_RIGHT) {
-		  R3Point turn_start(0, 0, 25);
-		  R3Point turn_end(50, 0, -25);
-		  R3Plane turn_endplane(turn_end, R3Vector(1,0,0));
-		  R3Vector turn_side(-20, 0, 0);
+		  
+		  // set beginning and end track points along central axis
+		  R3Point turn_start(20, 0, 0);
+		  R3Point turn_end(70, 0, -50);
 		  turn_start.Transform(current_transformation);
-		  track->start = turn_start;
 		  turn_end.Transform(current_transformation);
+		  track->start = turn_start;
 		  track->end = turn_end;
-		  track->along = turn_end - turn_start;
+
+		  // set end plane of track
+		  R3Vector turn_endplane_normal = R3Vector(1, 0, 0);
+		  turn_endplane_normal.Transform(current_transformation);
+		  R3Plane turn_endplane(turn_end, turn_endplane_normal);
+		  track->endPlane = turn_endplane;
+
+		  // set initial along vector for track 
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
 		  track->startNormal = R3Vector(1, 0, 0);
 		  track->endNormal = R3Vector(0, 0, 1);
-		  turn_endplane.Transform(current_transformation);
-		  track->endPlane = turn_endplane;
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector turn_side(0, -20, 0);
 		  turn_side.Transform(current_transformation);
-		  track->side = turn_side;
 		  track->radius = turn_side.Length();
-		  track->next = NULL;
-		  track->along.Normalize();
+		  track->side = turn_side;
 		  track->side.Normalize();
-		  track->center_point = R3Point(50, 0, 25);
+
+		  // set center line of large curve
+		  track->center_point = R3Point(70, 0, 0);
 		  track->center_point.Transform(current_transformation);
 		  R3Vector center_line(0, 1, 0);
 		  center_line.Transform(current_transformation);
 		  track->center_pivot = R3Line(track->center_point, center_line); 
+
+		  // set other fields
+		  track->big_radius = (track->center_point - track->start).Length();
+		  track->next = NULL;
 	  }
 	  else if (type == TRACK_TURN_LEFT) {
 		  
