@@ -15,15 +15,10 @@
 #include <cmath>
 #include "Mountain.h"
 
-/*
-#include <OpenAL/al.h>
-#include <OpenAL/alc.h>
-#include "../AL/include/alut.h"
-*/
-
 //#include <al.h>
 //#include <alc.h>
 //#include <alut.h>
+
 
 //#include <SDLMain.h>
 //#include <SDL/SDL.h>
@@ -63,7 +58,6 @@ ALuint  environment[NUM_ENVIRONMENTS];
 ALsizei size,freq;
 ALenum  format;
 ALvoid  *data;
-<<<<<<< HEAD
 ALboolean al_bool;*/
 
 
@@ -885,6 +879,7 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
   } else { // real time simulation
     delta_time = current_time - previous_time;
   }
+
 
 
   // Update bobsleds
@@ -1744,7 +1739,6 @@ void GLUTCreateMenu(void)
 
 	//Close device
 	alcCloseDevice(device);
-<<<<<<< HEAD
 */
 //}
 
@@ -1752,6 +1746,7 @@ void GLUTCreateMenu(void)
 void GLUTInit(int *argc, char **argv)
 {
   // Open window 
+	printf("calling glutinit\n");
   glutInit(argc, argv);
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(GLUTwindow_width, GLUTwindow_height);
@@ -1785,11 +1780,6 @@ void GLUTInit(int *argc, char **argv)
 void SDLInit()
 {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
-=======
-//void SDLInit()
-//{
-	/*if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
->>>>>>> db45cc80deadbe274549e2e732d38fc68a036182
 		fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
 		return;
 	}
@@ -1825,7 +1815,6 @@ void SDLInit()
 	Mix_FreeChunk(sound);
 
 	Mix_CloseAudio();
-<<<<<<< HEAD
 	SDL_Quit();
 }*/
 
@@ -1968,12 +1957,13 @@ main(int argc, char **argv)
   // Parse program arguments
   if (!ParseArgs(argc, argv)) exit(1);
 
+  //SDLInit();
+
   // Initialize GLUT
   GLUTInit(&argc, argv);
 
   // Initialize AL
   //ALinit();
-  //SDLInit();
 
   // Read scene
   scene = ReadScene(input_scene_name);
