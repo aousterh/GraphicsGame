@@ -178,11 +178,8 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             }
             
             // add vibration
-     if (bobsled->x_vibration != 0){
-      printf("updating: %f\n", delta_theta);
+          if (bobsled->x_vibration != 0)
             delta_theta += bobsled->x_vibration;
-      printf("after: %f\n", delta_theta);
-      }
       
             bobsled->little_theta += delta_theta;
 
@@ -352,7 +349,6 @@ void CheckCollisions(R3Scene *scene)
           intersection.YMin() < intersection.YMax() &&
           intersection.ZMin() < intersection.ZMax())
       {
-        printf("intersection!\n");
         double current_z = bobsled->velocity.Z();
       
         // slow down
