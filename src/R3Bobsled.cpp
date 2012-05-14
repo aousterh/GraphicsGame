@@ -32,7 +32,6 @@ double ANGLE_SHIFT = 5;
 void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, 
 				   bool force_left, bool force_right)
 {
-    //printf("delta_time = %f\n", delta_time);
 	// update each sled in the scene
 	for (int i = 0; i < 1/*scene->NBobsleds()*/; i++) {
 		// get the current sled and its track segment
@@ -42,9 +41,6 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
         R3Vector new_along(track->along);
         R3Vector new_normal(track->startNormal);
         
-        
-        //printf("z0: %f\n", bobsled->velocity.Z());
-
 		// find the closest point on the along vector of the track
         R3Point position(bobsled->position);
 		R3Vector ve_along(bobsled->position - track->start);
@@ -60,7 +56,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 		// Forward translation on a straight track
 		R3Vector v_along(R3null_vector);
 		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
-			v_along = bobsled->velocity.Dot(track->along) * track->along * delta_time;
+			v_along = bobsled->velocity.Dot(track->along) * track->along;
 			bobsled->position.Translate(v_along);
             bobsled->sled->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
             bobsled->skates->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
@@ -76,7 +72,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             R3Vector dist_vect(new_point - position);
             double dist =  dist_vect.Length();
             R3Vector vect_radius(track->center_point - position);
-            double delta_theta =  dist/vect_radius.Length();
+            double delta_theta = 10 * dist/vect_radius.Length();
             printf("delta_theta = %f\n", delta_theta);
             double percent = delta_theta/(M_PI/2);
             //bobsled->big_percent += percent;
@@ -122,8 +118,8 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 			v_side = sign * temp;
 			rotate_vector = track->along;
 			
-		
-
+            
+            
             R3Point new_point(position + delta_time * v_side);
             R3Vector dist_vect(position - new_point);
             //R3Vector normal(center_point - position);
@@ -149,16 +145,16 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 //delta_theta += ANGLE_SHIFT;
             }
             bobsled->little_theta += delta_theta;
-
+            
             bobsled->position.Rotate(rotate_line, delta_theta);
             bobsled->sled->mesh->Rotate(delta_theta, rotate_line);
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
             bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
-			//bobsled->camera->eye.Rotate(rotate_line, delta_theta);
-			//bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
-			//bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
-			//bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
+			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
+			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
+			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
+			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
         }
         
         // Side rotation on a curved track
@@ -192,11 +188,11 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
             bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
-			//bobsled->camera->eye.Rotate(rotate_line, delta_theta);
-			//bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
-			//bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
-			//bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
-
+			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
+			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
+			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
+			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
+            
         }
         
         // check if over the edge
@@ -270,7 +266,7 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
         normal.Normalize();
         double dot = fg.Dot(normal);
         R3Vector centripetal(R3null_vector);
-        centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / R3Distance(bobsled->position, little_center);
+        centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / r;
         centripetal = centripetal.Length() * normal;
         R3Vector big_normal(track->center_point - /*little_center);*/bobsled->position);
         big_normal.Normalize();
@@ -290,4 +286,42 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
     return force;
 }
 
-    
+
+
+////////////////////////////////////////////////////////////
+// Check for collisions with rocks
+////////////////////////////////////////////////////////////
+void CheckCollisions(R3Scene *scene)
+{
+    // check each bobsled - //TODO CHANGE THIS WHEN WE HAVE MULTIPLE BOBSLEDS
+    for (unsigned int i = 0; i < 1; i++)
+    {
+        R3Bobsled *bobsled = scene->bobsleds[i];
+        R3Box &bbox = bobsled->sled->mesh->bbox;
+        //  printf("bobsled: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
+        
+        // check each rock for a collision
+        for (unsigned int j = 0; j < scene->rocks.size(); j++)
+        {
+            R3Rock *rock = scene->rocks[j];
+            R3Box intersection = bbox;
+            intersection.Intersect(rock->sphere->BBox());  // TODO: fix once we have rocks
+            if (intersection.XMin() < intersection.XMax() &&
+                intersection.YMin() < intersection.YMax() &&
+                intersection.ZMin() < intersection.ZMax())
+            {
+                printf("intersection!\n");
+                bobsled->track->cof *= 100;
+                double current_z = bobsled->velocity.Z();
+                bobsled->velocity.SetZ(current_z * 0.5);
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
