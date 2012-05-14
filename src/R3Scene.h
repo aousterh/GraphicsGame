@@ -123,11 +123,15 @@ struct R3Track {
 	R3Line center_pivot;
 };
 
+#define NUM_SLEDS 2
+
 struct R3Bobsled {
     double mass;
     R3Point position;               // position of center of volume of bbox
     R3Vector velocity;              // in world coordinates
-    R3Shape *sled;
+    //R3Shape *sled;
+    //static const int numSleds = 2;
+    vector<R3Shape *> sleds;
     R3Shape *skates;
     R3Shape *helmets;
     R3Shape *masks;

@@ -267,6 +267,8 @@ Read(const char *filename, R3Node *node)
             do { cmd[0] = fgetc(fp); } while ((cmd[0] >= 0) && (cmd[0] != '\n'));
         }
         else if (!strcmp(cmd, "bobsled")) {
+            R3Bobsled *bobsled = new R3Bobsled();
+
             // Read sink parameters 
             double mass;
             R3Point position;
@@ -282,12 +284,16 @@ Read(const char *filename, R3Node *node)
             
             printf("%ld, %ld, %ld, %ld \n", sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id);
             
-            // Read shape
-            R3Shape *sled = ReadShape(fp, command_number, filename);
-            if (!sled) {
-                fprintf(stderr, "Unable to read sled body mesh at command %d in file %s\n", command_number, filename);
-                return 0;
+            for (int i = 0; i < NUM_SLEDS; i++)
+            {
+            	R3Shape *sled = ReadShape(fp, command_number, filename);
+            	if (!sled) {
+            		fprintf(stderr, "Unable to read sled body mesh at command %d in file %s\n", command_number, filename);
+            		return 0;
+            	}
+            	bobsled->sleds.push_back(sled);
             }
+
             R3Shape *skates = ReadShape(fp, command_number, filename);
             if (!skates) {
                 fprintf(stderr, "Unable to sled skate mesh at command %d in file %s\n", command_number, filename);
@@ -347,11 +353,10 @@ Read(const char *filename, R3Node *node)
             }
             
             // Create bobsled
-            R3Bobsled *bobsled = new R3Bobsled();
             bobsled->mass = mass;
             bobsled->position = position;
             bobsled->velocity = velocity;
-            bobsled->sled = sled;
+            //bobsled->sled = sled;
             bobsled->skates = skates;
             bobsled->helmets = helmets;
             bobsled->masks = masks;
@@ -371,7 +376,7 @@ Read(const char *filename, R3Node *node)
             
             // Update scene bounding box
             bobsled->bbox = R3null_box;
-            bobsled->bbox.Union(sled->mesh->bbox);
+            bobsled->bbox.Union(bobsled->sleds[0]->mesh->bbox);
             bobsled->bbox.Union(skates->mesh->bbox);
             bobsled->bbox.Union(helmets->mesh->bbox);
             bobsled->bbox.Union(masks->mesh->bbox);

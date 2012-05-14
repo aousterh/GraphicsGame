@@ -96,6 +96,8 @@ static int quit = 0;
 static bool *force_left;
 static bool *force_right;
 
+static int levDetail = 0;
+
 
 
 
@@ -876,7 +878,7 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
     CheckCollisions(scene);
     
     // Update bobsleds
-    UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
+    //UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
     force_left[0] = false;
     force_right[0] = false;
     
@@ -891,7 +893,7 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
         
         // Load sled material
         LoadMaterial(bobsled->sled_material, transparent);
-        DrawShape(bobsled->sled);
+        DrawShape(bobsled->sleds[levDetail]);
         
         // Load sled material
         LoadMaterial(bobsled->skates_material, transparent);
@@ -1264,6 +1266,7 @@ void GLUTRedraw(void)
         
         // Load camera
         LoadCamera(bobsled->camera);
+        LoadCamera(&camera);
         
         // Load scene lights
         LoadLights(scene);
@@ -1559,6 +1562,16 @@ void GLUTKeyboard(unsigned char key, int x, int y)
             quit = 1;
             break;
             
+        case '=':
+        	if (levDetail < NUM_SLEDS - 1)
+        		levDetail++;
+        	break;
+
+        case '-':
+        	if (levDetail > 0)
+        		levDetail--;
+        	break;
+
         case ' ': {
             printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
                    camera.eye[0], camera.eye[1], camera.eye[2], 
