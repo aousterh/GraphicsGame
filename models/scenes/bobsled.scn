@@ -91,11 +91,11 @@ particle_source
 	circle	0 500 0	0 -1 0	1000
 	
 begin
-	5
-	3 0 0 0
-	0 3 0 0
-	0 0 3 0
-	0 0 0 1
+5
+3 0 0 0
+0 3 0 0
+0 0 3 0
+0 0 0 1
 	
 	begin
 	5
@@ -167,11 +167,18 @@ begin
 	
 	begin
 	5
-	0 0 -0.5 0
+	0 0 0.5 0
 	0 1 0 0
-	0.5 0 0 0
+	-0.5 0 0 0
 	0 0 0 1
-	
+				
+		begin
+		5
+		3 0 0 0
+		0 3 0 0
+		0 0 3 0
+		0 0 0 1
+			
 		begin
 		5
 		1 0 0 -30
@@ -183,6 +190,7 @@ begin
 			4 0.01 0 5
 			mesh OBJ_models/track_turn_left.obj
 			
+		end
 		end
 	end
 	
