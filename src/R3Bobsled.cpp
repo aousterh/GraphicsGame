@@ -76,6 +76,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             R3Vector new_along(track->along);
             R3Vector new_normal(track->startNormal);
         
+
             // find the closest point on the along vector of the track
             R3Point position(bobsled->position);
             R3Vector ve_along(bobsled->position - track->start);
@@ -120,6 +121,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 //double percent = dist/(2*M_PI*bobsled->big_r);
                 //new_along = bobsled->big_percent * track->endPlane->Normal() + (1 - bobsled->big_percent) * track->along;
             
+
                 //new_along.Normalize();
                 R3Line rotate_line(track->center_pivot);
                 new_along.Rotate(rotate_line.Vector(), delta_theta);
@@ -140,6 +142,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
                 bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
             }
+
 		
 		
             if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
