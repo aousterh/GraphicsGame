@@ -562,7 +562,7 @@ Read(const char *filename, R3Node *node)
 		  track->side.Normalize();
 
 		  // set center line of large curve
-		  track->center_point = R3Point(-50, 0, 0);
+		  track->center_point = R3Point(-70, 0, 0);
 		  track->center_point.Transform(current_transformation);
 		  R3Vector center_line(0, 1, 0);
 		  center_line.Transform(current_transformation);
