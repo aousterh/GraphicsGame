@@ -267,6 +267,7 @@ Read(const char *filename, R3Node *node)
       do { cmd[0] = fgetc(fp); } while ((cmd[0] >= 0) && (cmd[0] != '\n'));
     }
     else if (!strcmp(cmd, "bobsled")) {
+        printf("entering bobsled\n");
         R3Bobsled *bobsled = new R3Bobsled();
 
         // Read sink parameters 
@@ -390,7 +391,7 @@ Read(const char *filename, R3Node *node)
         sled_camera->towards = R3Vector(0, 0, -1);
         sled_camera->up = R3Vector(0, 1, 0);
         sled_camera->right = R3Vector(1, 0, 0);
-        sled_camera->eye = sled_center - 5 * sled_radius * sled_camera->towards + 1.0 * sled_radius * sled_camera->up;
+        sled_camera->eye = sled_center /* - 5 * sled_radius * sled_camera->towards*/ + 9.0 * sled_radius * sled_camera->up;
         sled_camera->towards = (sled_center - sled_camera->eye);
         sled_camera->towards.Normalize();
         sled_camera->towards.Print();
@@ -401,8 +402,13 @@ Read(const char *filename, R3Node *node)
         sled_camera->neardist = 0.01 * sled_radius;
         sled_camera->fardist = 100 * sled_radius;
         bobsled->camera = sled_camera;
+        
+        
+        printf("exiting bobsled\n");
+        
     }
 	else if (!strcmp(cmd, "obstacle")) {
+        printf("entering obstacle\n");
 	  double impact;
       int m;
       if (fscanf(fp, "%f%d", &impact, &m) != 2) {
@@ -436,10 +442,12 @@ Read(const char *filename, R3Node *node)
 	  obstacle->impact = impact;
 	  obstacle->material = obstacle_material;
 	  obstacle->transformation = current_transformation;
-
+        
+        printf("exiting obstacle\n");
 	}
       
     else if (!strcmp(cmd, "track")) {
+        printf("entering track\n");
       // Read sink parameters 
       double cof;
       int type, isCovered, m;
@@ -512,7 +520,7 @@ Read(const char *filename, R3Node *node)
 		  track->side.Normalize();
 
 		  // set center line of large curve
-      //track->center_point = NULL;
+		  track->center_point = R3zero_point;
 		  track->center_pivot = R3Line(R3null_point, R3zero_vector); 
 
 		  // set other fields
@@ -634,7 +642,6 @@ Read(const char *filename, R3Node *node)
 		  track->big_radius = (track->center_point - track->start).Length();
 		  track->next = NULL;
 	  }
-
       // Add track to scene
 	  int NSegments = track_segments.size();
       track_segments.push_back(track);
@@ -643,7 +650,8 @@ Read(const char *filename, R3Node *node)
 	  }
 
       // Update scene bounding box
-      bbox.Union(trackshape->mesh->bbox);
+        bbox.Union(trackshape->mesh->bbox);
+        printf("exiting track\n");
     }
     else if (!strcmp(cmd, "particle")) {
       // Read position and velocity
