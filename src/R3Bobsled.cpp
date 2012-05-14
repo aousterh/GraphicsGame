@@ -167,7 +167,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             //init_normal = bobsled->big_percent * track->endNormal + (1 - bobsled->big_percent) * track->startNormal;
             init_normal.Normalize();
             R3Point little_center(track->center_point);
-            little_center +=  init_normal * (track->big_radius);
+            little_center +=  -1 * init_normal * (track->big_radius);
             R3Line rotate_line(little_center, track->along, false); 
             R3Vector normal(little_center - bobsled->position); 
             normal.Normalize();
@@ -267,7 +267,7 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
         R3Track *track(bobsled->track);
         init_normal = bobsled->big_percent * track->endNormal + (1 - bobsled->big_percent) * track->startNormal;
         R3Point little_center(track->center_point);
-        little_center += init_normal * (track->big_radius - track->radius);
+        little_center += -1 * init_normal * (track->big_radius);
         R3Vector normal(little_center - bobsled->position); 
         normal.Normalize();
         double dot = fg.Dot(normal);
