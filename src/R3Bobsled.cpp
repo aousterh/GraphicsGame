@@ -37,10 +37,10 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 		// get the current sled and its track segment
 		R3Bobsled *bobsled = scene->Bobsled(i);
 		R3Track *track = bobsled->track;
-    double big_r;
-    R3Vector new_along(track->along);
-    R3Vector new_normal(track->startNormal);
-
+        double big_r;
+        R3Vector new_along(track->along);
+        R3Vector new_normal(track->startNormal);
+        
 		// find the closest point on the along vector of the track
     R3Point position(bobsled->position);
 		R3Vector ve_along(bobsled->position - track->start);
@@ -118,8 +118,8 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 			v_side = sign * temp;
 			rotate_vector = track->along;
 			
-		
-
+            
+            
             R3Point new_point(position + delta_time * v_side);
             R3Vector dist_vect(position - new_point);
             //R3Vector normal(center_point - position);
@@ -145,7 +145,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 //delta_theta += ANGLE_SHIFT;
             }
             bobsled->little_theta += delta_theta;
-
+            
             bobsled->position.Rotate(rotate_line, delta_theta);
             bobsled->sled->mesh->Rotate(delta_theta, rotate_line);
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
@@ -192,7 +192,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
-
+            
         }
         
         // check if over the edge
@@ -301,11 +301,11 @@ void CheckCollisions(R3Scene *scene)
   //  printf("bobsled: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
     
     // check each rock for a collision
-    for (unsigned int j = 0; j < scene->rocks.size(); j++)
+    for (unsigned int j = 0; j < scene->obstacles.size(); j++)
     {
-      R3Rock *rock = scene->rocks[j];
+      R3Obstacle *obstacle = scene->obstacles[j];
       R3Box intersection = bbox;
-      intersection.Intersect(rock->sphere->BBox());  // TODO: fix once we have rocks
+      intersection.Intersect(obstacle->obstacle_shape->mesh->bbox);
       if (intersection.XMin() < intersection.XMax() &&
           intersection.YMin() < intersection.YMax() &&
           intersection.ZMin() < intersection.ZMax())
@@ -318,10 +318,3 @@ void CheckCollisions(R3Scene *scene)
     }
   }
 }
-
-
-
-
-
-
-    

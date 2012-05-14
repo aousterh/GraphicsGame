@@ -397,13 +397,12 @@ Read(const char *filename, R3Node *node)
 	  sled_camera->fardist = 100 * sled_radius;
       bobsled->camera = sled_camera;
     }
-      
-    else if (!strcmp(cmd, "obstacle")) {
-      // Read sink parameters 
-	  int m;
-      double impact;
+
+	else if (!strcmp(cmd, "obstacle")) {
+	  double impact;
+      int m;
       if (fscanf(fp, "%f%d", &impact, &m) != 2) {
-        fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
+        fprintf(stderr, "Unable to read obstacle at command %d in file %s\n", command_number, filename);
         return 0;
       }
 
@@ -426,11 +425,13 @@ Read(const char *filename, R3Node *node)
         }
       }
 
+	  // Create obstacle
 	  R3Obstacle *obstacle = new R3Obstacle();
+	  obstacle->obstacle_shape = obstacle_shape;
 	  obstacle->impact = impact;
 	  obstacle->material = obstacle_material;
-	  obstacle->obstacle_shape = obstacle_shape;
 	  obstacle->transformation = current_transformation;
+
 	}
       
     else if (!strcmp(cmd, "track")) {
@@ -473,25 +474,45 @@ Read(const char *filename, R3Node *node)
       track->bbox.Transform(track->transformation);
 
 	  if (type == TRACK_STRAIGHT) {
+		  // set beginning and end track points along central axis
 		  R3Point straight_start(0, 0, 25);
 		  R3Point straight_end(0, 0, -25);
-		  R3Plane straight_endplane(straight_end, (straight_end - straight_start));
-		  R3Vector straight_side(-20, 0, 0);
 		  straight_start.Transform(current_transformation);
-		  track->start = straight_start;
 		  straight_end.Transform(current_transformation);
+		  track->start = straight_start;
 		  track->end = straight_end;
-		  track->along = straight_end - straight_start;
+
+		  // set end plane of track
+		  R3Vector straight_endplane_normal = R3Vector(0, 0, -1);
+		  straight_endplane_normal.Transform(current_transformation);
+		  R3Plane straight_endplane(straight_end, straight_endplane_normal);
+		  track->endPlane = straight_endplane;
+
+		  // set initial along vector for track 
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
 		  track->startNormal = R3Vector(0, 1, 0);
 		  track->endNormal = R3Vector(0, 1, 0);
-		  straight_endplane.Transform(current_transformation);
-		  track->endPlane = straight_endplane;
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector straight_side(-20, 0, 0);
 		  straight_side.Transform(current_transformation);
-		  track->side = straight_side;
 		  track->radius = straight_side.Length();
-		  track->next = NULL;
-		  track->along.Normalize();
+		  track->side = straight_side;
 		  track->side.Normalize();
+
+		  // set center line of large curve
+		  track->center_point = NULL;
+		  track->center_pivot = R3Line(R3null_point, R3zero_vector); 
+
+		  // set other fields
+		  track->big_radius = 0;
+		  track->next = NULL;
 	  }
 	  else if (type == TRACK_APPROACH_RIGHT) {
 		  R3Point approach_start(0, 0, 25);
@@ -593,6 +614,7 @@ Read(const char *filename, R3Node *node)
 		  // set side vector of track
 		  R3Vector turn_side(0, 20, 0);
 		  turn_side.Transform(current_transformation);
+		  track->radius = turn_side.Length();
 		  track->side = turn_side;
 		  track->side.Normalize();
 
@@ -604,7 +626,6 @@ Read(const char *filename, R3Node *node)
 		  track->center_pivot = R3Line(track->center_point, center_line); 
 
 		  // set other fields
-		  track->radius = turn_side.Length();
 		  track->big_radius = (track->center_point - track->start).Length();
 		  track->next = NULL;
 	  }
@@ -936,12 +957,6 @@ Read(const char *filename, R3Node *node)
       group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
-      
-      
-      // TODO: CHANGE THIS ONCE WE HAVE ROCKS
-      R3Rock *rock = new R3Rock();
-      rock->sphere = sphere;
-      rocks.push_back(rock);
     }
     else if (!strcmp(cmd, "cylinder")) {
       // Read data
