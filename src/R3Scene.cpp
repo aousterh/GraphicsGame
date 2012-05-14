@@ -363,7 +363,7 @@ Read(const char *filename, R3Node *node)
 
       bobsled->transformation = current_transformation;
 
-	  bobsled->big_theta = 0;
+	  bobsled->big_percent = 0;
 	  bobsled->little_theta = 0;
 
       // Add bobsled to scene
@@ -385,7 +385,12 @@ Read(const char *filename, R3Node *node)
 	  sled_camera->towards = R3Vector(0, 0, -1);
 	  sled_camera->up = R3Vector(0, 1, 0);
 	  sled_camera->right = R3Vector(1, 0, 0);
-	  sled_camera->eye = sled_center - 5 * sled_radius * sled_camera->towards + 0.5 * sled_radius * sled_camera->up;
+	  sled_camera->eye = sled_center - 5 * sled_radius * sled_camera->towards + 1.0 * sled_radius * sled_camera->up;
+	  sled_camera->towards = (sled_center - sled_camera->eye);
+	  sled_camera->towards.Normalize();
+	  sled_camera->towards.Print();
+	  sled_camera->up = R3Vector(sled_camera->right);
+	  sled_camera->up.Cross(sled_camera->towards);
 	  sled_camera->xfov = 0.25;
 	  sled_camera->yfov = 0.25;
 	  sled_camera->neardist = 0.01 * sled_radius;
@@ -396,7 +401,7 @@ Read(const char *filename, R3Node *node)
       // Read sink parameters 
       double cof;
       int type, isCovered, m;
-      if (fscanf(fp, "%ld%lf%ld%ld", &type, &cof, &isCovered, &m) != 4) {
+      if (fscanf(fp, "%d%f%d%d", &type, &cof, &isCovered, &m) != 4) {
         fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
         return 0;
       }
@@ -461,7 +466,8 @@ Read(const char *filename, R3Node *node)
 		  track->start = approach_start;
 		  approach_end.Transform(current_transformation);
 		  track->end = approach_end;
-		  track->along = approach_end - approach_start;
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
 		  track->startNormal = R3Vector(0, 1, 0);
 		  track->endNormal = R3Vector(1, 0, 0);
 		  approach_endplane.Transform(current_transformation);
@@ -482,7 +488,8 @@ Read(const char *filename, R3Node *node)
 		  track->start = approach_start;
 		  approach_end.Transform(current_transformation);
 		  track->end = approach_end;
-		  track->along = approach_end - approach_start;
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
 		  track->startNormal = R3Vector(0, 1, 0);
 		  track->endNormal = R3Vector(-1, 0, 0);
 		  approach_endplane.Transform(current_transformation);
@@ -496,8 +503,8 @@ Read(const char *filename, R3Node *node)
 	  }
 	  else if (type == TRACK_TURN_RIGHT) {
 		  R3Point turn_start(0, 0, 25);
-		  R3Point turn_end(0, 0, -25);
-		  R3Plane turn_endplane(turn_end, (turn_end - turn_start));
+		  R3Point turn_end(50, 0, -25);
+		  R3Plane turn_endplane(turn_end, R3Vector(1,0,0));
 		  R3Vector turn_side(-20, 0, 0);
 		  turn_start.Transform(current_transformation);
 		  track->start = turn_start;
@@ -514,27 +521,56 @@ Read(const char *filename, R3Node *node)
 		  track->next = NULL;
 		  track->along.Normalize();
 		  track->side.Normalize();
+		  track->center_point = R3Point(50, 0, 25);
+		  track->center_point.Transform(current_transformation);
+		  R3Vector center_line(0, 1, 0);
+		  center_line.Transform(current_transformation);
+		  track->center_pivot = R3Line(track->center_point, center_line); 
 	  }
 	  else if (type == TRACK_TURN_LEFT) {
-		  R3Point turn_start(0, 0, 25);
-		  R3Point turn_end(0, 0, -25);
-		  R3Plane turn_endplane(turn_end, (turn_end - turn_start));
-		  R3Vector turn_side(-20, 0, 0);
+		  
+		  // set beginning and end track points along central axis
+		  R3Point turn_start(0, 0, 0);
+		  R3Point turn_end(-50, 0, -50);
 		  turn_start.Transform(current_transformation);
-		  track->start = turn_start;
 		  turn_end.Transform(current_transformation);
+		  track->start = turn_start;
 		  track->end = turn_end;
-		  track->along = turn_end - turn_start;
-		  track->startNormal = R3Vector(1, 0, 0);
-		  track->endNormal = R3Vector(0, 0, 1);
-		  turn_endplane.Transform(current_transformation);
+
+		  // set end plane of track
+		  R3Vector turn_endplane_normal = R3Vector(-1, 0, 0);
+		  turn_endplane_normal.Transform(current_transformation);
+		  R3Plane turn_endplane(turn_end, turn_endplane_normal);
 		  track->endPlane = turn_endplane;
+
+		  // set initial along vector for track 
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
+		  track->startNormal = R3Vector(-1, 0, 0);
+		  track->endNormal = R3Vector(0, 0, 1);
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector turn_side(0, 20, 0);
 		  turn_side.Transform(current_transformation);
 		  track->side = turn_side;
-		  track->radius = turn_side.Length();
-		  track->next = NULL;
-		  track->along.Normalize();
 		  track->side.Normalize();
+
+		  // set center line of large curve
+		  track->center_point = R3Point(-70, 0, 0);
+		  track->center_point.Transform(current_transformation);
+		  R3Vector center_line(0, 1, 0);
+		  center_line.Transform(current_transformation);
+		  track->center_pivot = R3Line(track->center_point, center_line); 
+
+		  // set other fields
+		  track->radius = turn_side.Length();
+		  track->big_radius = (track->center_point - track->start).Length();
+		  track->next = NULL;
 	  }
 
       // Add track to scene
