@@ -235,7 +235,8 @@ obstacle
 
 bobsled
 	100 0 0 0 0 0 -50 0 1 3 4
-	mesh OBJ_models/sled_body.obj
+	mesh OBJ_models/sled_body1.obj
+	mesh OBJ_models/sled_body2.obj
 	mesh OBJ_models/sled_blades.obj
 	mesh OBJ_models/twohelmets.obj
 	mesh OBJ_models/twomasks.obj

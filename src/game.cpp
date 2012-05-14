@@ -96,6 +96,8 @@ static int quit = 0;
 static bool *force_left;
 static bool *force_right;
 
+static int levDetail = 0;
+
 
 
 
@@ -880,38 +882,38 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
     force_left[0] = false;
     force_right[0] = false;
 
-  glEnable(GL_LIGHTING);
-  // Draw all bobsleds
-  for (int i = 0; i < 1 /*scene->NBobsleds()*/; i++) {
-    R3Bobsled *bobsled = scene->Bobsled(i);
-
-    // Push transformation onto stack
-    glPushMatrix();
-    LoadMatrix(&bobsled->transformation);
-
-    // Load sled material
-    LoadMaterial(bobsled->sled_material, transparent);
-    DrawShape(bobsled->sled);
+    glEnable(GL_LIGHTING);
+    // Draw all bobsleds
+    for (int i = 0; i < 1 /*scene->NBobsleds()*/; i++) {
+        R3Bobsled *bobsled = scene->Bobsled(i);
+        
+        // Push transformation onto stack
+        glPushMatrix();
+        LoadMatrix(&bobsled->transformation);
+        
+        // Load sled material
+        LoadMaterial(bobsled->sled_material, transparent);
+        DrawShape(bobsled->sleds[levDetail]);
+        
+        // Load sled material
+        LoadMaterial(bobsled->skates_material, transparent);
+        DrawShape(bobsled->skates);
+        
+        // Load sled material
+        LoadMaterial(bobsled->helmets_material, transparent);
+        DrawShape(bobsled->helmets);
+        
+        // Load sled material
+        LoadMaterial(bobsled->masks_material, transparent);
+        DrawShape(bobsled->masks);
+        
+        // Restore previous transformation
+        glPopMatrix();
+    }
     
-    // Load sled material
-    LoadMaterial(bobsled->skates_material, transparent);
-    DrawShape(bobsled->skates);
-
-    // Load sled material
-    LoadMaterial(bobsled->helmets_material, transparent);
-    DrawShape(bobsled->helmets);
-
-    // Load sled material
-    LoadMaterial(bobsled->masks_material, transparent);
-    DrawShape(bobsled->masks);
-
-    // Restore previous transformation
-    glPopMatrix();
-  }
-  
-  // Remember previous time
-  if (update_time)
-    previous_time = current_time;
+    // Remember previous time
+    if (update_time)
+        previous_time = current_time;
 }
 
 void DrawTracks(R3Scene *scene, bool transparent)
@@ -1498,85 +1500,95 @@ void GLUTSpecial(int key, int x, int y)
 
 void GLUTKeyboard(unsigned char key, int x, int y)
 {
-  // Invert y coordinate
-  y = GLUTwindow_height - y;
+    // Invert y coordinate
+    y = GLUTwindow_height - y;
+    
+    // Process keyboard button event 
+    switch (key) {
+        case 'A':
+        case 'a':
+            force_left[0] = true;
+            break;
+            
+        case 'B':
+        case 'b':
+            show_bboxes = !show_bboxes;
+            break;
+            
+        case 'C':
+        case 'c':
+            show_camera = !show_camera;
+            break;
+            
+        case 'D':
+        case 'd':
+            force_right[0] = true;
+            break;
+            
+        case 'E':
+        case 'e':
+            show_edges = !show_edges;
+            break;
+            
+        case 'F':
+        case 'f':
+            show_faces = !show_faces;
+            break;
+            
+        case 'L':
+        case 'l':
+            show_lights = !show_lights;
+            break;
+            
+        case 'P':
+        case 'p':
+            show_particles = !show_particles;
+            break;
+            
+        case 'R':
+        case 'r':
+            show_particle_springs = !show_particle_springs;
+            break;
+            
+        case 'S':
+        case 's':
+            show_particle_sources_and_sinks = !show_particle_sources_and_sinks;
+            break;
+            
+        case 'Q':
+        case 'q':
+        case 27: // ESCAPE
+            quit = 1;
+            break;
+            
+        case '=':
+        	if (levDetail < NUM_SLEDS - 1)
+        		levDetail++;
+        	break;
 
-  // Process keyboard button event 
-  switch (key) {
-  case 'A':
-  case 'a':
-    force_left[0] = true;
-    break;
-      
-  case 'B':
-  case 'b':
-    show_bboxes = !show_bboxes;
-    break;
+        case '-':
+        	if (levDetail > 0)
+        		levDetail--;
+        	break;
 
-  case 'C':
-  case 'c':
-    show_camera = !show_camera;
-    break;
-      
-  case 'D':
-  case 'd':
-    force_right[0] = true;
-    break;
-
-  case 'E':
-  case 'e':
-    show_edges = !show_edges;
-    break;
-
-  case 'F':
-  case 'f':
-    show_faces = !show_faces;
-    break;
-
-  case 'L':
-  case 'l':
-    show_lights = !show_lights;
-    break;
-
-  case 'P':
-  case 'p':
-    show_particles = !show_particles;
-    break;
-
-  case 'R':
-  case 'r':
-    show_particle_springs = !show_particle_springs;
-    break;
-
-  case 'S':
-  case 's':
-    show_particle_sources_and_sinks = !show_particle_sources_and_sinks;
-    break;
-
-  case 'Q':
-  case 'q':
-  case 27: // ESCAPE
-    quit = 1;
-    break;
-
-  case ' ': {
-    printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
-           camera.eye[0], camera.eye[1], camera.eye[2], 
-           camera.towards[0], camera.towards[1], camera.towards[2], 
-           camera.up[0], camera.up[1], camera.up[2], 
-           camera.xfov, camera.neardist, camera.fardist); 
-    break; }
-  }
-
-  // Remember mouse position 
-  GLUTmouse[0] = x;
-  GLUTmouse[1] = y;
-
-  // Remember modifiers 
-  GLUTmodifiers = glutGetModifiers();
-
-  // Redraw
-  glutPostRedisplay();
+        case ' ': {
+            printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
+                   camera.eye[0], camera.eye[1], camera.eye[2], 
+                   camera.towards[0], camera.towards[1], camera.towards[2], 
+                   camera.up[0], camera.up[1], camera.up[2], 
+                   camera.xfov, camera.neardist, camera.fardist); 
+            break; }
+    }
+    
+    // Remember mouse position 
+    GLUTmouse[0] = x;
+    GLUTmouse[1] = y;
+    
+    // Remember modifiers 
+    GLUTmodifiers = glutGetModifiers();
+    
+    // Redraw
+    glutPostRedisplay();
 }
 
 
