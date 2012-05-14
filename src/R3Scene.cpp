@@ -398,6 +398,41 @@ Read(const char *filename, R3Node *node)
       bobsled->camera = sled_camera;
     }
       
+    else if (!strcmp(cmd, "obstacle")) {
+      // Read sink parameters 
+	  int m;
+      double impact;
+      if (fscanf(fp, "%f%d", &impact, &m) != 2) {
+        fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+
+      // Read shape
+      R3Shape *obstacle_shape = ReadShape(fp, command_number, filename);
+      if (!obstacle_shape) {
+        fprintf(stderr, "Unable to read obstacle mesh at command %d in file %s\n", command_number, filename);
+        return 0;
+      }
+
+	  // get track material
+	  R3Material *obstacle_material = group_materials[depth];
+      if (m >= 0) {
+        if (m < (int) materials.size()) {
+          obstacle_material = materials[m];
+        }
+        else {
+          fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+          return 0;
+        }
+      }
+
+	  R3Obstacle *obstacle = new R3Obstacle();
+	  obstacle->impact = impact;
+	  obstacle->material = obstacle_material;
+	  obstacle->obstacle_shape = obstacle_shape;
+	  obstacle->transformation = current_transformation;
+	}
+      
     else if (!strcmp(cmd, "track")) {
       // Read sink parameters 
       double cof;
@@ -901,6 +936,12 @@ Read(const char *filename, R3Node *node)
       group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
+      
+      
+      // TODO: CHANGE THIS ONCE WE HAVE ROCKS
+      R3Rock *rock = new R3Rock();
+      rock->sphere = sphere;
+      rocks.push_back(rock);
     }
     else if (!strcmp(cmd, "cylinder")) {
       // Read data

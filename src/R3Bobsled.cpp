@@ -32,25 +32,21 @@ double ANGLE_SHIFT = 5;
 void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, 
 				   bool force_left, bool force_right)
 {
-    //printf("delta_time = %f\n", delta_time);
 	// update each sled in the scene
 	for (int i = 0; i < 1/*scene->NBobsleds()*/; i++) {
 		// get the current sled and its track segment
 		R3Bobsled *bobsled = scene->Bobsled(i);
 		R3Track *track = bobsled->track;
-        double big_r;
-        R3Vector new_along(track->along);
-        R3Vector new_normal(track->startNormal);
-        
-        
-        //printf("z0: %f\n", bobsled->velocity.Z());
+    double big_r;
+    R3Vector new_along(track->along);
+    R3Vector new_normal(track->startNormal);
 
 		// find the closest point on the along vector of the track
-        R3Point position(bobsled->position);
+    R3Point position(bobsled->position);
 		R3Vector ve_along(bobsled->position - track->start);
-        ve_along.Project(track->along);
-        R3Point center_point(track->start);
-        center_point += ve_along;
+    ve_along.Project(track->along);
+    R3Point center_point(track->start);
+    center_point += ve_along;
 		double r = R3Distance(center_point, bobsled->position);
 		R3Vector force(R3null_vector);
 		force = Force(bobsled, r);
@@ -62,10 +58,10 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
 			v_along = bobsled->velocity.Dot(track->along) * track->along;
 			bobsled->position.Translate(v_along);
-            bobsled->sled->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
-            bobsled->skates->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
-            bobsled->helmets->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
-            bobsled->masks->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+      bobsled->sled->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+      bobsled->skates->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+      bobsled->helmets->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
+      bobsled->masks->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
 			bobsled->camera->eye += v_along;
 		}
         
@@ -92,7 +88,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->sled->mesh->Rotate(delta_theta, rotate_line);
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
-            bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
+          bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
 			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
 			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
@@ -154,7 +150,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->sled->mesh->Rotate(delta_theta, rotate_line);
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
-            bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
+      bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
 			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
 			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
@@ -191,7 +187,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->sled->mesh->Rotate(delta_theta, rotate_line);
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
-            bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
+          bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
 			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
 			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
@@ -289,5 +285,43 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
     //force = fk + fn;
     return force;
 }
+
+
+
+////////////////////////////////////////////////////////////
+// Check for collisions with rocks
+////////////////////////////////////////////////////////////
+void CheckCollisions(R3Scene *scene)
+{
+  // check each bobsled - //TODO CHANGE THIS WHEN WE HAVE MULTIPLE BOBSLEDS
+  for (unsigned int i = 0; i < 1; i++)
+  {
+    R3Bobsled *bobsled = scene->bobsleds[i];
+    R3Box &bbox = bobsled->sled->mesh->bbox;
+  //  printf("bobsled: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
+    
+    // check each rock for a collision
+    for (unsigned int j = 0; j < scene->rocks.size(); j++)
+    {
+      R3Rock *rock = scene->rocks[j];
+      R3Box intersection = bbox;
+      intersection.Intersect(rock->sphere->BBox());  // TODO: fix once we have rocks
+      if (intersection.XMin() < intersection.XMax() &&
+          intersection.YMin() < intersection.YMax() &&
+          intersection.ZMin() < intersection.ZMax())
+      {
+        printf("intersection!\n");
+        bobsled->track->cof *= 100;
+        double current_z = bobsled->velocity.Z();
+        bobsled->velocity.SetZ(current_z * 0.5);
+      }
+    }
+  }
+}
+
+
+
+
+
 
     
