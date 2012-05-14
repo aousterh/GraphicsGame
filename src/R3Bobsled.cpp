@@ -364,7 +364,7 @@ R3Vector Force(R3Bobsled *bobsled, double r, double delta_time) {
 ////////////////////////////////////////////////////////////
 void CheckCollisions(R3Scene *scene)
 {
-  const double MOVEMENT_WEIGHT = 0.02;
+  const double MOVEMENT_WEIGHT = 0.08;
 
   // check each bobsled - //TODO CHANGE THIS WHEN WE HAVE MULTIPLE BOBSLEDS
   for (unsigned int i = 0; i < 1; i++)
@@ -372,23 +372,22 @@ void CheckCollisions(R3Scene *scene)
     R3Bobsled *bobsled = scene->bobsleds[i];
     bobsled->x_vibration = 0.0;
     R3Box &bbox = bobsled->sleds[0]->mesh->bbox;
-  //  printf("bobsled: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
+ //   printf("bobsled: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
     
-    printf("num: %d\n", scene->obstacles.size());
     // check each rock for a collision
     for (unsigned int j = 0; j < scene->obstacles.size(); j++)
     {
       R3Obstacle *obstacle = scene->obstacles[j];
       R3Box intersection = bbox;
-      intersection.Intersect(obstacle->obstacle_shape->mesh->bbox);
-      bbox = obstacle->obstacle_shape->mesh->bbox;
-      printf("box: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
+      intersection.Intersect(obstacle->bbox);
+      bbox = obstacle->bbox;
+    //  printf("rock box: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
       if (intersection.XMin() < intersection.XMax() &&
           intersection.YMin() < intersection.YMax() &&
           intersection.ZMin() < intersection.ZMax())
       {
         double current_z = bobsled->velocity.Z();
-        
+        printf("intersection!\n");
         // slow down
         if (obstacle->hit_count == 0)
           bobsled->velocity.SetZ(current_z * 0.5);
