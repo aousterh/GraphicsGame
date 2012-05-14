@@ -21,7 +21,7 @@ using namespace std;
 #endif
 
 
-double ANGLE_SHIFT = 5;
+double ANGLE_SHIFT = 1;
 
 
 
@@ -131,9 +131,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
             bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
 
-			R3Vector displ = bobsled->position - old_position;
-			bobsled->camera->eye.Translate(displ);
-			//bobsled->camera->eye.Rotate(rotate_line, delta_theta);
+			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
 			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
