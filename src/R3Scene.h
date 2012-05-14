@@ -123,11 +123,15 @@ struct R3Track {
 	R3Line center_pivot;
 };
 
+#define NUM_SLEDS 2
+
 struct R3Bobsled {
     double mass;
     R3Point position;               // position of center of volume of bbox
     R3Vector velocity;              // in world coordinates
-    R3Shape *sled;
+    //R3Shape *sled;
+    //static const int numSleds = 2;
+    vector<R3Shape *> sleds;
     R3Shape *skates;
     R3Shape *helmets;
     R3Shape *masks;
@@ -144,9 +148,11 @@ struct R3Bobsled {
 };
 
 
-// TODO: fix this
-struct R3Rock {
-    R3Sphere *sphere;
+struct R3Obstacle {
+	double impact;
+	R3Shape *obstacle_shape;
+	R3Matrix transformation;
+	R3Material *material;
 };
 
 
@@ -205,47 +211,47 @@ struct R3Intersection {
 // Scene graph definition
 
 struct R3Scene {
-public:
-    // Constructor functions
-    R3Scene(void);
-    
-    // Access functions
-    R3Node *Root(void) const;
-    int NLights(void) const;
-    R3Light *Light(int k) const;
-    R3Camera& Camera(void);
-    R3Box& BBox(void);
-    
-    // Particle stuff
-    int NParticleSources(void) const;
-    R3ParticleSource *ParticleSource(int k) const;
-    int NParticleSinks(void) const;
-    R3ParticleSink *ParticleSink(int k) const;
-    int NParticles(void) const;
-    R3Particle *Particle(int k) const;
-    int NBobsleds(void) const;
-    R3Bobsled *Bobsled(int k) const;
-    int NTracks(void) const;
-    R3Track *Track(int k) const;
-    
-    // I/O functions
-    int Read(const char *filename, R3Node *root = NULL);
-    
-public:
-    R3Node *root;
-    vector<R3Particle *> particles;
-    vector<R3ParticleSource *> particle_sources;
-    vector<R3ParticleSink *> particle_sinks;
-    vector<R3ParticleSpring *> particle_springs;
-    vector<R3Light *> lights;
-    vector<R3Track *> track_segments;
-    vector<R3Bobsled *> bobsleds;
-    vector<R3Rock *> rocks;
-    R3Vector gravity;
-    R3Camera camera;
-    R3Box bbox;
-    R3Rgb background;
-    R3Rgb ambient;
+ public:
+  // Constructor functions
+  R3Scene(void);
+
+  // Access functions
+  R3Node *Root(void) const;
+  int NLights(void) const;
+  R3Light *Light(int k) const;
+  R3Camera& Camera(void);
+  R3Box& BBox(void);
+
+  // Particle stuff
+  int NParticleSources(void) const;
+  R3ParticleSource *ParticleSource(int k) const;
+  int NParticleSinks(void) const;
+  R3ParticleSink *ParticleSink(int k) const;
+  int NParticles(void) const;
+  R3Particle *Particle(int k) const;
+  int NBobsleds(void) const;
+  R3Bobsled *Bobsled(int k) const;
+  int NTracks(void) const;
+  R3Track *Track(int k) const;
+
+  // I/O functions
+  int Read(const char *filename, R3Node *root = NULL);
+
+ public:
+  R3Node *root;
+  vector<R3Particle *> particles;
+  vector<R3ParticleSource *> particle_sources;
+  vector<R3ParticleSink *> particle_sinks;
+  vector<R3ParticleSpring *> particle_springs;
+  vector<R3Light *> lights;
+  vector<R3Track *> track_segments;
+  vector<R3Bobsled *> bobsleds;
+  vector<R3Obstacle *> obstacles;
+  R3Vector gravity;
+  R3Camera camera;
+  R3Box bbox;
+  R3Rgb background;
+  R3Rgb ambient;
 };
 
 
