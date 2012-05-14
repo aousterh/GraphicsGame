@@ -784,6 +784,48 @@ Read(const char *filename, R3Node *node)
 		  track->big_radius = (track->center_point - track->start).Length();
 		  track->next = NULL;
 	  }
+	  else if (type == TRACK_FINISH) {
+		  // set beginning and end track points along central axis
+		  R3Point straight_start(0, 0, 25);
+		  R3Point straight_end(0, 0, -25);
+		  straight_start.Transform(current_transformation);
+		  straight_end.Transform(current_transformation);
+		  track->start = straight_start;
+		  track->end = straight_end;
+
+		  // set end plane of track
+		  R3Vector straight_endplane_normal = R3Vector(0, 0, -1);
+		  straight_endplane_normal.Transform(current_transformation);
+		  R3Plane straight_endplane(straight_end, straight_endplane_normal);
+		  track->endPlane = straight_endplane;
+
+		  // set initial along vector for track 
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
+		  track->startNormal = R3Vector(0, 1, 0);
+		  track->endNormal = R3Vector(0, 1, 0);
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector straight_side(-20, 0, 0);
+		  straight_side.Transform(current_transformation);
+		  track->radius = straight_side.Length();
+		  track->side = straight_side;
+		  track->side.Normalize();
+
+		  // set center line of large curve
+		  track->center_point = R3zero_point;
+		  track->center_pivot = R3Line(R3null_point, R3zero_vector); 
+
+		  // set other fields
+		  track->big_radius = 0;
+		  track->next = NULL;
+		  track->cof = 1000000;
+	  }
       // Add track to scene
 	  int NSegments = track_segments.size();
       track_segments.push_back(track);
