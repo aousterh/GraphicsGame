@@ -16,3 +16,6 @@ Temporary Files
 
 Weird Mac Files
 *.DS_Store
+
+Executable
+src/game
