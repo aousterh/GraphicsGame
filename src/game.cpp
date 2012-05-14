@@ -15,9 +15,9 @@
 #include <cmath>
 #include "Mountain.h"
 
-#include <OpenAL/al.h>
+/*#include <OpenAL/al.h>
 #include <OpenAL/alc.h>
-#include "../AL/alut.h"
+#include "../AL/alut.h"*/
 
 //#include <al.h>
 //#include <alc.h>
@@ -34,7 +34,7 @@ static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS
 ////////////////////////////////////////////////////////////
 // OPEN AL STUFF
 ////////////////////////////////////////////////////////////
-
+/*
 #define NUM_BUFFERS 1
 #define NUM_SOURCES 1
 #define NUM_ENVIRONMENTS 1
@@ -54,7 +54,7 @@ ALsizei size,freq;
 ALenum  format;
 ALvoid  *data;
 ALboolean al_bool;
-
+*/
 
 
 ////////////////////////////////////////////////////////////
@@ -346,12 +346,9 @@ void LoadMapCamera(R3Camera *map_camera, R3Box *bbox, double ratio)
   glLoadIdentity();
   double x_min = min(bbox->XMin(), bbox->XMax());
   double x_max = max(bbox->XMin(), bbox->XMax());
-  double y_min = min(bbox->YMin(), bbox->YMax());
-  double y_max = max(bbox->YMin(), bbox->YMax());
   double z_min = min(bbox->ZMin(), bbox->ZMax());
   double z_max = max(bbox->ZMin(), bbox->ZMax());
   double x_avg = (bbox->XMin() + bbox->XMax()) / 2;
-  double y_avg = (bbox->YMin() + bbox->YMax()) / 2;
   double z_avg = (bbox->ZMin() + bbox->ZMax()) / 2;
   
   double dnear = min(map_camera->eye.Y() - bbox->YMin(), map_camera->eye.Y() - bbox->YMax());
@@ -1630,7 +1627,7 @@ void GLUTCreateMenu(void)
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-
+/*//
 void ALinit(int *argc, char **argv)
 {
 	//alutInit(argc, argv);
@@ -1713,8 +1710,8 @@ void ALinit(int *argc, char **argv)
 
 	//Close device
 	alcCloseDevice(device);
-	*/
-}
+	
+}*/
 
 /*void ALinit(void)
 {
@@ -1965,7 +1962,7 @@ main(int argc, char **argv)
   GLUTInit(&argc, argv);
 
   // Initialize AL
-  ALinit(&argc, argv);
+ // ALinit(&argc, argv);
 
   // Read scene
   scene = ReadScene(input_scene_name);
