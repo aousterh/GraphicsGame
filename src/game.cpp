@@ -26,8 +26,8 @@
 //#include <alut.h>
 
 //#include <SDLMain.h>
-#include <SDL/SDL.h>
-#include <SDL/SDL_mixer.h>
+//#include <SDL/SDL.h>
+//#include <SDL/SDL_mixer.h>
 
 
 
@@ -877,7 +877,7 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
   // Update particles
 
 
-  //UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
+  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
     force_left[0] = false;
     force_right[0] = false;
 
@@ -1732,9 +1732,9 @@ void GLUTInit(int *argc, char **argv)
   glutFullScreen();
 }
 
-void SDLInit()
-{
-	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+//void SDLInit()
+//{
+	/*if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
 		fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
 		return;
 	}
@@ -1770,8 +1770,8 @@ void SDLInit()
 	Mix_FreeChunk(sound);
 
 	Mix_CloseAudio();
-	SDL_Quit();
-}
+	SDL_Quit();*/
+//}
 
 
 
@@ -1899,7 +1899,7 @@ main(int argc, char **argv)
 
   // Initialize AL
   //ALinit();
-  SDLInit();
+  //SDLInit();
 
   // Read scene
   scene = ReadScene(input_scene_name);
