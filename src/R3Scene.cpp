@@ -391,7 +391,7 @@ Read(const char *filename, R3Node *node)
         sled_camera->towards = R3Vector(0, 0, -1);
         sled_camera->up = R3Vector(0, 1, 0);
         sled_camera->right = R3Vector(1, 0, 0);
-        sled_camera->eye = sled_center /* - 5 * sled_radius * sled_camera->towards*/ + 9.0 * sled_radius * sled_camera->up;
+        sled_camera->eye = sled_center  - 5 * sled_radius * sled_camera->towards + 2.0 * sled_radius * sled_camera->up;
         sled_camera->towards = (sled_center - sled_camera->eye);
         sled_camera->towards.Normalize();
         sled_camera->towards.Print();
@@ -399,8 +399,8 @@ Read(const char *filename, R3Node *node)
         sled_camera->up.Cross(sled_camera->towards);
         sled_camera->xfov = 0.25;
         sled_camera->yfov = 0.25;
-        sled_camera->neardist = 0.01 * sled_radius;
-        sled_camera->fardist = 100 * sled_radius;
+        sled_camera->neardist = 200;
+        sled_camera->fardist = 1000;
         bobsled->camera = sled_camera;
         
         
@@ -442,6 +442,9 @@ Read(const char *filename, R3Node *node)
 	  obstacle->impact = impact;
 	  obstacle->material = obstacle_material;
 	  obstacle->transformation = current_transformation;
+    obstacles.push_back(obstacle);
+    obstacle->bbox = obstacle_shape->mesh->bbox;
+    obstacle->bbox.Transform(obstacle->transformation);
         
         printf("exiting obstacle\n");
 	}

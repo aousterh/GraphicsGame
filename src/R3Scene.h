@@ -157,6 +157,7 @@ struct R3Obstacle {
 	R3Matrix transformation;
 	R3Material *material;
   int hit_count;
+  R3Box bbox;
 };
 
 
@@ -237,6 +238,8 @@ struct R3Scene {
   R3Bobsled *Bobsled(int k) const;
   int NTracks(void) const;
   R3Track *Track(int k) const;
+  int NObstacles(void) const;
+  R3Obstacle *Obstacle(int k) const;
 
   // I/O functions
   int Read(const char *filename, R3Node *root = NULL);
@@ -281,7 +284,7 @@ NBobsleds(void) const
 inline R3Bobsled *R3Scene::
 Bobsled(int k) const
 {
-    // Return kth light
+    // Return kth bobsled
     return bobsleds[k];
 }
 
@@ -289,17 +292,31 @@ Bobsled(int k) const
 inline int R3Scene::
 NTracks(void) const
 {
-    // Return number of bobsleds
+    // Return number of track segments
     return track_segments.size();
 }
 
 inline R3Track *R3Scene::
 Track(int k) const
 {
-    // Return kth light
+    // Return kth track segment
     return track_segments[k];
 }
 
+
+inline int R3Scene::
+NObstacles(void) const
+{
+  // Return number of obstacles
+  return obstacles.size();
+}
+
+inline R3Obstacle *R3Scene::
+Obstacle(int k) const
+{
+  // Return kth obstacle
+  return obstacles[k];
+}
 
 inline int R3Scene::
 NLights(void) const

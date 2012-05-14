@@ -323,7 +323,9 @@ void LoadCamera(R3Camera *camera)
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
-  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, 0.01, 10000);
+ 
+  
+  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, camera->neardist, camera->fardist);
 
   // Set camera transformation
   R3Vector t = -(camera->towards);
@@ -335,6 +337,9 @@ void LoadCamera(R3Camera *camera)
   glMultMatrixd(camera_matrix);
   glTranslated(-(camera->eye[0]), -(camera->eye[1]), -(camera->eye[2]));
 }
+
+/* http://www.cs.sonoma.edu/other/CS375_OpenGL_Slides_pdf/Perspective_gluFrustum.pdf
+ http://www.opengl.org/archives/resources/faq/technical/viewing.htm */
 
 
 void LoadMapCamera(R3Camera *map_camera, R3Box *bbox, double ratio)
@@ -936,11 +941,32 @@ void DrawTracks(R3Scene *scene, bool transparent)
   }
 }
 
+void DrawObstacles(R3Scene *scene, bool transparent)
+{
+  glEnable(GL_LIGHTING);
+  
+  // Draw all obstacles
+  for (int i = 0; i < scene->NObstacles(); i++) {
+    R3Obstacle *obstacle = scene->Obstacle(i);
+    // Push transformation onto stack
+    glPushMatrix();
+    LoadMatrix(&obstacle->transformation);
+    
+    // Load track material
+    LoadMaterial(obstacle->material, transparent);
+    DrawShape(obstacle->obstacle_shape);
+    
+    // Restore previous transformation
+    glPopMatrix();
+  }
+}
+
 
 void DrawScene(R3Scene *scene) 
 {
   DrawMountain(scene);
   DrawNode(scene, scene->root);
+  DrawObstacles(scene, false);
   DrawBobsleds(scene, true, false);
   DrawTracks(scene, false);
 }
