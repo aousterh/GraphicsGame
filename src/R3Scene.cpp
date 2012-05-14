@@ -267,78 +267,161 @@ Read(const char *filename, R3Node *node)
       do { cmd[0] = fgetc(fp); } while ((cmd[0] >= 0) && (cmd[0] != '\n'));
     }
     else if (!strcmp(cmd, "bobsled")) {
-      // Read sink parameters 
-      double mass;
-	  R3Point position;
-	  R3Vector velocity = R3null_vector; 
-      int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id;
-      if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%d%d%d%d", &mass, &position[0], &position[1], &position[2],
-															&velocity[0], &velocity[1], &velocity[2], 
-															&sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id) != 11)
-      {
-        fprintf(stderr, "Unable to read bobsled at command %d in file %s\n", command_number, filename);
+        R3Bobsled *bobsled = new R3Bobsled();
+
+        // Read sink parameters 
+        double mass;
+        R3Point position;
+        R3Vector velocity = R3null_vector; 
+        int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id;
+        if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%d%d%d%d", &mass, &position[0], &position[1], &position[2],
+                    &velocity[0], &velocity[1], &velocity[2], 
+                    &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id) != 11)
+        {
+            fprintf(stderr, "Unable to read bobsled at command %d in file %s\n", command_number, filename);
+            return 0;
+        }
+            
+        printf("%ld, %ld, %ld, %ld \n", sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id);
+            
+        for (int i = 0; i < NUM_SLEDS; i++)
+        {
+            R3Shape *sled = ReadShape(fp, command_number, filename);
+            if (!sled) {
+            	fprintf(stderr, "Unable to read sled body mesh at command %d in file %s\n", command_number, filename);
+            	return 0;
+            }
+            bobsled->sleds.push_back(sled);
+        }
+
+        R3Shape *skates = ReadShape(fp, command_number, filename);
+        if (!skates) {
+            fprintf(stderr, "Unable to sled skate mesh at command %d in file %s\n", command_number, filename);
+            return 0;
+        }
+        R3Shape *helmets = ReadShape(fp, command_number, filename);
+        if (!helmets) {
+            fprintf(stderr, "Unable to read helmet mesh at command %d in file %s\n", command_number, filename);
+            return 0;
+        }
+        R3Shape *masks = ReadShape(fp, command_number, filename);
+        if (!masks) {
+            fprintf(stderr, "Unable to read helmet mesh at command %d in file %s\n", command_number, filename);
+            return 0;
+        }
+            
+        // Get materials
+        R3Material *sled_material = group_materials[depth];
+        if (sled_mat_id >= 0) {
+            if (sled_mat_id < (int) materials.size()) {
+                sled_material = materials[sled_mat_id];
+            }
+            else {
+                fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+                return 0;
+            }
+        }
+        R3Material *skates_material = group_materials[depth];
+        if (skates_mat_id >= 0) {
+            if (skates_mat_id < (int) materials.size()) {
+                skates_material = materials[skates_mat_id];
+            }
+            else {
+                fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+                return 0;
+            }
+        }
+        R3Material *helmets_material = group_materials[depth];
+        if (helmets_mat_id >= 0) {
+            if (helmets_mat_id < (int) materials.size()) {
+                helmets_material = materials[helmets_mat_id];
+            }
+            else {
+                fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+                return 0;
+            }
+        }
+        R3Material *masks_material = group_materials[depth];
+        if (masks_mat_id >= 0) {
+            if (masks_mat_id < (int) materials.size()) {
+                masks_material = materials[masks_mat_id];
+            }
+            else {
+                fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
+                return 0;
+            }
+        }
+            
+        // Create bobsled
+        bobsled->mass = mass;
+        bobsled->position = position;
+        bobsled->velocity = velocity;
+        //bobsled->sled = sled;
+        bobsled->skates = skates;
+        bobsled->helmets = helmets;
+        bobsled->masks = masks;
+        bobsled->sled_material = sled_material;
+        bobsled->skates_material = skates_material;
+        bobsled->helmets_material = helmets_material;
+        bobsled->masks_material = masks_material;
+        bobsled->track = track_segments[0];
+            
+        bobsled->transformation = current_transformation;
+            
+        bobsled->big_percent = 0;
+        bobsled->little_theta = 0;
+            
+        // Add bobsled to scene
+        bobsleds.push_back(bobsled);
+            
+        // Update scene bounding box
+        bobsled->bbox = R3null_box;
+        bobsled->bbox.Union(bobsled->sleds[0]->mesh->bbox);
+        bobsled->bbox.Union(skates->mesh->bbox);
+        bobsled->bbox.Union(helmets->mesh->bbox);
+        bobsled->bbox.Union(masks->mesh->bbox);
+            
+        // Provide default camera
+        bobsled->bbox.Transform(current_transformation);
+        double sled_radius = bobsled->bbox.DiagonalRadius();
+        R3Point sled_center = bobsled->bbox.Centroid();
+            
+        R3Camera *sled_camera = new R3Camera();
+        sled_camera->towards = R3Vector(0, 0, -1);
+        sled_camera->up = R3Vector(0, 1, 0);
+        sled_camera->right = R3Vector(1, 0, 0);
+        sled_camera->eye = sled_center - 5 * sled_radius * sled_camera->towards + 1.0 * sled_radius * sled_camera->up;
+        sled_camera->towards = (sled_center - sled_camera->eye);
+        sled_camera->towards.Normalize();
+        sled_camera->towards.Print();
+        sled_camera->up = R3Vector(sled_camera->right);
+        sled_camera->up.Cross(sled_camera->towards);
+        sled_camera->xfov = 0.25;
+        sled_camera->yfov = 0.25;
+        sled_camera->neardist = 0.01 * sled_radius;
+        sled_camera->fardist = 100 * sled_radius;
+        bobsled->camera = sled_camera;
+    }
+	else if (!strcmp(cmd, "obstacle")) {
+	  double impact;
+      int m;
+      if (fscanf(fp, "%f%d", &impact, &m) != 2) {
+        fprintf(stderr, "Unable to read obstacle at command %d in file %s\n", command_number, filename);
         return 0;
       }
-        
-        printf("%ld, %ld, %ld, %ld \n", sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id);
 
       // Read shape
-      R3Shape *sled = ReadShape(fp, command_number, filename);
-      if (!sled) {
-        fprintf(stderr, "Unable to read sled body mesh at command %d in file %s\n", command_number, filename);
-        return 0;
-      }
-      R3Shape *skates = ReadShape(fp, command_number, filename);
-      if (!skates) {
-        fprintf(stderr, "Unable to sled skate mesh at command %d in file %s\n", command_number, filename);
-        return 0;
-      }
-      R3Shape *helmets = ReadShape(fp, command_number, filename);
-      if (!helmets) {
-        fprintf(stderr, "Unable to read helmet mesh at command %d in file %s\n", command_number, filename);
-        return 0;
-      }
-      R3Shape *masks = ReadShape(fp, command_number, filename);
-      if (!masks) {
-        fprintf(stderr, "Unable to read helmet mesh at command %d in file %s\n", command_number, filename);
+      R3Shape *obstacle_shape = ReadShape(fp, command_number, filename);
+      if (!obstacle_shape) {
+        fprintf(stderr, "Unable to read obstacle mesh at command %d in file %s\n", command_number, filename);
         return 0;
       }
 
-      // Get materials
-      R3Material *sled_material = group_materials[depth];
-      if (sled_mat_id >= 0) {
-        if (sled_mat_id < (int) materials.size()) {
-          sled_material = materials[sled_mat_id];
-        }
-        else {
-          fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
-          return 0;
-        }
-      }
-      R3Material *skates_material = group_materials[depth];
-      if (skates_mat_id >= 0) {
-        if (skates_mat_id < (int) materials.size()) {
-          skates_material = materials[skates_mat_id];
-        }
-        else {
-          fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
-          return 0;
-        }
-      }
-      R3Material *helmets_material = group_materials[depth];
-      if (helmets_mat_id >= 0) {
-        if (helmets_mat_id < (int) materials.size()) {
-          helmets_material = materials[helmets_mat_id];
-        }
-        else {
-          fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
-          return 0;
-        }
-      }
-      R3Material *masks_material = group_materials[depth];
-      if (masks_mat_id >= 0) {
-        if (masks_mat_id < (int) materials.size()) {
-          masks_material = materials[masks_mat_id];
+	  // get track material
+	  R3Material *obstacle_material = group_materials[depth];
+      if (m >= 0) {
+        if (m < (int) materials.size()) {
+          obstacle_material = materials[m];
         }
         else {
           fprintf(stderr, "Invalid material id at particle command %d in file %s\n", command_number, filename);
@@ -346,58 +429,15 @@ Read(const char *filename, R3Node *node)
         }
       }
 
-      // Create bobsled
-      R3Bobsled *bobsled = new R3Bobsled();
-      bobsled->mass = mass;
-      bobsled->position = position;
-      bobsled->velocity = velocity;
-      bobsled->sled = sled;
-      bobsled->skates = skates;
-      bobsled->helmets = helmets;
-      bobsled->masks = masks;
-      bobsled->sled_material = sled_material;
-      bobsled->skates_material = skates_material;
-      bobsled->helmets_material = helmets_material;
-      bobsled->masks_material = masks_material;
-      bobsled->track = track_segments[0];
-      bobsled->x_vibration = 0;
 
-      bobsled->transformation = current_transformation;
+	  // Create obstacle
+	  R3Obstacle *obstacle = new R3Obstacle();
+	  obstacle->obstacle_shape = obstacle_shape;
+	  obstacle->impact = impact;
+	  obstacle->material = obstacle_material;
+	  obstacle->transformation = current_transformation;
 
-	  bobsled->big_percent = 0;
-	  bobsled->little_theta = 0;
-
-      // Add bobsled to scene
-      bobsleds.push_back(bobsled);
-
-      // Update scene bounding box
-	  bobsled->bbox = R3null_box;
-      bobsled->bbox.Union(sled->mesh->bbox);
-      bobsled->bbox.Union(skates->mesh->bbox);
-      bobsled->bbox.Union(helmets->mesh->bbox);
-      bobsled->bbox.Union(masks->mesh->bbox);
-	  
-	  // Provide default camera
-	  bobsled->bbox.Transform(current_transformation);
-	  double sled_radius = bobsled->bbox.DiagonalRadius();
-	  R3Point sled_center = bobsled->bbox.Centroid();
-
-	  R3Camera *sled_camera = new R3Camera();
-	  sled_camera->towards = R3Vector(0, 0, -1);
-	  sled_camera->up = R3Vector(0, 1, 0);
-	  sled_camera->right = R3Vector(1, 0, 0);
-	  sled_camera->eye = sled_center - 5 * sled_radius * sled_camera->towards + 1.0 * sled_radius * sled_camera->up;
-	  sled_camera->towards = (sled_center - sled_camera->eye);
-	  sled_camera->towards.Normalize();
-	  sled_camera->towards.Print();
-	  sled_camera->up = R3Vector(sled_camera->right);
-	  sled_camera->up.Cross(sled_camera->towards);
-	  sled_camera->xfov = 0.25;
-	  sled_camera->yfov = 0.25;
-	  sled_camera->neardist = 0.01 * sled_radius;
-	  sled_camera->fardist = 100 * sled_radius;
-      bobsled->camera = sled_camera;
-    }
+	}
       
     else if (!strcmp(cmd, "track")) {
       // Read sink parameters 
@@ -439,25 +479,45 @@ Read(const char *filename, R3Node *node)
       track->bbox.Transform(track->transformation);
 
 	  if (type == TRACK_STRAIGHT) {
+		  // set beginning and end track points along central axis
 		  R3Point straight_start(0, 0, 25);
 		  R3Point straight_end(0, 0, -25);
-		  R3Plane straight_endplane(straight_end, (straight_end - straight_start));
-		  R3Vector straight_side(-20, 0, 0);
 		  straight_start.Transform(current_transformation);
-		  track->start = straight_start;
 		  straight_end.Transform(current_transformation);
+		  track->start = straight_start;
 		  track->end = straight_end;
-		  track->along = straight_end - straight_start;
+
+		  // set end plane of track
+		  R3Vector straight_endplane_normal = R3Vector(0, 0, -1);
+		  straight_endplane_normal.Transform(current_transformation);
+		  R3Plane straight_endplane(straight_end, straight_endplane_normal);
+		  track->endPlane = straight_endplane;
+
+		  // set initial along vector for track 
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
 		  track->startNormal = R3Vector(0, 1, 0);
 		  track->endNormal = R3Vector(0, 1, 0);
-		  straight_endplane.Transform(current_transformation);
-		  track->endPlane = straight_endplane;
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector straight_side(-20, 0, 0);
 		  straight_side.Transform(current_transformation);
-		  track->side = straight_side;
 		  track->radius = straight_side.Length();
-		  track->next = NULL;
-		  track->along.Normalize();
+		  track->side = straight_side;
 		  track->side.Normalize();
+
+		  // set center line of large curve
+      //track->center_point = NULL;
+		  track->center_pivot = R3Line(R3null_point, R3zero_vector); 
+
+		  // set other fields
+		  track->big_radius = 0;
+		  track->next = NULL;
 	  }
 	  else if (type == TRACK_APPROACH_RIGHT) {
 		  R3Point approach_start(0, 0, 25);
@@ -559,6 +619,7 @@ Read(const char *filename, R3Node *node)
 		  // set side vector of track
 		  R3Vector turn_side(0, 20, 0);
 		  turn_side.Transform(current_transformation);
+		  track->radius = turn_side.Length();
 		  track->side = turn_side;
 		  track->side.Normalize();
 
@@ -570,7 +631,6 @@ Read(const char *filename, R3Node *node)
 		  track->center_pivot = R3Line(track->center_point, center_line); 
 
 		  // set other fields
-		  track->radius = turn_side.Length();
 		  track->big_radius = (track->center_point - track->start).Length();
 		  track->next = NULL;
 	  }
@@ -902,13 +962,6 @@ Read(const char *filename, R3Node *node)
       group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
-      
-      
-      // TODO: CHANGE THIS ONCE WE HAVE ROCKS
-      R3Rock *rock = new R3Rock();
-      rock->sphere = sphere;
-      rock->hit_count = 0;
-      rocks.push_back(rock);
     }
     else if (!strcmp(cmd, "cylinder")) {
       // Read data
