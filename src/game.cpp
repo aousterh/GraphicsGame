@@ -15,12 +15,15 @@
 #include <cmath>
 #include "Mountain.h"
 
+#include <OpenAL/al.h>
+#include <OpenAL/alc.h>
+#include "../AL/alut.h"
+
 //#include <al.h>
 //#include <alc.h>
 //#include <alut.h>
 
 
-//#include <SDLMain.h>
 //#include <SDL/SDL.h>
 //#include <SDL/SDL_mixer.h>
 
@@ -37,9 +40,6 @@ static const double VIDEO_FRAME_DELAY = 1./25.; // 25 FPS
 // OPEN AL STUFF
 ////////////////////////////////////////////////////////////
 
-/*#define NUM_BUFFERS 1
-=======
-/*
 #define NUM_BUFFERS 1
 #define NUM_SOURCES 1
 #define NUM_ENVIRONMENTS 1
@@ -58,7 +58,7 @@ ALuint  environment[NUM_ENVIRONMENTS];
 ALsizei size,freq;
 ALenum  format;
 ALvoid  *data;
-ALboolean al_bool;*/
+ALboolean al_bool;
 
 
 
@@ -1611,8 +1611,10 @@ void GLUTCreateMenu(void)
 }
 
 
-/*void ALinit(void)
+void ALinit(int *argc, char **argv)
 {
+	alutInit(argc, argv);
+
 	ALCcontext *context;
 	ALCdevice *device;
  
@@ -1632,15 +1634,67 @@ void GLUTCreateMenu(void)
 	alListener3f(AL_VELOCITY, 0, 0, 0);
 	alListener3f(AL_ORIENTATION, 0, 0, -1);
 
-	ALuint source;
-	alGenSources(1, &source);
+	ALuint alSource;
 
-	alSourcef(source, AL_PITCH, 1);
-	alSourcef(source, AL_GAIN, 1);
-	alSource3f(source, AL_POSITION, 0, 0, 0);
-	alSource3f(source, AL_VELOCITY, 0, 0, 0);
-	alSourcei(source, AL_LOOPING, AL_FALSE);
-}*/
+	alSourcef(alSource, AL_PITCH, 1);
+	alSourcef(alSource, AL_GAIN, 1);
+	alSource3f(alSource, AL_POSITION, 0, 0, 0);
+	alSource3f(alSource, AL_VELOCITY, 0, 0, 0);
+	alSourcei(alSource, AL_LOOPING, AL_FALSE);
+
+	alGenSources(1, &alSource);
+
+
+	alGetError();
+	char*     alBuffer;         //data for the buffer
+	ALenum alFormatBuffer;		//buffer format
+	ALsizei   alFreqBuffer;     //frequency
+	long       alBufferLen;     //bit depth
+	ALboolean    alLoop;        //loop
+	unsigned int alSampleSet;
+
+	alutLoadWAVFile("../test.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer);
+
+	//create  buffer
+	alGenBuffers(1, &alSampleSet);
+
+	//put the data into our sampleset buffer
+	alBufferData(alSampleSet, alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+
+	//assign the buffer to this source
+	alSourcei(alSource, AL_BUFFER, alSampleSet);
+
+	//release the data
+	alutUnloadWAV(alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+
+	alSourcei(alSource,AL_LOOPING,AL_TRUE);
+
+	//play
+	alSourcePlay(alSource);
+
+	/*
+	//to stop
+	alSourceStop(alSource);
+	alDeleteSources(1,&alSource);
+
+	//delete our buffer
+	alDeleteBuffers(1,&alSampleSet);
+
+	context=alcGetCurrentContext();
+
+	//Get device for active context
+	device=alcGetContextsDevice(context);
+
+	//Disable context
+	alcMakeContextCurrent(NULL);
+
+	//Release context(s)
+	alcDestroyContext(context);
+
+	//Close device
+	alcCloseDevice(device);
+	*/
+}
 
 /*void ALinit(void)
 {
@@ -1721,7 +1775,6 @@ void GLUTCreateMenu(void)
 void GLUTInit(int *argc, char **argv)
 {
   // Open window 
-	printf("calling glutinit\n");
   glutInit(argc, argv);
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(GLUTwindow_width, GLUTwindow_height);
@@ -1938,7 +1991,7 @@ main(int argc, char **argv)
   GLUTInit(&argc, argv);
 
   // Initialize AL
-  //ALinit();
+  ALinit(&argc, argv);
 
   // Read scene
   scene = ReadScene(input_scene_name);

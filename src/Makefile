@@ -27,7 +27,7 @@ LIBS=R3/libR3.a R2/libR2.a jpeg/libjpeg.a
 #
 UNAME := $(shell uname)
 ifneq (,$(findstring Darwin,$(UNAME)))
-	GLLIBS = -framework GLUT -framework OpenGL `sdl-config --libs` -lSDL_mixer
+	GLLIBS = -framework GLUT -framework OpenGL -framework OpenAL
 else
   ifneq (,$(findstring CYGWIN,$(UNAME)))
 	GLLIBS = -lglut32 -lglut -lGLU -lGL
