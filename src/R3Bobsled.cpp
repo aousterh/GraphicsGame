@@ -21,7 +21,7 @@ using namespace std;
 #endif
 
 
-double ANGLE_SHIFT = 5;
+double ANGLE_SHIFT = 2;
 
 
 
@@ -88,7 +88,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
         //printf("\n");
 		// Forward translation on a straight track
 		R3Vector v_along(R3null_vector);
-		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
+		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
 			v_along = bobsled->velocity.Dot(track->along) * track->along * delta_time;
 			bobsled->position.Translate(v_along);
 			for (int j = 0; j < NUM_SLEDS; j++)
@@ -131,16 +131,15 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
             bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
 
-			R3Vector displ = bobsled->position - old_position;
-			bobsled->camera->eye.Translate(displ);
-			//bobsled->camera->eye.Rotate(rotate_line, delta_theta);
+			
+			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
 			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
         }
 		
 		
-		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
+		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
             // Side rotation on a straight track
             R3Vector v_side(R3null_vector);
             R3Vector v_down(R3null_vector);
@@ -254,7 +253,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
         // check if over the edge
         if (!track->isCovered) {
             R3Vector startNormal(track->startNormal);
-            if (track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
+            if (track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
                 double percent = R3Distance(little_center, track->start);
                 percent /= R3Distance(track->start, track->end);
                 startNormal = percent * track->endNormal + (1 - percent) * track->startNormal;
@@ -277,8 +276,16 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
         double dist_plane = to_plane.Dot(track->endPlane.Normal());
         if (dist_plane <= 0) {
             bobsled->track = track->next;
-            printf("went to new track %d\n", track->type);
-            
+            printf("went to new track %d\n", bobsled->track->type);
+            printf("track along = ");
+            bobsled->track->along.Print();
+            printf("\n");
+            printf("track normal = ");
+            bobsled->track->startNormal.Print();
+            printf("\n");
+            printf("velocity = ");
+            bobsled->velocity.Print();
+            printf("\n");
             if (bobsled->track->type == TRACK_TURN_RIGHT || bobsled->track->type == TRACK_TURN_LEFT) {
                 printf("in curved track\n");
                 R3Vector dist_to_start(bobsled->position - bobsled->track->start);
@@ -311,7 +318,7 @@ R3Vector Force(R3Bobsled *bobsled, double r, double delta_time) {
     fg = bobsled->mass * gravity;
     // normal force
     R3Vector fn(R3null_vector);
-    if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
+    if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
         R3Vector temp(bobsled->position - track->start);
         temp.Project(track->along);
         R3Point center_point(track->start);
@@ -329,7 +336,12 @@ R3Vector Force(R3Bobsled *bobsled, double r, double delta_time) {
         centripetal_vect = centripetal * normal;
         R3Vector fg_other(fg);
         fg_other.Flip();
-        fn = fg_other.Dot(normal) * normal + centripetal_vect;
+        double normal_fg = fg_other.Dot(normal);
+        printf("normal_fg = %f\n", normal_fg);
+        fn = centripetal_vect;
+        if (normal_fg > 0)
+            fn += fg_other.Dot(normal) * normal;
+        //fn = fg_other.Dot(normal) * normal + centripetal_vect;
         //printf("fn = ");
         //fn.Print();
         //printf("\n");
@@ -361,7 +373,11 @@ R3Vector Force(R3Bobsled *bobsled, double r, double delta_time) {
         big_centripetal_vect = big_centripetal * big_normal;
         R3Vector fg_other(fg);
         fg_other.Flip();
-        fn = fg_other.Dot(normal) * normal + centripetal_vect + big_centripetal_vect;
+        double normal_fg = fg_other.Dot(normal);
+        fn = centripetal_vect + big_centripetal_vect;
+        if (normal_fg > 0)
+            fn += fg_other.Dot(normal) * normal;
+        //fn = fg_other.Dot(normal) * normal + centripetal_vect + big_centripetal_vect;
     }
     // force of friction
     R3Vector fk(R3null_vector);

@@ -514,6 +514,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 1, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector straight_side(-20, 0, 0);
@@ -555,6 +557,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(1, 0, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector right_approach_side(-20, 0, 0);
@@ -596,6 +600,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(-1, 0, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector left_approach_side(-20, 0, 0);
@@ -637,6 +643,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 1, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector right_approach_side(0, -20, 0);
@@ -678,6 +686,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 1, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector left_approach_side(0, 20, 0);
@@ -720,6 +730,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 0, 1);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector turn_side(0, -20, 0);
@@ -765,6 +777,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 0, 1);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector turn_side(0, 20, 0);
