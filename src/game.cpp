@@ -887,10 +887,11 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
     delta_time = current_time - previous_time;
   }
 
+
   // Update bobsleds
   UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
-  force_left[0] = false;
-  force_right[0] = false;
+    force_left[0] = false;
+    force_right[0] = false;
 
   glEnable(GL_LIGHTING);
   // Draw all bobsleds
@@ -1754,10 +1755,16 @@ void GLUTInit(int *argc, char **argv)
   glutFullScreen();
 }
 
+
 /*
 void SDLInit()
 {
 	if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+=======
+//void SDLInit()
+//{
+	/*if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) != 0) {
+>>>>>>> db45cc80deadbe274549e2e732d38fc68a036182
 		fprintf(stderr, "Unable to initialize SDL: %s\n", SDL_GetError());
 		return;
 	}
@@ -1793,6 +1800,7 @@ void SDLInit()
 	Mix_FreeChunk(sound);
 
 	Mix_CloseAudio();
+<<<<<<< HEAD
 	SDL_Quit();
 }*/
 
@@ -1939,9 +1947,8 @@ main(int argc, char **argv)
   GLUTInit(&argc, argv);
 
   // Initialize AL
- // ALinit();
   //ALinit();
-//  SDLInit();
+  //SDLInit();
 
   // Read scene
   scene = ReadScene(input_scene_name);
