@@ -118,12 +118,16 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             R3Line rotate_line(track->center_pivot);
             new_along.Rotate(rotate_line.Vector(), delta_theta);
             new_normal.Rotate(rotate_line.Vector(), delta_theta);
+			R3Point old_position(bobsled->position);
             bobsled->position.Rotate(rotate_line, delta_theta);
             bobsled->sleds[0]->mesh->Rotate(delta_theta, rotate_line);
             bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
             bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
             bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
-			bobsled->camera->eye.Rotate(rotate_line, delta_theta);
+
+			R3Vector displ = bobsled->position - old_position;
+			bobsled->camera->eye.Translate(displ);
+			//bobsled->camera->eye.Rotate(rotate_line, delta_theta);
 			bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
 			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
