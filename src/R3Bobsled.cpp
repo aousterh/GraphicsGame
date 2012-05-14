@@ -164,11 +164,10 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
         
         else {
             R3Vector init_normal(track->startNormal);
-            //init_normal = bobsled->big_percent * track->endNormal + (1 - bobsled->big_percent) * track->startNormal;
             init_normal.Normalize();
             R3Point little_center(track->center_point);
             little_center +=  -1 * init_normal * (track->big_radius);
-            R3Line rotate_line(little_center, track->along, false); 
+            R3Line rotate_line(little_center, track->along); 
             R3Vector normal(little_center - bobsled->position); 
             normal.Normalize();
             R3Vector side(track->along);

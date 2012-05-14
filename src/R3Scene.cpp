@@ -397,6 +397,7 @@ Read(const char *filename, R3Node *node)
 	  sled_camera->fardist = 100 * sled_radius;
       bobsled->camera = sled_camera;
     }
+      
     else if (!strcmp(cmd, "track")) {
       // Read sink parameters 
       double cof;
