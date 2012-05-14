@@ -99,15 +99,16 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 			bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
         }
 		
-		// Side rotation on a straight track
-		R3Vector v_side(R3null_vector);
-        R3Vector v_down(R3null_vector);
-        R3Vector down(0, -1, 0);
-		R3Vector rotate_vector(R3null_vector);
-		R3Line rotate_line(track->start, track->along);
-        double sign;
-        R3Vector temp(R3null_vector);
+		
 		if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT) {
+            // Side rotation on a straight track
+            R3Vector v_side(R3null_vector);
+            R3Vector v_down(R3null_vector);
+            R3Vector down(0, -1, 0);
+            R3Vector rotate_vector(R3null_vector);
+            R3Line rotate_line(track->start, track->along);
+            double sign;
+            R3Vector temp(R3null_vector);
             temp = position - track->start;
             temp.Project(track->along);
             R3Point center_point(track->start);
@@ -271,7 +272,7 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
         R3Vector centripetal(R3null_vector);
         centripetal = bobsled->mass * bobsled->velocity * bobsled->velocity / r;
         centripetal = centripetal.Length() * normal;
-        R3Vector big_normal(track->center_point - little_center);//bobsled->position);
+        R3Vector big_normal(track->center_point - /*little_center);*/bobsled->position);
         big_normal.Normalize();
         R3Vector big_centripetal(R3null_vector);
         double R = R3Distance(bobsled->position, bobsled->track->center_point);
