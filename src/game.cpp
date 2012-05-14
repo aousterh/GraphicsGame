@@ -15,17 +15,10 @@
 #include <cmath>
 #include "Mountain.h"
 
-/*
-#include <OpenAL/al.h>
-#include <OpenAL/alc.h>
-#include "../AL/include/alut.h"
-*/
-
 //#include <al.h>
 //#include <alc.h>
 //#include <alut.h>
 
-//#include <SDLMain.h>
 #include <SDL/SDL.h>
 #include <SDL/SDL_mixer.h>
 
@@ -877,7 +870,7 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
   // Update particles
 
 
-  //UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
+  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
     force_left[0] = false;
     force_right[0] = false;
 
@@ -1704,6 +1697,7 @@ void GLUTCreateMenu(void)
 void GLUTInit(int *argc, char **argv)
 {
   // Open window 
+	printf("calling glutinit\n");
   glutInit(argc, argv);
   glutInitWindowPosition(100, 100);
   glutInitWindowSize(GLUTwindow_width, GLUTwindow_height);
@@ -1731,6 +1725,7 @@ void GLUTInit(int *argc, char **argv)
   // make full screen
   glutFullScreen();
 }
+
 
 void SDLInit()
 {
@@ -1894,12 +1889,13 @@ main(int argc, char **argv)
   // Parse program arguments
   if (!ParseArgs(argc, argv)) exit(1);
 
+  SDLInit();
+
   // Initialize GLUT
   GLUTInit(&argc, argv);
 
   // Initialize AL
   //ALinit();
-  SDLInit();
 
   // Read scene
   scene = ReadScene(input_scene_name);
