@@ -25,6 +25,38 @@ double ANGLE_SHIFT = 5;
 
 
 
+double Rand(void)
+{
+#ifdef _WIN32
+  // Seed random number generator
+  static int first = 1;
+  if (first) {
+    srand(GetTickCount());
+    first = 0;
+  }
+  
+  // Return random number
+  int r1 = rand();
+  double r2 = ((double) rand()) / ((double) RAND_MAX);
+  return (r1 + r2) / ((double) RAND_MAX);
+#else
+  // Seed random number generator
+  static int first = 1;
+  if (first) {
+    struct timeval timevalue;
+    gettimeofday(&timevalue, 0);
+    srand48(timevalue.tv_usec);
+    first = 0;
+  }
+  
+  // Return random number
+  return drand48();
+#endif
+}
+
+
+
+
 ////////////////////////////////////////////////////////////
 // Updating Bobsled
 ////////////////////////////////////////////////////////////
@@ -144,6 +176,14 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 velocity -= v_change * temp;
                 //delta_theta += ANGLE_SHIFT;
             }
+            
+            // add vibration
+     if (bobsled->x_vibration != 0){
+      printf("updating: %f\n", delta_theta);
+            delta_theta += bobsled->x_vibration;
+      printf("after: %f\n", delta_theta);
+      }
+      
             bobsled->little_theta += delta_theta;
 
             bobsled->position.Rotate(rotate_line, delta_theta);
@@ -293,12 +333,14 @@ R3Vector Force(R3Bobsled *bobsled, double r) {
 ////////////////////////////////////////////////////////////
 void CheckCollisions(R3Scene *scene)
 {
+  const double MOVEMENT_WEIGHT = 0.02;
+ 
   // check each bobsled - //TODO CHANGE THIS WHEN WE HAVE MULTIPLE BOBSLEDS
   for (unsigned int i = 0; i < 1; i++)
   {
     R3Bobsled *bobsled = scene->bobsleds[i];
     R3Box &bbox = bobsled->sled->mesh->bbox;
-  //  printf("bobsled: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
+    bobsled->x_vibration = 0.0;
     
     // check each rock for a collision
     for (unsigned int j = 0; j < scene->rocks.size(); j++)
@@ -311,17 +353,22 @@ void CheckCollisions(R3Scene *scene)
           intersection.ZMin() < intersection.ZMax())
       {
         printf("intersection!\n");
-        bobsled->track->cof *= 100;
         double current_z = bobsled->velocity.Z();
-        bobsled->velocity.SetZ(current_z * 0.5);
+      
+        // slow down
+        if (rock->hit_count == 0)
+          bobsled->velocity.SetZ(current_z * 0.5);
+      
+        // add left-to-right vibration
+        if (rock->hit_count - 2 * ((int) rock->hit_count / 2) == 0)
+          bobsled->x_vibration = MOVEMENT_WEIGHT * (1 + Rand());
+        else
+          bobsled->x_vibration = - MOVEMENT_WEIGHT * (1 + Rand());
+        
+        rock->hit_count++;
       }
     }
   }
+  
 }
 
-
-
-
-
-
-    

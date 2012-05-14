@@ -140,6 +140,7 @@ struct R3Bobsled {
     R3Matrix transformation;
 	double big_percent;
 	double little_theta;
+  double x_vibration;  // additional horizontal motion from collision
 	R3Box bbox;
 };
 
@@ -147,6 +148,7 @@ struct R3Bobsled {
 // TODO: fix this
 struct R3Rock {
   R3Sphere *sphere;
+  int hit_count;
 };
 
 

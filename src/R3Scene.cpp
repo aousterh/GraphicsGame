@@ -360,6 +360,7 @@ Read(const char *filename, R3Node *node)
       bobsled->helmets_material = helmets_material;
       bobsled->masks_material = masks_material;
       bobsled->track = track_segments[0];
+      bobsled->x_vibration = 0;
 
       bobsled->transformation = current_transformation;
 
@@ -906,6 +907,7 @@ Read(const char *filename, R3Node *node)
       // TODO: CHANGE THIS ONCE WE HAVE ROCKS
       R3Rock *rock = new R3Rock();
       rock->sphere = sphere;
+      rock->hit_count = 0;
       rocks.push_back(rock);
     }
     else if (!strcmp(cmd, "cylinder")) {
