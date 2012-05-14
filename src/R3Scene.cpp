@@ -400,7 +400,7 @@ Read(const char *filename, R3Node *node)
         sled_camera->xfov = 0.25;
         sled_camera->yfov = 0.25;
         sled_camera->neardist = 200;
-        sled_camera->fardist = 1000;
+        sled_camera->fardist = 100000;
         bobsled->camera = sled_camera;
         
         
