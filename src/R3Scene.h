@@ -99,6 +99,7 @@ struct R3Node {
 
 
 
+
 // Bobsled specific definitions
 struct R3Track {
     bool isCovered;			// tunnel?
@@ -140,6 +141,12 @@ struct R3Bobsled {
 	double big_percent;
 	double little_theta;
 	R3Box bbox;
+};
+
+
+// TODO: fix this
+struct R3Rock {
+  R3Sphere *sphere;
 };
 
 
@@ -233,6 +240,7 @@ struct R3Scene {
   vector<R3Light *> lights;
   vector<R3Track *> track_segments;
   vector<R3Bobsled *> bobsleds;
+  vector<R3Rock *> rocks;
   R3Vector gravity;
   R3Camera camera;
   R3Box bbox;

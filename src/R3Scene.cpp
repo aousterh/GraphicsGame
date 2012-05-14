@@ -901,6 +901,12 @@ Read(const char *filename, R3Node *node)
       group_nodes[depth]->bbox.Union(node->bbox);
       group_nodes[depth]->children.push_back(node);
       node->parent = group_nodes[depth];
+      
+      
+      // TODO: CHANGE THIS ONCE WE HAVE ROCKS
+      R3Rock *rock = new R3Rock();
+      rock->sphere = sphere;
+      rocks.push_back(rock);
     }
     else if (!strcmp(cmd, "cylinder")) {
       // Read data

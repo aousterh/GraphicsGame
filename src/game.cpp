@@ -872,7 +872,8 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
     delta_time = current_time - previous_time;
   }
 
-
+  // Check for collisions
+  CheckCollisions(scene);
 
   // Update bobsleds
   UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
