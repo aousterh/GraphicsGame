@@ -546,7 +546,7 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	//ground plane
 	R3Vector ground_normal(0, 1, 0);
-	R3Point ground_pt(0, -100, 0);
+	R3Point ground_pt(0, -60, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
 	//FIXME change this
@@ -1041,7 +1041,7 @@ void GLUTRedraw(void)
       
   // Update bobsleds
   UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left, force_right);
-    if (bobsled->isFalling == true && deadSound == false)
+    if ((bobsled->isFalling == true && bobsled->hasWon == false) && deadSound == false)
     {
         deadSound = true;
       //  playDeadSound();
@@ -1595,22 +1595,28 @@ ParseArgs(int argc, char **argv)
 int 
 main(int argc, char **argv)
 {
+    printf("entering main\n");
   // Parse program arguments
   if (!ParseArgs(argc, argv)) exit(1);
 
+    printf("about to glut init\n");
   // Initialize GLUT
   GLUTInit(&argc, argv);
 
+    printf("about to al init\n");
   // Initialize AL
   //  ALinit(&argc, argv);
 
+    printf("about to read\n");
   // Read scene
   scene = ReadScene(input_scene_name);
   if (!scene) exit(-1);
   
+    printf("camera\n");
   // Make map camera
   SetMapCamera(scene);
   
+    printf("main loop\n");
   // Run GLUT interface
   GLUTMainLoop();
 
