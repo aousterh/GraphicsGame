@@ -92,8 +92,10 @@ void CreateSnowballs(R3Scene *scene)
         // copy this track's obstacle
         R3Obstacle *obstacle = CopySnowball(track_obstacle);
         scene->obstacles.push_back(obstacle);
+        printf("x: %f\n", bobsled->position.X());
+        double rand_x = 10 - 20 * RandNum();
         R3Point new_center = track->end + 5 * track->endNormal + 
-          0.5 * R3Vector(bobsled->position.X(), 0, 0);
+          0.5 * R3Vector(rand_x + bobsled->position.X(), 0, 0);
         obstacle->obstacle_shape->sphere->Reposition(new_center);
         obstacle->velocity = R3Vector(0, -20, 0);
       }

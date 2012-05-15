@@ -811,14 +811,39 @@ void DrawGround(R3Scene * scene)
     scene->ground->mesh->Draw();
 }
 
+
+
+void EnableFog(int fog_level)
+{
+  // Turn on fog
+  if (fog_level > 0)
+  {
+    float fog_color[3] = {0.9f, 0.9f, 0.9f};
+    glEnable(GL_FOG);
+    glFogi(GL_FOG_MODE, GL_LINEAR);
+    glFogfv(GL_FOG_COLOR, fog_color);
+    glFogi(GL_FOG_START, 750 - 150 * fog_level);
+    glFogi(GL_FOG_END, 750);
+  }
+}
+
+void DisableFog()
+{
+  glDisable(GL_FOG);
+}
+
+
+
 void DrawScene(R3Scene *scene, R3Camera * cam)
 {
+  EnableFog(scene->Bobsled(0)->track->fog);
   DrawGround(scene);
   DrawMountain(scene, cam);
   DrawNode(scene, scene->root);
   DrawObstacles(scene, false);
   DrawBobsleds(scene, false);
   DrawTracks(scene, false);
+  DisableFog();
 }
 
 
@@ -1105,24 +1130,6 @@ void GLUTRedraw(void)
   // Swap buffers 
   glutSwapBuffers();
 }    
-
-
-void EnableFog()
-{
-  // Turn on fog
-  float fog_color[3] = {0.9f, 0.9f, 0.9f};
-  glEnable(GL_FOG);
-  glFogi(GL_FOG_MODE, GL_LINEAR);
-  glFogfv(GL_FOG_COLOR, fog_color);
-  glFogi(GL_FOG_START, 100);
-  glFogi(GL_FOG_END, 800);
-}
-
-void DisableFog()
-{
-  glDisable(GL_FOG);
-}
-
 
 void GLUTMouse(int button, int state, int x, int y)
 {
@@ -1615,6 +1622,17 @@ main(int argc, char **argv)
     printf("camera\n");
   // Make map camera
   SetMapCamera(scene);
+  
+  // Set fog
+  scene->track_segments[5]->fog = 1;
+  scene->track_segments[6]->fog = 2;
+  scene->track_segments[7]->fog = 3;
+  scene->track_segments[8]->fog = 4;
+  scene->track_segments[9]->fog = 5;
+  scene->track_segments[10]->fog = 4;
+  scene->track_segments[11]->fog = 3;
+  scene->track_segments[12]->fog = 2;
+  scene->track_segments[13]->fog = 1;
   
     printf("main loop\n");
   // Run GLUT interface

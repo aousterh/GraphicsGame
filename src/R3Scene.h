@@ -142,6 +142,7 @@ struct R3Track {
 	R3Point center_point;
 	R3Line center_pivot;
   R3Obstacle *obstacle;  // any associated obstacles
+  int fog;  // level of fog (0 is none, 1, 2 3, 4, 5)
 };
 
 #define NUM_SLEDS 2

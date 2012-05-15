@@ -519,6 +519,7 @@ Read(const char *filename, R3Node *node)
       track->track_shape = trackshape;
       track->bbox = trackshape->mesh->bbox;
       track->bbox.Transform(track->transformation);
+      track->fog = 0;
 
 	  if (type == TRACK_STRAIGHT) {
 		  // set beginning and end track points along central axis
