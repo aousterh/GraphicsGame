@@ -355,6 +355,8 @@ Read(const char *filename, R3Node *node)
         bobsled->position = position;
         bobsled->velocity = velocity;
         //bobsled->sled = sled;
+        bobsled->position.Transform(current_transformation);
+        bobsled->velocity.Transform(current_transformation);
         bobsled->skates = skates;
         bobsled->helmets = helmets;
         bobsled->masks = masks;
@@ -362,7 +364,12 @@ Read(const char *filename, R3Node *node)
         bobsled->skates_material = skates_material;
         bobsled->helmets_material = helmets_material;
         bobsled->masks_material = masks_material;
+
+        bobsled->isFalling = false;
+        bobsled->timeFalling = 0;
+
         bobsled->track = track_segments[track_first];
+
             
         bobsled->transformation = current_transformation;
             
@@ -454,7 +461,7 @@ Read(const char *filename, R3Node *node)
       // Read sink parameters 
       double cof;
       int type, isCovered, m;
-      if (fscanf(fp, "%d%f%d%d", &type, &cof, &isCovered, &m) != 4) {
+      if (fscanf(fp, "%d%lf%d%d", &type, &cof, &isCovered, &m) != 4) {
         fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
         return 0;
       }
@@ -838,6 +845,7 @@ Read(const char *filename, R3Node *node)
 		  // set other fields
 		  track->big_radius = 0;
 		  track->next = NULL;
+
 	  }
       // Add track to scene
 	  int NSegments = track_segments.size();

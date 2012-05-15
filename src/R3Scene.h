@@ -167,7 +167,10 @@ struct R3Bobsled {
 	double little_theta;
 	double x_vibration;  // additional horizontal motion from collision
 	R3Box bbox;
+    bool isFalling;
+    double timeFalling;
 	bool hasWon;
+
 };
 
 
