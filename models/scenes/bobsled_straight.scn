@@ -197,6 +197,22 @@ begin
 		
 	end
 
+
+	begin
+	5
+	1 0 0 0
+	0 1 0 15
+	0 0 1 -350
+	0 0 0 1
+	
+	track
+		0 20 0 5
+		mesh OBJ_models/track_finish.obj
+	
+	mesh 6 1 OBJ_models/finish_line.obj
+		
+	end
+
 end
 
 begin
@@ -226,7 +242,7 @@ obstacle
 
 
 bobsled
-	100 0 0 0 0 0 -100 0 1 3 4 0
+	100 0 0 0 0 0 -300 0 1 3 4 0
 	mesh OBJ_models/sled_body1.obj
 	mesh OBJ_models/sled_body2.obj
 	mesh OBJ_models/sled_blades.obj

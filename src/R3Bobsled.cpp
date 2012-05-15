@@ -67,7 +67,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 				   bool *force_left, bool *force_right)
 {
 	// update each sled in the scene
-	for (int i = 0; i < scene->NBobsleds(); i++) {
+	for (int i = 0; i < 1/*scene->NBobsleds()*/; i++) {
 		// get the current sled and its track segment
 		R3Bobsled *bobsled = scene->Bobsled(i);
 		R3Track *track = bobsled->track;
