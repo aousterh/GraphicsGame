@@ -546,7 +546,7 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	//ground plane
 	R3Vector ground_normal(0, 1, 0);
-	R3Point ground_pt(0, -200, 0);
+	R3Point ground_pt(0, -100, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
 	//FIXME change this
@@ -796,9 +796,24 @@ void DrawObstacles(R3Scene *scene, bool transparent)
   }
 }
 
+void DrawGround(R3Scene * scene)
+{
+    R3Material * mat = new R3Material();
+	mat->emission = R3Rgb(0, 0, 0, 0);
+	mat->ka = R3Rgb(1, 1, 1, 1);
+	mat->kd = R3Rgb(1, 1, 1, 1);
+	mat->ks = R3Rgb(1, 1, 1, 1);
+	mat->kt = R3Rgb(0, 0, 0, 0);
+	mat->shininess = 10;
+	mat->texture = NULL;
+	LoadMaterial(mat, false);
+	delete mat;
+    scene->ground->mesh->Draw();
+}
 
 void DrawScene(R3Scene *scene, R3Camera * cam)
 {
+  DrawGround(scene);
   DrawMountain(scene, cam);
   DrawNode(scene, scene->root);
   DrawObstacles(scene, false);
@@ -1052,7 +1067,14 @@ void GLUTRedraw(void)
       double current_time = GetTime();
     //  printf("delta not drawing: %f\n", current_time - old_time);
       current_time = old_time;
-      DrawScene(scene, bobsled->camera);
+        if (THIRD_PERSON)
+        {
+            DrawScene(scene, bobsled->camera3);
+        }
+        else
+        {
+            DrawScene(scene, bobsled->camera1);
+        }
       current_time = GetTime();
    //   printf("delta drawing: %f\n", current_time - old_time);
       current_time = old_time;
@@ -1064,8 +1086,14 @@ void GLUTRedraw(void)
     glDisable(GL_LIGHTING);
     glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    DrawScene(scene, bobsled->camera);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      if (THIRD_PERSON)
+      {
+          DrawScene(scene, bobsled->camera3);
+      }
+      else
+      {
+          DrawScene(scene, bobsled->camera1);
+      }    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
 
   // draw another transparent image in center, on top
@@ -1326,7 +1354,7 @@ void playDeadSound()
 	long       alBufferLen;     //bit depth
 	unsigned int alSampleSet;
     
-	alutLoadWAVFile("../die.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer);
+	alutLoadWAVFile("../sanka.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer);
     
 	//create  buffer
 	alGenBuffers(1, &alSampleSet);

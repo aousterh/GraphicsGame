@@ -400,7 +400,6 @@ Read(const char *filename, R3Node *node)
         sled_camera->eye = sled_center  - 7 * sled_radius * sled_camera->towards + 4.0 * sled_radius * sled_camera->up;
         sled_camera->towards = (sled_center - sled_camera->eye);
         sled_camera->towards.Normalize();
-        sled_camera->towards.Print();
         sled_camera->up = R3Vector(sled_camera->right);
         sled_camera->up.Cross(sled_camera->towards);
         sled_camera->xfov = 0.25;
@@ -409,25 +408,31 @@ Read(const char *filename, R3Node *node)
         sled_camera->fardist = 100000;
         bobsled->camera3 = sled_camera;
 
-        R3Camera *sled_camera = new R3Camera();
+        /*R3Camera * */sled_camera = new R3Camera();
         sled_camera->towards = R3Vector(0, 0, -1);
         sled_camera->up = R3Vector(0, 1, 0);
         sled_camera->right = R3Vector(1, 0, 0);
-        sled_camera->eye = sled_center  + 1.0 * sled_radius * sled_camera->up;
-        sled_camera->towards = (sled_center - sled_camera->eye);
-        sled_camera->towards.Normalize();
-        sled_camera->towards.Print();
-        sled_camera->up = R3Vector(sled_camera->right);
-        sled_camera->up.Cross(sled_camera->towards);
+        sled_camera->eye = sled_center + 0.4 * sled_radius * sled_camera->towards + 0.2 * sled_radius * sled_camera->up;
         sled_camera->xfov = 0.25;
         sled_camera->yfov = 0.25;
-        sled_camera->neardist = 0.1;
+        sled_camera->neardist = 3;
         sled_camera->fardist = 100000;
         bobsled->camera1 = sled_camera;
         
         
         
     }
+    else if (!strcmp(cmd, "ground")) {
+        
+        // Read sink parameters
+
+        ground = ReadShape(fp, command_number, filename);
+        if (!ground) {
+            fprintf(stderr, "Unable to read ground mesh at command %d in file %s\n", command_number, filename);
+            return 0;
+        }
+    }
+      
 	else if (!strcmp(cmd, "obstacle")) {
 	  double impact;
       int m;

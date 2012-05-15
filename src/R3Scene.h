@@ -273,6 +273,7 @@ struct R3Scene {
   R3Box bbox;
   R3Rgb background;
   R3Rgb ambient;
+  R3Shape * ground;
 };
 
 
