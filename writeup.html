@@ -190,7 +190,7 @@ We have implemented the following features:
       </TR>
       <TR colspan=3>
         <TD>
-          ROB WRITE STUFF HERE
+			All of our models are in the obj format.  This allows us to specify a mapping from object space to texture space in the meshes.  When we parse a .obj file, we store texture mapping information in R3Mesh along with vertex and face information.  Then during rendering, we use OpenGL texture mapping functions on this data to texture our models.
         </TD>
       </TR>
     </TBODY>
