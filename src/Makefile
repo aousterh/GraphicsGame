@@ -6,7 +6,7 @@
 # List of source files
 #
 
-SRCS=game.cpp particle.cpp R3Scene.cpp R3Bobsled.cpp Mountain.cpp $(wildcard ../AL/srcs/*.c)
+SRCS=game.cpp particle.cpp R3Scene.cpp R3Bobsled.cpp Mountain.cpp R3Obstacle.cpp $(wildcard ../AL/srcs/*.c)
 OBJS=$(SRCS:.cpp=.o)
 
 #

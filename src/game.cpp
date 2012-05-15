@@ -14,11 +14,12 @@
 #include "cos426_opengl.h"
 #include <cmath>
 #include "Mountain.h"
+#include "R3Obstacle.h"
 //#include "glfont.h"
 
-/*#include <OpenAL/al.h>
+#include <OpenAL/al.h>
 #include <OpenAL/alc.h>
-#include "../AL/alut.h"*/
+#include "../AL/alut.h"
 
 //#include <al.h>
 //#include <alc.h>
@@ -65,8 +66,6 @@ ALboolean al_bool;
 // Program arguments
 
 static char *input_scene_name = NULL;
-static char *output_image_name = NULL;
-static const char *video_prefix = "./video-frames/";
 static int integration_type = EULER_INTEGRATION;
 
 
@@ -90,7 +89,6 @@ static int show_particle_springs = 1;
 static int show_particle_sources_and_sinks = 0;
 static int save_image = 0;
 static int save_video = 0;
-static int num_frames_to_record = -1; 
 static int quit = 0;
 // forces left and right for players
 // p1 is A-S-D-W, p2 is left-down-right-up
@@ -98,6 +96,9 @@ static bool *force_left;
 static bool *force_right;
 
 static int levDetail = 0;
+static bool deadSound = false;
+
+void playDeadSound();
 
 
 
@@ -326,7 +327,7 @@ void LoadCamera(R3Camera *camera)
   glLoadIdentity();
  
   
-  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, camera->neardist, camera->fardist);
+  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, camera->neardist, camera->fardist);
 
   // Set camera transformation
   R3Vector t = -(camera->towards);
@@ -519,120 +520,6 @@ void DrawNode(R3Scene *scene, R3Node *node)
 }
 
 
-
-void DrawLights(R3Scene *scene)
-{
-  // Check if should draw lights
-  if (!show_lights) return;
-
-  // Setup
-  GLboolean lighting = glIsEnabled(GL_LIGHTING);
-  glDisable(GL_LIGHTING);
-
-  // Draw all lights
-  double radius = scene->bbox.DiagonalRadius();
-  for (int i = 0; i < scene->NLights(); i++) {
-    R3Light *light = scene->Light(i);
-    glColor3d(light->color[0], light->color[1], light->color[2]);
-    if (light->type == R3_DIRECTIONAL_LIGHT) {
-      // Draw direction vector
-      glLineWidth(5);
-      glBegin(GL_LINES);
-      R3Point centroid = scene->bbox.Centroid();
-      R3Vector vector = radius * light->direction;
-      glVertex3d(centroid[0] - vector[0], centroid[1] - vector[1], centroid[2] - vector[2]);
-      glVertex3d(centroid[0] - 1.25*vector[0], centroid[1] - 1.25*vector[1], centroid[2] - 1.25*vector[2]);
-      glEnd();
-      glLineWidth(1);
-    }
-    else if (light->type == R3_POINT_LIGHT) {
-      // Draw sphere at point light position
-      R3Sphere(light->position, 0.1 * radius).Draw();
-    }
-    else if (light->type == R3_SPOT_LIGHT) {
-      // Draw sphere at point light position and line indicating direction
-      R3Sphere(light->position, 0.1 * radius).Draw();
-  
-      // Draw direction vector
-      glLineWidth(5);
-      glBegin(GL_LINES);
-      R3Vector vector = radius * light->direction;
-      glVertex3d(light->position[0], light->position[1], light->position[2]);
-      glVertex3d(light->position[0] + 0.25*vector[0], light->position[1] + 0.25*vector[1], light->position[2] + 0.25*vector[2]);
-      glEnd();
-      glLineWidth(1);
-    }
-    else if (light->type == R3_AREA_LIGHT) {
-      // Draw circular area
-      R3Vector v1, v2;
-      double r = light->radius;
-      R3Point p = light->position;
-      int dim = light->direction.MinDimension();
-      if (dim == 0) { v1 = light->direction % R3posx_vector; v1.Normalize(); v2 = light->direction % v1; }
-      else if (dim == 1) { v1 = light->direction % R3posy_vector; v1.Normalize(); v2 = light->direction % v1; }
-      else { v1 = light->direction % R3posz_vector; v1.Normalize(); v2 = light->direction % v1; }
-      glBegin(GL_POLYGON);
-      glVertex3d(p[0] +  1.00*r*v1[0] +  0.00*r*v2[0], p[1] +  1.00*r*v1[1] +  0.00*r*v2[1], p[2] +  1.00*r*v1[2] +  0.00*r*v2[2]);
-      glVertex3d(p[0] +  0.71*r*v1[0] +  0.71*r*v2[0], p[1] +  0.71*r*v1[1] +  0.71*r*v2[1], p[2] +  0.71*r*v1[2] +  0.71*r*v2[2]);
-      glVertex3d(p[0] +  0.00*r*v1[0] +  1.00*r*v2[0], p[1] +  0.00*r*v1[1] +  1.00*r*v2[1], p[2] +  0.00*r*v1[2] +  1.00*r*v2[2]);
-      glVertex3d(p[0] + -0.71*r*v1[0] +  0.71*r*v2[0], p[1] + -0.71*r*v1[1] +  0.71*r*v2[1], p[2] + -0.71*r*v1[2] +  0.71*r*v2[2]);
-      glVertex3d(p[0] + -1.00*r*v1[0] +  0.00*r*v2[0], p[1] + -1.00*r*v1[1] +  0.00*r*v2[1], p[2] + -1.00*r*v1[2] +  0.00*r*v2[2]);
-      glVertex3d(p[0] + -0.71*r*v1[0] + -0.71*r*v2[0], p[1] + -0.71*r*v1[1] + -0.71*r*v2[1], p[2] + -0.71*r*v1[2] + -0.71*r*v2[2]);
-      glVertex3d(p[0] +  0.00*r*v1[0] + -1.00*r*v2[0], p[1] +  0.00*r*v1[1] + -1.00*r*v2[1], p[2] +  0.00*r*v1[2] + -1.00*r*v2[2]);
-      glVertex3d(p[0] +  0.71*r*v1[0] + -0.71*r*v2[0], p[1] +  0.71*r*v1[1] + -0.71*r*v2[1], p[2] +  0.71*r*v1[2] + -0.71*r*v2[2]);
-      glEnd();
-    }
-    else {
-      fprintf(stderr, "Unrecognized light type: %d\n", light->type);
-      return;
-    }
-  }
-
-  // Clean up
-  if (lighting) glEnable(GL_LIGHTING);
-}
-
-
-
-void DrawCamera(R3Scene *scene)
-{
-  // Check if should draw lights
-  if (!show_camera) return;
-
-  // Setup
-  GLboolean lighting = glIsEnabled(GL_LIGHTING);
-  glDisable(GL_LIGHTING);
-  glColor3d(1.0, 1.0, 1.0);
-  glLineWidth(5);
-
-  // Draw view frustum
-  R3Camera& c = scene->camera;
-  double radius = scene->bbox.DiagonalRadius();
-  R3Point org = c.eye + c.towards * radius;
-  R3Vector dx = c.right * radius * tan(c.xfov);
-  R3Vector dy = c.up * radius * tan(c.yfov);
-  R3Point ur = org + dx + dy;
-  R3Point lr = org + dx - dy;
-  R3Point ul = org - dx + dy;
-  R3Point ll = org - dx - dy;
-  glBegin(GL_LINE_LOOP);
-  glVertex3d(ur[0], ur[1], ur[2]);
-  glVertex3d(ul[0], ul[1], ul[2]);
-  glVertex3d(ll[0], ll[1], ll[2]);
-  glVertex3d(lr[0], lr[1], lr[2]);
-  glVertex3d(ur[0], ur[1], ur[2]);
-  glVertex3d(c.eye[0], c.eye[1], c.eye[2]);
-  glVertex3d(lr[0], lr[1], lr[2]);
-  glVertex3d(ll[0], ll[1], ll[2]);
-  glVertex3d(c.eye[0], c.eye[1], c.eye[2]);
-  glVertex3d(ul[0], ul[1], ul[2]);
-  glEnd();
-
-  // Clean up
-  glLineWidth(1);
-  if (lighting) glEnable(GL_LIGHTING);
-}
-
 double IntersectGroundPlane(R3Plane p, R3Ray r)
 {
 	double vDotN = r.Vector().Dot(p.Normal());
@@ -657,22 +544,29 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	//ground plane
 	R3Vector ground_normal(0, 1, 0);
-	R3Point ground_pt(0, -100, 0);
+	R3Point ground_pt(0, -200, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
 	//FIXME change this
 
+    /*
 	double d = cam->neardist;
 	//FIXME really weird
-	double tanTheta = tan(cam->xfov / 1.5);
+	double tanTheta = tan(cam->xfov);
 
+    R3Vector side = ground.Normal();
+    side = cam->right - cam->right.Dot(side) * ground.Normal();
+    side.Normalize();
+    
 	R3Point bl = cam->eye + d * cam->towards
 			- d * tanTheta * cam->up
-			- d * tanTheta * cam->right;
-
+			//- d * tanTheta * cam->right;
+    - d * tanTheta * side;
+    
 	R3Point br = cam->eye + d * cam->towards
 			- d * tanTheta * cam->up
-			+ d * tanTheta * cam->right;
+			//+ d * tanTheta * cam->right;
+    + d * tanTheta * side;
 
 	R3Ray rray(br, br - cam->eye);
 	R3Ray lray(bl, bl - cam->eye);
@@ -680,6 +574,7 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 	//intersect with ground plane
 	double t1 = IntersectGroundPlane(ground, rray);
 	double t2 = IntersectGroundPlane(ground, lray);
+    printf("t1 %f t2 %f\n", t1, t2);
 	if (t1 < 0 || t2 < 0) return;
 
 	R3Point r = rray.Point(t1);
@@ -697,6 +592,26 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	theta1 /= (2.0 * 3.14159);
 	theta2 /= (2.0 * 3.14159);
+     
+     */
+    R3Ray r(cam->eye, cam->towards);
+    double t = IntersectGroundPlane(ground, r);
+    R3Point pt = r.Point(t);
+    //pt += cam->eye;
+    
+    R3Vector towardsInGround = ground.Normal();
+    towardsInGround = cam->towards - ground.Normal() * ground.Normal().Dot(cam->towards);
+    towardsInGround.Normalize();
+    towardsInGround = cam->towards;
+    towardsInGround[1] = 0;
+    R3Vector v1 = towardsInGround;
+    v1.Rotate(ground.Normal(), 2 * cam->xfov);
+    R3Vector v2 = towardsInGround;
+    v2.Rotate(ground.Normal(), 2 * -cam->xfov);
+    v1.Normalize();
+    v2.Normalize();
+    
+    double theta1 = 0;
 
 	const double mountainDist = 2000.0;
 
@@ -721,7 +636,7 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	R3Point cur = startPt;
 	R3Vector next = endPt - startPt;
-	R3Vector back(0, 1, 0);
+	R3Vector back = ground.Normal();
 	back.Cross(next);
 	back.Flip();
 
@@ -744,8 +659,8 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 		glNormal3d(-cam->towards[0], -cam->towards[1], -cam->towards[2]);
 		glColor3d(1, 1, 1);
 		glVertex3d(cur[0], -ground.D(), cur[2]);
-		glVertex3d(cur[0], m->heights[(i + index) % m->width][0], cur[2]);
-		glVertex3d(nextPt[0], m->heights[(i + 1 + index) % m->width][0], nextPt[2]);
+		glVertex3d(cur[0], m->heights[(i + index) % m->width][0] - ground.D(), cur[2]);
+		glVertex3d(nextPt[0], m->heights[(i + 1 + index) % m->width][0] - ground.D(), nextPt[2]);
 		glVertex3d(nextPt[0], -ground.D(), nextPt[2]);
 		glEnd();
 
@@ -765,10 +680,10 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 		{
 			R3Point nextDepth =	anchor + back;
 
-			R3Point p1(anchor[0], m->heights[(i + index) % m->width][j], anchor[2]);
-			R3Point p2(nextDepth[0], m->heights[(i + index) % m->width][j+1], nextDepth[2]);
-			R3Point p3(overUp[0], m->heights[(i + 1 + index) % m->width][j+1], overUp[2]);
-			R3Point p4(over[0], m->heights[(i + 1 + index) % m->width][j], over[2]);
+			R3Point p1(anchor[0], m->heights[(i + index) % m->width][j] - ground.D(), anchor[2]);
+			R3Point p2(nextDepth[0], m->heights[(i + index) % m->width][j+1] - ground.D(), nextDepth[2]);
+			R3Point p3(overUp[0], m->heights[(i + 1 + index) % m->width][j+1] - ground.D(), overUp[2]);
+			R3Point p4(over[0], m->heights[(i + 1 + index) % m->width][j] - ground.D(), over[2]);
 
 			glBegin(GL_POLYGON);
 
@@ -804,89 +719,10 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 		}
 		cur = nextPt;
 	}
-
-	/*for (int i = 0; i < m->width - 1; i++)
-	{
-		for (int j = 0; j < m->height - 1; j++)
-		{
-			glBegin(GL_POLYGON);
-
-			R3Point p1(i, m->heights[i][j], j);
-			R3Point p2(i, m->heights[i][j+1], j+1);
-			R3Point p3(i+1, m->heights[i+1][j+1], j+1);
-			R3Vector v = p2 - p1;
-			R3Vector u = p3 - p1;
-			R3Vector norm = v;
-			norm.Cross(u);
-			norm.Normalize();
-
-			glNormal3d(norm[0], norm[1], norm[2]);
-			glVertex3d(i, m->heights[i][j], j);
-			glVertex3d(i, m->heights[i][j+1], j+1);
-			glVertex3d(i+1, m->heights[i+1][j+1], j+1);
-			glEnd();
-
-			glColor3d(1.0, 1.0, 1.0);
-			glLineWidth(5);
-			glBegin(GL_LINES);
-			glVertex3d(i, m->heights[i][j], j);
-			R3Point asdf(i, m->heights[i][j], j);
-			R3Point end = asdf + norm * 2;
-			glVertex3d(end[0], end[1], end[2]);
-			glEnd();*/
-
-	/*
-			glBegin(GL_POLYGON);
-
-			R3Point p4(i+1, m->heights[i+1][j], j);
-			v = p4 - p1;
-			u = p3 - p1;
-			norm = u;
-			norm.Cross(v);
-			norm.Normalize();
-			glNormal3d(norm[0], norm[1], norm[2]);
-			glVertex3d(i, m->heights[i][j], j);
-			glVertex3d(i+1, m->heights[i+1][j+1], j+1);
-			glVertex3d(i+1, m->heights[i+1][j], j);
-			glEnd();
-		}
-	}*/
 }
 
-void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
+void DrawBobsleds(R3Scene *scene, bool transparent)
 {
-  // Get current time (in seconds) since start of execution
-  double current_time = GetTime();
-  static double previous_time = 0;
-
-
-  static double time_lost_taking_videos = 0; // for switching back and forth
-					     // between recording and not
-					     // recording smoothly
-
-  // program just started up?
-  if (previous_time == 0) previous_time = current_time;
-
-  // time passed since starting
-  double delta_time = current_time - previous_time;
-
-
-  if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
-    delta_time = VIDEO_FRAME_DELAY;    
-    // ... but we need to keep track how much time we gained and lost so that we can arbitrarily switch back and forth ...
-    time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
-  } else { // real time simulation
-    delta_time = current_time - previous_time;
-  }
-
-  // Check for collisions
-  CheckCollisions(scene);
-
-  // Update bobsleds
-  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
-    force_left[0] = false;
-    force_right[0] = false;
-
     glEnable(GL_LIGHTING);
     // Draw all bobsleds
     for (int i = 0; i < scene->NBobsleds(); i++) {
@@ -915,10 +751,6 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
         // Restore previous transformation
         glPopMatrix();
     }
-    
-    // Remember previous time
-    if (update_time)
-        previous_time = current_time;
 }
 
 void DrawTracks(R3Scene *scene, bool transparent)
@@ -948,6 +780,7 @@ void DrawObstacles(R3Scene *scene, bool transparent)
   // Draw all obstacles
   for (int i = 0; i < scene->NObstacles(); i++) {
     R3Obstacle *obstacle = scene->Obstacle(i);
+    
     // Push transformation onto stack
     glPushMatrix();
     LoadMatrix(&obstacle->transformation);
@@ -967,7 +800,7 @@ void DrawScene(R3Scene *scene, R3Camera * cam)
   DrawMountain(scene, cam);
   DrawNode(scene, scene->root);
   DrawObstacles(scene, false);
-  DrawBobsleds(scene, true, false);
+  DrawBobsleds(scene, false);
   DrawTracks(scene, false);
 }
 
@@ -990,16 +823,7 @@ void DrawParticles(R3Scene *scene)
   // time passed since starting
   double delta_time = current_time - previous_time;
 
-
-  if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
-    delta_time = VIDEO_FRAME_DELAY;    
-    // ... but we need to keep track how much time we gained and lost so that we can arbitrarily switch back and forth ...
-    time_lost_taking_videos += (current_time - previous_time) - VIDEO_FRAME_DELAY;
-  } else { // real time simulation
-    delta_time = current_time - previous_time;
-  }
-
-  // Update particles
+// Update particles
   UpdateParticles(scene, current_time - time_lost_taking_videos, delta_time, integration_type);
 
   // Generate new particles
@@ -1013,109 +837,6 @@ void DrawParticles(R3Scene *scene)
 }
 
 
-void DrawParticleSources(R3Scene *scene)
-{
-  // Check if should draw particle sources
-  if (!show_particle_sources_and_sinks) return;
-
-  // Setup
-  GLboolean lighting = glIsEnabled(GL_LIGHTING);
-  glEnable(GL_LIGHTING);
-
-  // Define source material
-  static R3Material source_material;
-  if (source_material.id != 33) {
-    source_material.ka.Reset(0.2,0.2,0.2,1);
-    source_material.kd.Reset(0,1,0,1);
-    source_material.ks.Reset(0,1,0,1);
-    source_material.kt.Reset(0,0,0,1);
-    source_material.emission.Reset(0,0,0,1);
-    source_material.shininess = 1;
-    source_material.indexofrefraction = 1;
-    source_material.texture = NULL;
-    source_material.texture_index = -1;
-    source_material.id = 33;
-  }
-
-  // Draw all particle sources
-  glEnable(GL_LIGHTING);
-  LoadMaterial(&source_material, false);
-  for (int i = 0; i < scene->NParticleSources(); i++) {
-    R3ParticleSource *source = scene->ParticleSource(i);
-    DrawShape(source->shape);
-  }
-
-  // Clean up
-  if (!lighting) glDisable(GL_LIGHTING);
-}
-
-
-
-void DrawParticleSinks(R3Scene *scene)
-{
-  // Check if should draw particle sinks
-  if (!show_particle_sources_and_sinks) return;
-
-  // Setup
-  GLboolean lighting = glIsEnabled(GL_LIGHTING);
-  glEnable(GL_LIGHTING);
-
-  // Define sink material
-  static R3Material sink_material;
-  if (sink_material.id != 33) {
-    sink_material.ka.Reset(0.2,0.2,0.2,1);
-    sink_material.kd.Reset(1,0,0,1);
-    sink_material.ks.Reset(1,0,0,1);
-    sink_material.kt.Reset(0,0,0,1);
-    sink_material.emission.Reset(0,0,0,1);
-    sink_material.shininess = 1;
-    sink_material.indexofrefraction = 1;
-    sink_material.texture = NULL;
-    sink_material.texture_index = -1;
-    sink_material.id = 33;
-  }
-
-  // Draw all particle sinks
-  glEnable(GL_LIGHTING);
-  LoadMaterial(&sink_material, false);
-  for (int i = 0; i < scene->NParticleSinks(); i++) {
-    R3ParticleSink *sink = scene->ParticleSink(i);
-    DrawShape(sink->shape);
-  }
-
-  // Clean up
-  if (!lighting) glDisable(GL_LIGHTING);
-}
-
-
-
-void DrawParticleSprings(R3Scene *scene)
-{
-  // Check if should draw particle springs
-  if (!show_particle_springs) return;
-
-  // Setup
-  GLboolean lighting = glIsEnabled(GL_LIGHTING);
-  glDisable(GL_LIGHTING);
-
-  // Draw all particle sources
-  glColor3d(0.5, 0.5, 0.5);
-  glBegin(GL_LINES);
-  for (unsigned int i = 0; i < scene->particle_springs.size(); i++) {
-    R3ParticleSpring *spring = scene->particle_springs[i];
-    const R3Point& p0 = spring->particles[0]->position;
-    const R3Point& p1 = spring->particles[1]->position;
-    glVertex3d(p0[0], p0[1], p0[2]);
-    glVertex3d(p1[0], p1[1], p1[2]);
-  }
-  glEnd();
-
-  // Clean up
-  if (lighting) glEnable(GL_LIGHTING);
-}
-
-
-
 // Overlays the Map on top of existing content
 void DrawMap(double width, double height)
 {
@@ -1123,8 +844,9 @@ void DrawMap(double width, double height)
   // twice as tall as wide for now
   double viewport_width = width * 0.2;
   double viewport_height = width * 0.4;
-  glViewport((width - viewport_width) * 0.5, (height - viewport_height) * 0.5,
-             viewport_width, viewport_height);
+  //glViewport((width - viewport_width) * 0.5, (height - viewport_height) * 0.5,
+  //           viewport_width, viewport_height);
+    glViewport(width - viewport_width, 0, viewport_width, viewport_height);
   double ratio = viewport_width / viewport_height;  // ratio of width to height
   
   // Load map camera
@@ -1142,7 +864,7 @@ void DrawMap(double width, double height)
   glEnable(GL_BLEND);
   
   DrawTracks(scene, true);
-  DrawBobsleds(scene, false, true);
+  DrawBobsleds(scene, true);
   
   glDisable(GL_BLEND);
   glBlendFunc(GL_ONE, GL_ZERO);
@@ -1194,35 +916,6 @@ void GLUTDrawText(const R3Point& p, const char *s)
   glRasterPos3d(p[0], p[1], p[2]);
   while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *(s++));
 }
-  
-void GLUTSaveImage(const char *filename)
-{ 
-  // Create image
-  R2Image image(GLUTwindow_width, GLUTwindow_height);
-
-  // Read screen into buffer
-  GLfloat *pixels = new GLfloat [ 3 * GLUTwindow_width * GLUTwindow_height ];
-  glReadPixels(0, 0, GLUTwindow_width, GLUTwindow_height, GL_RGB, GL_FLOAT, pixels);
-
-  // Load pixels from frame buffer
-  GLfloat *pixelsp = pixels;
-  for (int j = 0; j < GLUTwindow_height; j++) {
-    for (int i = 0; i < GLUTwindow_width; i++) {
-      double r = (double) *(pixelsp++);
-      double g = (double) *(pixelsp++);
-      double b = (double) *(pixelsp++);
-      R2Pixel pixel(r, g, b, 1);
-      image.SetPixel(i, j, pixel);
-    }
-  }
-
-  // Write image to file
-  image.Write(filename);
-
-  // Delete buffer
-  delete [] pixels;
-}
-
 
 
 void GLUTStop(void)
@@ -1270,6 +963,8 @@ void GLUTResize(int w, int h)
 
 void GLUTRedraw(void)
 {
+  static double old_time;
+  
   // Initialize OpenGL drawing modes
   glEnable(GL_LIGHTING);
   glDisable(GL_BLEND);
@@ -1281,109 +976,103 @@ void GLUTRedraw(void)
   glClearColor(background[0], background[1], background[2], background[3]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  int x[2] = {0, GLUTwindow_width/2};
-  
-  for (int i = 0; i < scene->NBobsleds(); i++)
-  {
-    R3Bobsled *bobsled = scene->Bobsled(i);
-	if (bobsled->hasWon) {
-		R3Point point = R3Point(0,0,0);
-		char buffer[40];
-		sprintf(buffer, "PLAYER %d HAS WON!!", i);
-		GLUTDrawText(point, buffer);
-	}
+  R3Bobsled *bobsled = scene->Bobsled(0);
+  if (bobsled->hasWon) {
+    printf("in hasWon\n");
+    R3Point point = R3Point(0,0,0);
+    char buffer[40];
+    sprintf(buffer, "PLAYER HAS WON!!");
+    GLUTDrawText(point, buffer);
+  }
 
-    glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
+  glViewport(0, 0, GLUTwindow_width, GLUTwindow_height);
 
-    // Load camera
-	  LoadCamera(bobsled->camera);
+  // Load camera
+  LoadCamera(bobsled->camera);
 
-	//  LoadCamera(&camera);
-
-    // Load scene lights
-    LoadLights(scene);
-
-    // Draw scene camera
-    DrawCamera(scene);
-
-    // Draw scene lights
-    DrawLights(scene);
-
-    // Draw particles
-    DrawParticles(scene);
-
-    // Draw particle sources 
-    DrawParticleSources(scene);
-
-    // Draw particle sinks 
-    DrawParticleSinks(scene);
+   // LoadCamera(&camera);
     
-    // Draw particle springs
-    DrawParticleSprings(scene);
+  // Load scene lights 
+  LoadLights(scene);
+
+  // Draw particles
+  DrawParticles(scene);
+
+  // Get current time (in seconds) since start of execution
+  double current_time = GetTime();
+  static double previous_time = 0;
+  static double time_lost_taking_videos = 0; // for switching back and forth
+      // between recording and not
+      // recording smoothly
+      
+  // program just started up?
+  if (previous_time == 0) previous_time = current_time;
+      
+  // time passed since starting
+  double delta_time = current_time - previous_time;
+
+  // Create snowballs
+  CreateSnowballs(scene);
     
+  // Update obstacle
+  UpdateObstacles(scene, delta_time);
+    
+  // Check for collisions
+  CheckCollisions(scene);
+
+      
+  // Update bobsleds
+  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left, force_right);
+    if (bobsled->isFalling == true && deadSound == false)
+    {
+        deadSound = true;
+        playDeadSound();
+    }
+  force_left[0] = false;
+  force_right[0] = false;
+  force_left[1] = false;
+  force_right[1] = false;
+      
+  // Remember previous time
+  previous_time = current_time;
+      
+
+  // Draw scene surfaces
+  /*if (show_faces) {
+    glEnable(GL_LIGHTING);
+    DrawScene(scene, bobsled->camera);
+  }*/
+
     // Draw scene surfaces
     if (show_faces) {
       glEnable(GL_LIGHTING);
+      double current_time = GetTime();
+    //  printf("delta not drawing: %f\n", current_time - old_time);
+      current_time = old_time;
       DrawScene(scene, bobsled->camera);
-    }
-    
-    // Draw scene edges
-    if (show_edges) {
-      glDisable(GL_LIGHTING);
-      glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      DrawScene(scene, bobsled->camera);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+      current_time = GetTime();
+   //   printf("delta drawing: %f\n", current_time - old_time);
+      current_time = old_time;
     }
 
-    // Save image
-    if (save_image) {
-      char image_name[256];
-      static int image_number = 1;
-      for (;;) {
-        sprintf(image_name, "image%d.jpg", image_number++);
-        FILE *fp = fopen(image_name, "r");
-        if (!fp) break; 
-        else fclose(fp);
-      }
-      GLUTSaveImage(image_name);
-      printf("Saved %s\n", image_name);
-      save_image = 0;
-    }
     
-    // draw another transparent image in center, on top
+  // Draw scene edges
+  if (show_edges) {
     glDisable(GL_LIGHTING);
-    DrawMap(GLUTwindow_width, GLUTwindow_height);
-
-    // Save video
-    if (save_video) {
-      char frame_name[512];
-      static int next_frame = 0;
-      static int num_frames_recorded = 0;
-      for (;;) {
-        sprintf(frame_name, "%sframe%04d.jpg", video_prefix, next_frame++);
-        FILE *fp = fopen(frame_name, "r");
-        if (!fp) break; 
-        else fclose(fp);
-      }
-      GLUTSaveImage(frame_name);
-      if (next_frame % 100 == 1) {
-        printf("Saved %s\n", frame_name);
-      }
-      if (num_frames_to_record == ++num_frames_recorded) {
-        save_video = 0;
-        printf("Recorded %d frames, stopping as instructed.\n", num_frames_recorded);
-        quit = 1;
-      }
-    }
-
-    // Quit here so that can save image before exit
-    if (quit) {
-      if (output_image_name) GLUTSaveImage(output_image_name);
-      GLUTStop();
-    }
+    glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    DrawScene(scene, bobsled->camera);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
   }
-  
+
+  // draw another transparent image in center, on top
+  glDisable(GL_LIGHTING);
+  DrawMap(GLUTwindow_width, GLUTwindow_height);
+
+  // Quit here so that can save image before exit
+  if (quit) {
+    GLUTStop();
+  }
   // Swap buffers 
   glutSwapBuffers();
 }    
@@ -1404,64 +1093,6 @@ void DisableFog()
 {
   glDisable(GL_FOG);
 }
-
-
-void GLUTMotion(int x, int y)
-{
-  // Invert y coordinate
-  y = GLUTwindow_height - y;
-  
-  // Compute mouse movement
-  int dx = x - GLUTmouse[0];
-  int dy = y - GLUTmouse[1];
-  
-  // Process mouse motion event
-  if ((dx != 0) || (dy != 0)) {
-    R3Point scene_center = scene->bbox.Centroid();
-    if ((GLUTbutton[0] && (GLUTmodifiers & GLUT_ACTIVE_SHIFT)) || GLUTbutton[1]) {
-      // Scale world 
-      double factor = (double) dx / (double) GLUTwindow_width;
-      factor += (double) dy / (double) GLUTwindow_height;
-      factor = exp(2.0 * factor);
-      factor = (factor - 1.0) / factor;
-      R3Vector translation = (scene_center - camera.eye) * factor;
-      camera.eye += translation;
-      glutPostRedisplay();
-    }
-    else if (GLUTbutton[0] && (GLUTmodifiers & GLUT_ACTIVE_CTRL)) {
-      // Translate world
-      double length = R3Distance(scene_center, camera.eye) * tan(camera.yfov);
-      double vx = length * (double) dx / (double) GLUTwindow_width;
-      double vy = length * (double) dy / (double) GLUTwindow_height;
-      R3Vector translation = -((camera.right * vx) + (camera.up * vy));
-      camera.eye += translation;
-      glutPostRedisplay();
-    }
-    else if (GLUTbutton[0]) {
-      // Rotate world
-      double vx = (double) dx / (double) GLUTwindow_width;
-      double vy = (double) dy / (double) GLUTwindow_height;
-      double theta = 4.0 * (fabs(vx) + fabs(vy));
-      R3Vector vector = (camera.right * vx) + (camera.up * vy);
-      R3Vector rotation_axis = camera.towards % vector;
-      rotation_axis.Normalize();
-      camera.eye.Rotate(R3Line(scene_center, rotation_axis), theta);
-      camera.towards.Rotate(rotation_axis, theta);
-      camera.up.Rotate(rotation_axis, theta);
-      camera.right = camera.towards % camera.up;
-      camera.up = camera.right % camera.towards;
-      camera.towards.Normalize();
-      camera.up.Normalize();
-      camera.right.Normalize();
-      glutPostRedisplay();
-    }
-  }
-
-  // Remember mouse position 
-  GLUTmouse[0] = x;
-  GLUTmouse[1] = y;
-}
-
 
 
 void GLUTMouse(int button, int state, int x, int y)
@@ -1548,11 +1179,6 @@ void GLUTKeyboard(unsigned char key, int x, int y)
             show_bboxes = !show_bboxes;
             break;
             
-        case 'C':
-        case 'c':
-            show_camera = !show_camera;
-            break;
-            
         case 'D':
         case 'd':
             force_right[0] = true;
@@ -1567,27 +1193,12 @@ void GLUTKeyboard(unsigned char key, int x, int y)
         case 'f':
             show_faces = !show_faces;
             break;
-            
-        case 'L':
-        case 'l':
-            show_lights = !show_lights;
-            break;
-            
+         
         case 'P':
         case 'p':
             show_particles = !show_particles;
             break;
-            
-        case 'R':
-        case 'r':
-            show_particle_springs = !show_particle_springs;
-            break;
-            
-        case 'S':
-        case 's':
-            show_particle_sources_and_sinks = !show_particle_sources_and_sinks;
-            break;
-            
+         
         case 'Q':
         case 'q':
         case 27: // ESCAPE
@@ -1605,11 +1216,17 @@ void GLUTKeyboard(unsigned char key, int x, int y)
         	break;
 
         case ' ': {
+            R3Camera cam = *scene->bobsleds[0]->camera;
             printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
                    camera.eye[0], camera.eye[1], camera.eye[2], 
                    camera.towards[0], camera.towards[1], camera.towards[2], 
                    camera.up[0], camera.up[1], camera.up[2], 
-                   camera.xfov, camera.neardist, camera.fardist); 
+                   camera.xfov, camera.neardist, camera.fardist);
+            /*printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
+                   cam.eye[0], cam.eye[1], cam.eye[2], 
+                   cam.towards[0], cam.towards[1], cam.towards[2], 
+                   cam.up[0], cam.up[1], cam.up[2], 
+                   cam.xfov, cam.neardist, cam.fardist);*/ 
             break; }
     }
     
@@ -1673,7 +1290,50 @@ void GLUTCreateMenu(void)
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-/*//
+ALCcontext *context;
+ALCdevice *device;
+
+
+void playDeadSound()
+{
+    ALuint alSource;
+
+    alSourcef(alSource, AL_PITCH, 1);
+	alSourcef(alSource, AL_GAIN, 1);
+	alSource3f(alSource, AL_POSITION, 0, 0, 0);
+	alSource3f(alSource, AL_VELOCITY, 0, 0, 0);
+	alSourcei(alSource, AL_LOOPING, AL_FALSE);
+    
+	alGenSources(1, &alSource);
+
+	alGetError();
+	char*     alBuffer;         //data for the buffer
+	ALenum alFormatBuffer;		//buffer format
+	ALsizei   alFreqBuffer;     //frequency
+	long       alBufferLen;     //bit depth
+	unsigned int alSampleSet;
+    
+	alutLoadWAVFile("../die.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer);
+    
+	//create  buffer
+	alGenBuffers(1, &alSampleSet);
+    
+	//put the data into our sampleset buffer
+	alBufferData(alSampleSet, alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+    
+	//assign the buffer to this source
+	alSourcei(alSource, AL_BUFFER, alSampleSet);
+    
+	//release the data
+	alutUnloadWAV(alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+    
+	alSourcei(alSource,AL_LOOPING,AL_FALSE);
+    
+	//play
+	alSourcePlay(alSource);
+}
+
+//
 void ALinit(int *argc, char **argv)
 {
 	//alutInit(argc, argv);
@@ -1716,7 +1376,7 @@ void ALinit(int *argc, char **argv)
 	ALboolean    alLoop;        //loop
 	unsigned int alSampleSet;
 
-	alutLoadWAVFile("../test.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer);
+	alutLoadWAVFile("../music.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer);
 
 	//create  buffer
 	alGenBuffers(1, &alSampleSet);
@@ -1755,84 +1415,9 @@ void ALinit(int *argc, char **argv)
 	alcDestroyContext(context);
 
 	//Close device
-	alcCloseDevice(device);
+	alcCloseDevice(device);*/
 	
-}*/
-
-/*void ALinit(void)
-{
-	ALCcontext *context;
-	ALCdevice *device;
-
-	device = alcOpenDevice(NULL);
-	if (device == NULL)
-	{
-		printf("shit");
-	}
-
-	//Create a context
-	context=alcCreateContext(device,NULL);
-
-	//Set active context
-	alcMakeContextCurrent(context);
-
-	// Clear Error Code
-	alGetError();
-	char*     alBuffer;         //data for the buffer
-	ALenum alFormatBuffer;		//buffer format
-	ALsizei   alFreqBuffer;     //frequency
-	long       alBufferLen;     //bit depth
-	ALboolean    alLoop;        //loop
-	unsigned int alSource;      //source
-	unsigned int alSampleSet;
-
-	printf("loading wav file\n");
-
-	//load the wave file
-	alutLoadWAVFile("../aladdin_cant_believe.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer, &alLoop);
-
-	//create a source
-	alGenSources(1, &alSource);
-
-	//create  buffer
-	alGenBuffers(1, &alSampleSet);
-
-	//put the data into our sampleset buffer
-	alBufferData(alSampleSet, alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
-
-	//assign the buffer to this source
-	alSourcei(alSource, AL_BUFFER, alSampleSet);
-
-	//release the data
-	alutUnloadWAV(alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
-
-	alSourcei(alSource,AL_LOOPING,AL_TRUE);
-
-	//play
-	alSourcePlay(alSource);
-
-	//to stop
-	alSourceStop(alSource);
-	alDeleteSources(1,&alSource);
-
-	//delete our buffer
-	alDeleteBuffers(1,&alSampleSet);
-
-	context=alcGetCurrentContext();
-
-	//Get device for active context
-	device=alcGetContextsDevice(context);
-
-	//Disable context
-	alcMakeContextCurrent(NULL);
-
-	//Release context(s)
-	alcDestroyContext(context);
-
-	//Close device
-	alcCloseDevice(device);
-*/
-//}
+}
 
 
 void GLUTInit(int *argc, char **argv)
@@ -1851,7 +1436,7 @@ void GLUTInit(int *argc, char **argv)
   glutKeyboardFunc(GLUTKeyboard);
   glutSpecialFunc(GLUTSpecial);
   glutMouseFunc(GLUTMouse);
-  glutMotionFunc(GLUTMotion);
+  //glutMotionFunc(GLUTMotion);
 
   // Initialize graphics modes 
   glEnable(GL_NORMALIZE);
@@ -1894,25 +1479,24 @@ ReadScene(const char *filename)
   force_left = new bool[num_bobsleds];
   force_right = new bool[num_bobsleds];
   
+  // set track pointers to obstacles and remove track-associated obstacles
+  // from the list
+  int i = 0;
+  while (i < scene->obstacles.size())
+  {
+    int track_num = scene->obstacles[i]->track_num;
+    if (track_num >= 0 && track_num < scene->track_segments.size())
+    {
+      scene->track_segments[track_num]->obstacle = scene->obstacles[i];
+      scene->obstacles.erase(scene->obstacles.begin() + i);
+    }
+    else
+      i++;
+  }
+  
   // Return scene
   return scene;
 }
-
-/*
-void FindShape(R3Node *node)
-{
-  if (node->shape != NULL && node->shape->type == R3_SPHERE_SHAPE)
-  {
-    test_box = new R3Box(node->shape->sphere->BBox());
-    
-    printf("test_box: %f %f %f %f %f %f\n", test_box->XMin(), test_box->XMax(), test_box->YMin(), test_box->YMax(), test_box->ZMin(), test_box->ZMax());
-  }
-  else
-  {
-    for (unsigned int i = 0; i < node->children.size(); i++)
-      FindShape(node->children[i]);
-  }
-}*/
 
 void SetMapCamera(R3Scene *scene)
 {
@@ -1958,23 +1542,6 @@ ParseArgs(int argc, char **argv)
   // Parse arguments
   argc--; argv++;
   while (argc > 0) {
-/*    if ((*argv)[0] == '-') {
-     if (!strcmp(*argv, "-help")) { print_usage = 1; }
-      else if (!strcmp(*argv, "-exit_immediately")) { quit = 1; }
-      else if (!strcmp(*argv, "-output_image")) { argc--; argv++; output_image_name = *argv; }
-      else if (!strcmp(*argv, "-video_prefix")) { argc--; argv++; video_prefix = *argv; }
-      else if (!strcmp(*argv, "-euler")) integration_type = EULER_INTEGRATION; 
-      else if (!strcmp(*argv, "-midpoint")) integration_type = MIDPOINT_INTEGRATION; 
-      else if (!strcmp(*argv, "-adaptive_step_size")) integration_type = ADAPTIVE_STEP_SIZE_INTEGRATION; 
-      else if (!strcmp(*argv, "-recordandquit")) { 
-        argc--; argv++; num_frames_to_record = atoi(*argv); 
-        //GLUTwindow_width = 256;
-        //GLUTwindow_height = 256;
-        save_video = 1;
-      }
-      else { fprintf(stderr, "Invalid program argument: %s", *argv); exit(1); }
-      argv++; argc--;
-    }*/
     if (!input_scene_name) {
       input_scene_name = *argv;
       argc--; argv++;
@@ -2008,7 +1575,7 @@ main(int argc, char **argv)
   GLUTInit(&argc, argv);
 
   // Initialize AL
- // ALinit(&argc, argv);
+    ALinit(&argc, argv);
 
   // Read scene
   scene = ReadScene(input_scene_name);

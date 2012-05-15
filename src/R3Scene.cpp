@@ -267,7 +267,6 @@ Read(const char *filename, R3Node *node)
       do { cmd[0] = fgetc(fp); } while ((cmd[0] >= 0) && (cmd[0] != '\n'));
     }
     else if (!strcmp(cmd, "bobsled")) {
-        printf("entering bobsled\n");
         R3Bobsled *bobsled = new R3Bobsled();
 
         // Read sink parameters 
@@ -277,7 +276,7 @@ Read(const char *filename, R3Node *node)
         int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id, track_first;
         if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%d%d%d%d%d", &mass, &position[0], &position[1], &position[2],
                     &velocity[0], &velocity[1], &velocity[2], 
-                    &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id, &track_first) != 11)
+                    &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id, &track_first) != 12)
         {
             fprintf(stderr, "Unable to read bobsled at command %d in file %s\n", command_number, filename);
             return 0;
@@ -358,6 +357,8 @@ Read(const char *filename, R3Node *node)
 		bobsled->position.Transform(current_transformation);
 		bobsled->velocity.Transform(current_transformation);
         //bobsled->sled = sled;
+        bobsled->position.Transform(current_transformation);
+        bobsled->velocity.Transform(current_transformation);
         bobsled->skates = skates;
         bobsled->helmets = helmets;
         bobsled->masks = masks;
@@ -365,7 +366,12 @@ Read(const char *filename, R3Node *node)
         bobsled->skates_material = skates_material;
         bobsled->helmets_material = helmets_material;
         bobsled->masks_material = masks_material;
+
+        bobsled->isFalling = false;
+        bobsled->timeFalling = 0;
+
         bobsled->track = track_segments[track_first];
+
             
         bobsled->transformation = current_transformation;
             
@@ -391,7 +397,7 @@ Read(const char *filename, R3Node *node)
         sled_camera->towards = R3Vector(0, 0, -1);
         sled_camera->up = R3Vector(0, 1, 0);
         sled_camera->right = R3Vector(1, 0, 0);
-        sled_camera->eye = sled_center  - 5 * sled_radius * sled_camera->towards + 2.0 * sled_radius * sled_camera->up;
+        sled_camera->eye = sled_center  - 7 * sled_radius * sled_camera->towards + 4.0 * sled_radius * sled_camera->up;
         sled_camera->towards = (sled_center - sled_camera->eye);
         sled_camera->towards.Normalize();
         sled_camera->towards.Print();
@@ -399,22 +405,22 @@ Read(const char *filename, R3Node *node)
         sled_camera->up.Cross(sled_camera->towards);
         sled_camera->xfov = 0.25;
         sled_camera->yfov = 0.25;
-        sled_camera->neardist = 200;
+        sled_camera->neardist = 350;
         sled_camera->fardist = 100000;
         bobsled->camera = sled_camera;
         
         
-        printf("exiting bobsled\n");
         
     }
 	else if (!strcmp(cmd, "obstacle")) {
-        printf("entering obstacle\n");
 	  double impact;
       int m;
-      if (fscanf(fp, "%f%d", &impact, &m) != 2) {
+    int track_num;
+      if (fscanf(fp, "%f%d%d", &impact, &m, &track_num) != 3) {
         fprintf(stderr, "Unable to read obstacle at command %d in file %s\n", command_number, filename);
         return 0;
       }
+    
 
       // Read shape
       R3Shape *obstacle_shape = ReadShape(fp, command_number, filename);
@@ -443,18 +449,21 @@ Read(const char *filename, R3Node *node)
 	  obstacle->material = obstacle_material;
 	  obstacle->transformation = current_transformation;
     obstacles.push_back(obstacle);
-    obstacle->bbox = obstacle_shape->mesh->bbox;
-    obstacle->bbox.Transform(obstacle->transformation);
+    if (obstacle->obstacle_shape->type == R3_MESH_SHAPE)
+      obstacle->type = OBSTACLE_ROCK;
+    else if (obstacle->obstacle_shape->type == R3_SPHERE_SHAPE)
+      obstacle->type = OBSTACLE_SNOWBALL;
+    obstacle->track_num = track_num;
+    obstacle->velocity = R3Vector(0, 0, 0); // all obstacles start stationary
+    
         
-        printf("exiting obstacle\n");
 	}
       
     else if (!strcmp(cmd, "track")) {
-        printf("entering track\n");
       // Read sink parameters 
       double cof;
       int type, isCovered, m;
-      if (fscanf(fp, "%d%f%d%d", &type, &cof, &isCovered, &m) != 4) {
+      if (fscanf(fp, "%d%lf%d%d", &type, &cof, &isCovered, &m) != 4) {
         fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
         return 0;
       }
@@ -838,6 +847,7 @@ Read(const char *filename, R3Node *node)
 		  // set other fields
 		  track->big_radius = 0;
 		  track->next = NULL;
+
 	  }
       // Add track to scene
 	  int NSegments = track_segments.size();
@@ -848,7 +858,6 @@ Read(const char *filename, R3Node *node)
 
       // Update scene bounding box
         bbox.Union(trackshape->mesh->bbox);
-        printf("exiting track\n");
     }
     else if (!strcmp(cmd, "particle")) {
       // Read position and velocity
