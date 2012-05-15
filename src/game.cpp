@@ -66,8 +66,6 @@ ALboolean al_bool;
 // Program arguments
 
 static char *input_scene_name = NULL;
-static char *output_image_name = NULL;
-static const char *video_prefix = "./video-frames/";
 static int integration_type = EULER_INTEGRATION;
 
 
@@ -91,7 +89,6 @@ static int show_particle_springs = 1;
 static int show_particle_sources_and_sinks = 0;
 static int save_image = 0;
 static int save_video = 0;
-static int num_frames_to_record = -1; 
 static int quit = 0;
 // forces left and right for players
 // p1 is A-S-D-W, p2 is left-down-right-up
@@ -520,9 +517,6 @@ void DrawNode(R3Scene *scene, R3Node *node)
 }
 
 
-
-
-
 double IntersectGroundPlane(R3Plane p, R3Ray r)
 {
 	double vDotN = r.Vector().Dot(p.Normal());
@@ -937,6 +931,8 @@ void GLUTResize(int w, int h)
 
 void GLUTRedraw(void)
 {
+  static double old_time;
+  
   // Initialize OpenGL drawing modes
   glEnable(GL_LIGHTING);
   glDisable(GL_BLEND);
@@ -981,8 +977,19 @@ void GLUTRedraw(void)
   // time passed since starting
   double delta_time = current_time - previous_time;
       
+<<<<<<< HEAD
   // Check for collisions
   CheckCollisions(scene);
+=======
+    // Create snowballs
+    CreateSnowballs(scene);
+    
+    // Update obstacle
+    UpdateObstacles(scene, delta_time);
+    
+    // Check for collisions
+    CheckCollisions(scene);
+>>>>>>> b9f5f440b12290b1ea3f25dae274fc3de355c39c
       
   // Update bobsleds
   UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left, force_right);
@@ -994,11 +1001,25 @@ void GLUTRedraw(void)
   // Remember previous time
   previous_time = current_time;
       
+<<<<<<< HEAD
   // Draw scene surfaces
   if (show_faces) {
     glEnable(GL_LIGHTING);
     DrawScene(scene, bobsled->camera);
   }
+=======
+    // Draw scene surfaces
+    if (show_faces) {
+      glEnable(GL_LIGHTING);
+      double current_time = GetTime();
+    //  printf("delta not drawing: %f\n", current_time - old_time);
+      current_time = old_time;
+      DrawScene(scene, bobsled->camera);
+      current_time = GetTime();
+   //   printf("delta drawing: %f\n", current_time - old_time);
+      current_time = old_time;
+    }
+>>>>>>> b9f5f440b12290b1ea3f25dae274fc3de355c39c
     
   // Draw scene edges
   if (show_edges) {

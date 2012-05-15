@@ -267,7 +267,6 @@ Read(const char *filename, R3Node *node)
       do { cmd[0] = fgetc(fp); } while ((cmd[0] >= 0) && (cmd[0] != '\n'));
     }
     else if (!strcmp(cmd, "bobsled")) {
-        printf("entering bobsled\n");
         R3Bobsled *bobsled = new R3Bobsled();
 
         // Read sink parameters 
@@ -409,11 +408,9 @@ Read(const char *filename, R3Node *node)
         bobsled->camera = sled_camera;
         
         
-        printf("exiting bobsled\n");
         
     }
 	else if (!strcmp(cmd, "obstacle")) {
-        printf("entering obstacle\n");
 	  double impact;
       int m;
     int track_num;
@@ -422,7 +419,6 @@ Read(const char *filename, R3Node *node)
         return 0;
       }
     
-    printf("snowball? %d\n", track_num);
 
       // Read shape
       R3Shape *obstacle_shape = ReadShape(fp, command_number, filename);
@@ -459,11 +455,9 @@ Read(const char *filename, R3Node *node)
     obstacle->velocity = R3Vector(0, 0, 0); // all obstacles start stationary
     
         
-        printf("exiting obstacle\n");
 	}
       
     else if (!strcmp(cmd, "track")) {
-        printf("entering track\n");
       // Read sink parameters 
       double cof;
       int type, isCovered, m;
@@ -862,7 +856,6 @@ Read(const char *filename, R3Node *node)
 
       // Update scene bounding box
         bbox.Union(trackshape->mesh->bbox);
-        printf("exiting track\n");
     }
     else if (!strcmp(cmd, "particle")) {
       // Read position and velocity

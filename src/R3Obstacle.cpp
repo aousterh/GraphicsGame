@@ -89,7 +89,6 @@ void CreateSnowballs(R3Scene *scene)
       }
       if (track_obstacle != NULL)
       {
-        printf("obstacle!\n");
         // copy this track's obstacle
         R3Obstacle *obstacle = CopySnowball(track_obstacle);
         scene->obstacles.push_back(obstacle);
@@ -104,7 +103,6 @@ void CreateSnowballs(R3Scene *scene)
 // Update Obstacle Positions
 void UpdateObstacles(R3Scene *scene, double delta_time)
 {
-  printf("num obstacles: %d\n", scene->obstacles.size());
   int i = 0;
   while (i < scene->obstacles.size())
   {

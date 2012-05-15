@@ -406,7 +406,6 @@ R3Vector Force(R3Bobsled *bobsled, double r, double delta_time) {
         R3Vector fg_other(fg);
         fg_other.Flip();
         double normal_fg = fg_other.Dot(normal);
-        //printf("normal_fg = %f\n", normal_fg);
         fn = centripetal_vect;
         if (normal_fg > 0)
             fn += fg_other.Dot(normal) * normal;
@@ -495,7 +494,6 @@ void CheckCollisions(R3Scene *scene)
           intersection.ZMin() < intersection.ZMax())
       {
         double current_z = bobsled->velocity.Z();
-        printf("intersection!\n");
         // slow down
         if (obstacle->hit_count == 0)
           bobsled->velocity.SetZ(current_z * 0.5);
