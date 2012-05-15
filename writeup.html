@@ -74,6 +74,10 @@ We have implemented the following features:
       <TR>
         <TD >
             Our game consists of 3D objects - mainly bobsleds, tracks, and obstacles. We provide perspective views of our scene using the command "gluPerspective". The camera follows the bobsled as it races, so it moves based on the motion of the bobsled. 
+          <BR>
+            The main model for our gameplay is the bobsled model. The bobsled model is a struct defined in our scene that contains four separate mesh files -- a sled body, sled blades, helmets, and helmet masks -- all of which were modeled in Maya and exported as .OBJ files. Our scene reader was modified to support .OBJ files, also reading in texture coordinates. Each of these meshes is associated with its own material ID. Additionally, the bobsled contains a position and a velocity, which are updated according to the real time physical calculations, and 2 separate cameras. These cameras are a third and first person viewpoint, and they are transformed along with the sled. There are a few other fields used for tracking purposes.
+          <BR>
+            The other major models in our scenes are the track pieces. These were also modeled in Maya and exported. Each track piece consists of a polygonal semicircle that is extruded along a central axis. Each track piece stores information necessary for translating the sled. These include vectors pointing along the track, normals for the start and end, positions for the start and end, etc. There are 7 different types of tracks (straight, turns, approaches, and exits in each direction), and each could be tunneled. The bobsled can rotate all the way around a tunnel without falling off. The track was built by connecting a series of these track meshes and rotating them through space.
         </TD>
       </TR>
     </TBODY>
@@ -120,7 +124,7 @@ We have implemented the following features:
       <TR>
         <TD >
           
-          Our game involves complex simulations of the physics that govern the motion of the bobsleds. It also includes various types of obstacles that aim at the bobsleds (for example, snowballs are dropped based on the location of the bobsled).
+          Our game involves complex simulations of the physics that govern the motion of the bobsleds. It also includes various types of obstacles that aim at the bobsleds (for example, snowballs are dropped based on the location of the bobsled). These are discussed in greater detail below.
         </TD>
       </TR>
     </TBODY>
@@ -153,7 +157,6 @@ We have implemented the following features:
         <TD  colspan=2>
           ALICE TALK ABOUT BOBSLED/TRACK PHYSICS
           
-          Also, snow is constantly falling from the sky throughout our game.
         </TD>
       </TR> 
       <TR>
@@ -164,7 +167,7 @@ We have implemented the following features:
      </TR>
       <TR>
         <TD  colspan=2>
-          Also, snow falls from the sky throughout our game. This is implemented using a particle system.
+          Also, snow falls from the sky throughout our game. This is implemented using Ricky's implementation of particle systems.
         </TD>
       </TR> 
     </TBODY>
@@ -319,6 +322,28 @@ We have implemented the following features:
   </TABLE>
 
   
+  
+  
+  <H3><A >Fog</A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="fog.png"><IMG  width=512 src="fog.png"></A><BR>       
+          <A >Lower Level of Fog</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="fog_2.png"><IMG  width=512 src="fog_2.png"></A><BR>       
+          <A >Higher Level of Fog</A>
+        </TD>
+      </TR>
+      <TR>
+        <TD  colspan=2>
+          Our game includes fog, which is implemented using GL_FOG (as described in our textbook).  Each track segment is associated with a level of fog (where 0 indicates no fog). In our game, the fog fades in and then out again over several track segments.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
   
   <H3><A >Sound</A></H3>
   <TABLE>
