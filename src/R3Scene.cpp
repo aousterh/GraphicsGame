@@ -411,10 +411,13 @@ Read(const char *filename, R3Node *node)
         printf("entering obstacle\n");
 	  double impact;
       int m;
-      if (fscanf(fp, "%f%d", &impact, &m) != 2) {
+    int track_num;
+      if (fscanf(fp, "%f%d%d", &impact, &m, &track_num) != 3) {
         fprintf(stderr, "Unable to read obstacle at command %d in file %s\n", command_number, filename);
         return 0;
       }
+    
+    printf("snowball? %d\n", track_num);
 
       // Read shape
       R3Shape *obstacle_shape = ReadShape(fp, command_number, filename);
@@ -443,8 +446,13 @@ Read(const char *filename, R3Node *node)
 	  obstacle->material = obstacle_material;
 	  obstacle->transformation = current_transformation;
     obstacles.push_back(obstacle);
-    obstacle->bbox = obstacle_shape->mesh->bbox;
-    obstacle->bbox.Transform(obstacle->transformation);
+    if (obstacle->obstacle_shape->type == R3_MESH_SHAPE)
+      obstacle->type = OBSTACLE_ROCK;
+    else if (obstacle->obstacle_shape->type == R3_SPHERE_SHAPE)
+      obstacle->type = OBSTACLE_SNOWBALL;
+    obstacle->track_num = track_num;
+    obstacle->velocity = R3Vector(0, 0, 0); // all obstacles start stationary
+    
         
         printf("exiting obstacle\n");
 	}

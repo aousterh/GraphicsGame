@@ -229,10 +229,14 @@ begin
 
 
 		obstacle
-			0.7 7
+			0.7 7 -1
 			mesh OBJ_models/rocks.obj
 	end
 end
+
+obstacle 
+	 1 2 4
+	 sphere 0 0 0 5
 
 
 bobsled

@@ -14,6 +14,7 @@
 #include "cos426_opengl.h"
 #include <cmath>
 #include "Mountain.h"
+#include "R3Obstacle.h"
 
 /*#include <OpenAL/al.h>
 #include <OpenAL/alc.h>
@@ -858,20 +859,24 @@ void DrawMountain(R3Scene * scene)
 
 void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
 {
+  
   // Get current time (in seconds) since start of execution
   double current_time = GetTime();
   static double previous_time = 0;
-
-
   static double time_lost_taking_videos = 0; // for switching back and forth
-					     // between recording and not
-					     // recording smoothly
+  // between recording and not
+  // recording smoothly
+
+  
+  double delta_time;
+  if (update_time)
+  {
 
   // program just started up?
   if (previous_time == 0) previous_time = current_time;
 
   // time passed since starting
-  double delta_time = current_time - previous_time;
+  delta_time = current_time - previous_time;
 
 
   if (save_video) { // in video mode, the time that passes only depends on the frame rate ...
@@ -882,13 +887,19 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
     delta_time = current_time - previous_time;
   }
 
-  // Check for collisions
-  CheckCollisions(scene);
+    // Create snowballs
+    CreateSnowballs(scene);
+  
+    // Check for collisions
+    CheckCollisions(scene);
 
-  // Update bobsleds
-  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
+    // Update bobsleds
+    UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left[0], force_right[0]);
     force_left[0] = false;
     force_right[0] = false;
+  
+    UpdateObstacles(scene, delta_time);
+  }
 
     glEnable(GL_LIGHTING);
     // Draw all bobsleds
@@ -951,6 +962,7 @@ void DrawObstacles(R3Scene *scene, bool transparent)
   // Draw all obstacles
   for (int i = 0; i < scene->NObstacles(); i++) {
     R3Obstacle *obstacle = scene->Obstacle(i);
+    
     // Push transformation onto stack
     glPushMatrix();
     LoadMatrix(&obstacle->transformation);
@@ -1890,25 +1902,24 @@ ReadScene(const char *filename)
   force_left = new bool[num_bobsleds];
   force_right = new bool[num_bobsleds];
   
+  // set track pointers to obstacles and remove track-associated obstacles
+  // from the list
+  int i = 0;
+  while (i < scene->obstacles.size())
+  {
+    int track_num = scene->obstacles[i]->track_num;
+    if (track_num >= 0 && track_num < scene->track_segments.size())
+    {
+      scene->track_segments[track_num]->obstacle = scene->obstacles[i];
+      scene->obstacles.erase(scene->obstacles.begin() + i);
+    }
+    else
+      i++;
+  }
+  
   // Return scene
   return scene;
 }
-
-/*
-void FindShape(R3Node *node)
-{
-  if (node->shape != NULL && node->shape->type == R3_SPHERE_SHAPE)
-  {
-    test_box = new R3Box(node->shape->sphere->BBox());
-    
-    printf("test_box: %f %f %f %f %f %f\n", test_box->XMin(), test_box->XMax(), test_box->YMin(), test_box->YMax(), test_box->ZMin(), test_box->ZMax());
-  }
-  else
-  {
-    for (unsigned int i = 0; i < node->children.size(); i++)
-      FindShape(node->children[i]);
-  }
-}*/
 
 void SetMapCamera(R3Scene *scene)
 {
