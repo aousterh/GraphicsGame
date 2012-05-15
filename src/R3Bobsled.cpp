@@ -104,7 +104,10 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 bobsled->skates->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
                 bobsled->helmets->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
                 bobsled->masks->mesh->Translate(v_along.X(), v_along.Y(), v_along.Z());
-                bobsled->camera->eye += v_along;
+                bobsled->camera1->eye += v_along;
+                bobsled->camera3->eye += v_along;
+                
+                scene->ground->mesh->Translate(v_along[0], 0, v_along[2]);
             
             }
         
@@ -138,11 +141,14 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
                 bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
 
-
-                bobsled->camera->eye.Rotate(rotate_line, delta_theta);
-                bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
-                bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
-                bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera1->eye.Rotate(rotate_line, delta_theta);
+                bobsled->camera1->right.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera1->up.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera1->towards.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera3->eye.Rotate(rotate_line, delta_theta);
+                bobsled->camera3->right.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera3->up.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera3->towards.Rotate(rotate_line.Vector(), delta_theta);
             }
 
 		
@@ -210,10 +216,16 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
                 bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
                 bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
-                bobsled->camera->eye.Rotate(rotate_line, delta_theta);
-                bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
-                bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
-                bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
+                
+                bobsled->camera1->eye.Rotate(rotate_line, delta_theta);
+                bobsled->camera1->right.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera1->up.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera1->towards.Rotate(rotate_line.Vector(), delta_theta);
+                delta_theta *= 0.3;
+                bobsled->camera3->eye.Rotate(rotate_line, delta_theta);
+                bobsled->camera3->right.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera3->up.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera3->towards.Rotate(rotate_line.Vector(), delta_theta);
                 }
         
             // Side rotation on a curved track
@@ -250,10 +262,16 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
                 bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
                 bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
-                bobsled->camera->eye.Rotate(rotate_line, delta_theta);
-                bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
-                bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
-                bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
+                
+                bobsled->camera1->eye.Rotate(rotate_line, delta_theta);
+                bobsled->camera1->right.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera1->up.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera1->towards.Rotate(rotate_line.Vector(), delta_theta);
+                delta_theta *= 0.3;
+                bobsled->camera3->eye.Rotate(rotate_line, delta_theta);
+                bobsled->camera3->right.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera3->up.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera3->towards.Rotate(rotate_line.Vector(), delta_theta);
             
             
             }
@@ -342,7 +360,8 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             bobsled->skates->mesh->Translate(v.X(), v.Y(), v.Z());
             bobsled->helmets->mesh->Translate(v.X(), v.Y(), v.Z());
             bobsled->masks->mesh->Translate(v.X(), v.Y(), v.Z());
-            bobsled->camera->eye += v;
+            //bobsled->camera1->eye += v;
+            //bobsled->camera3->eye += v;
             bobsled->timeFalling += delta_time;
             R3Vector down(0, -1, 0);
             /*if (v.Dot(down) < 0) {
