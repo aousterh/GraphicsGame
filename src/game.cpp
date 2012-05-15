@@ -1609,22 +1609,28 @@ ParseArgs(int argc, char **argv)
 int 
 main(int argc, char **argv)
 {
+    printf("entering main\n");
   // Parse program arguments
   if (!ParseArgs(argc, argv)) exit(1);
 
+    printf("about to glut init\n");
   // Initialize GLUT
   GLUTInit(&argc, argv);
 
+    printf("about to al init\n");
   // Initialize AL
     ALinit(&argc, argv);
 
+    printf("about to read\n");
   // Read scene
   scene = ReadScene(input_scene_name);
   if (!scene) exit(-1);
   
+    printf("camera\n");
   // Make map camera
   SetMapCamera(scene);
   
+    printf("main loop\n");
   // Run GLUT interface
   GLUTMainLoop();
 
