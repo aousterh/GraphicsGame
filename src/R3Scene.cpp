@@ -355,6 +355,8 @@ Read(const char *filename, R3Node *node)
         bobsled->mass = mass;
         bobsled->position = position;
         bobsled->velocity = velocity;
+		bobsled->position.Transform(current_transformation);
+		bobsled->velocity.Transform(current_transformation);
         //bobsled->sled = sled;
         bobsled->skates = skates;
         bobsled->helmets = helmets;
