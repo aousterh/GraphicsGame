@@ -185,12 +185,11 @@ begin
 		
 	end	
 	
-	begin
 	
 	
 	begin
 	5
-	1 0 0 -50
+	1 0 0 -70
 	0 1 0 15
 	0 0 1 -225
 	0 0 0 1
@@ -208,12 +207,56 @@ begin
 	
 		end
 	end
+
+	begin
+	5
+	1 0 0 -120
+	0 1 0 15
+	0 0 1 -225
+	0 0 0 1
+	
+		begin
+		5
+		0   0   1   0
+		0   1   0   0
+		-1   0   0   0
+		0   0   0   1
+			
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+		
+		end
+	end
+
 	
 	begin
 	5
-	1 0 0 -100
+	1 0 0 -170
 	0 1 0 15
 	0 0 1 -225
+	0 0 0 1
+	
+		begin
+		5
+		0   0   1   0
+		0   1   0   0
+		-1   0   0   0
+		0   0   0   1
+			
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+		
+		end
+	end
+
+	begin
+	5
+	1 0 0 -220
+	0 1 0 15
+	0 0 1 -225
+	0 0 0 1
 	
 		begin
 		5
@@ -232,9 +275,9 @@ begin
 	
 	begin
 	5
-	1 0 0 -150
+	1 0 0 -245
 	0 1 0 15
-	0 0 1 -245
+	0 0 1 -205
 	0 0 0 1
 
 		begin
@@ -253,103 +296,198 @@ begin
 	
 	begin
 	5
-	1 0 0 -150
+	1 0 0 -315
 	0 1 0 15
-	0 0 1 -295
+	0 0 1 -275
 	0 0 0 1
 	
 		track
-			5 0.01 0 5
+			5 0.6 0 5
 			mesh OBJ_models/track_turn_right.obj
+
+	end
+
+	begin
+	5
+	1 0 0 -225
+	0 1 0 15
+	0 0 1 -325
+	0 0 0 1
+	
+		begin
+		5
+		0   0   -1   0
+		0   1   0   0
+		1   0   0   0
+		0   0   0   1
 		
+		track
+			3 0.01 0 5
+			mesh OBJ_models/track_exit_right.obj
 		end
 	end
 
 	begin
 	5
-	1 0 0 -100
+	1 0 0 -175
 	0 1 0 15
-	0 0 1 -100
+	0 0 1 -325
 	0 0 0 1
 	
 		begin
 		5
-		-1   0   0   0
-		0   1   0   0
 		0   0   -1   0
+		0   1   0   0
+		1   0   0   0
 		0   0   0   1
 		
 		track
 			0 0.01 0 5
 			mesh OBJ_models/track_straight.obj
-		
 		end
 	end
-	
+
 	begin
 	5
-	1 0 0 -100
+	1 0 0 -125
 	0 1 0 15
-	0 0 1 -50
+	0 0 1 -325
 	0 0 0 1
 	
 		begin
 		5
-		-1   0   0   0
-		0   1   0   0
 		0   0   -1   0
+		0   1   0   0
+		1   0   0   0
 		0   0   0   1
 		
 		track
 			0 0.01 1 5
 			mesh OBJ_models/track_straight_tunnel.obj
-		
 		end
 	end
-	
+
 	begin
 	5
-	1 0 0 -100
+	1 0 0 -75
 	0 1 0 15
-	0 0 1 0
+	0 0 1 -325
 	0 0 0 1
 	
 		begin
 		5
-		-1   0   0   0
-		0   1   0   0
 		0   0   -1   0
+		0   1   0   0
+		1   0   0   0
 		0   0   0   1
 		
 		track
 			0 0.01 1 5
 			mesh OBJ_models/track_straight_tunnel.obj
-		
 		end
 	end
-		
+
 	begin
 	5
-	1 0 0 -100
+	1 0 0 -25
 	0 1 0 15
-	0 0 1 50
+	0 0 1 -325
 	0 0 0 1
 	
 		begin
 		5
-		-1   0   0   0
-		0   1   0   0
 		0   0   -1   0
+		0   1   0   0
+		1   0   0   0
 		0   0   0   1
 		
 		track
 			0 0.01 0 5
 			mesh OBJ_models/track_straight.obj
-		
 		end
 	end
+
+	begin
+	5
+	1 0 0 25
+	0 1 0 15
+	0 0 1 -325
+	0 0 0 1
 	
+		begin
+		5
+		0   0   -1   0
+		0   1   0   0
+		1   0   0   0
+		0   0   0   1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+		end
+	end
+
+	begin
+	5
+	1 0 0 75
+	0 1 0 15
+	0 0 1 -325
+	0 0 0 1
 	
+		begin
+		5
+		0   0   -1   0
+		0   1   0   0
+		1   0   0   0
+		0   0   0   1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+		end
+	end
+
+	begin
+	5
+	1 0 0 125
+	0 1 0 15
+	0 0 1 -325
+	0 0 0 1
+	
+		begin
+		5
+		0   0   -1   0
+		0   1   0   0
+		1   0   0   0
+		0   0   0   1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+		end
+	end
+
+	begin
+	5
+	1 0 0 175
+	0 1 0 15
+	0 0 1 -325
+	0 0 0 1
+	
+		begin
+		5
+		0   0   -1   0
+		0   1   0   0
+		1   0   0   0
+		0   0   0   1
+		
+		track
+			7 0.01 0 5
+			mesh OBJ_models/track_finish.obj
+		mesh
+			6 0 OBJ_models/finish_line.obj
+		end
+	end
 end
 
 obstacle
@@ -364,5 +502,6 @@ bobsled
 	mesh OBJ_models/twohelmets.obj
 	mesh OBJ_models/twomasks.obj
 
+ground
 mesh
-	2 0 OBJ_models/groundplane.obj
+	OBJ_models/groundplane.obj
