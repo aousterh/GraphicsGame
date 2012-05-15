@@ -1282,6 +1282,8 @@ void GLUTResize(int w, int h)
 
 void GLUTRedraw(void)
 {
+  static double old_time;
+  
   // Initialize OpenGL drawing modes
   glEnable(GL_LIGHTING);
   glDisable(GL_BLEND);
@@ -1336,7 +1338,13 @@ void GLUTRedraw(void)
     // Draw scene surfaces
     if (show_faces) {
       glEnable(GL_LIGHTING);
+      double current_time = GetTime();
+    //  printf("delta not drawing: %f\n", current_time - old_time);
+      current_time = old_time;
       DrawScene(scene, bobsled->camera);
+      current_time = GetTime();
+   //   printf("delta drawing: %f\n", current_time - old_time);
+      current_time = old_time;
     }
     
     // Draw scene edges
