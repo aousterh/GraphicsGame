@@ -274,17 +274,14 @@ Read(const char *filename, R3Node *node)
         double mass;
         R3Point position;
         R3Vector velocity = R3null_vector; 
-        int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id;
-        if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%d%d%d%d", &mass, &position[0], &position[1], &position[2],
+        int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id, track_first;
+        if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%d%d%d%d%d", &mass, &position[0], &position[1], &position[2],
                     &velocity[0], &velocity[1], &velocity[2], 
-                    &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id) != 11)
+                    &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id, &track_first) != 11)
         {
             fprintf(stderr, "Unable to read bobsled at command %d in file %s\n", command_number, filename);
             return 0;
         }
-            
-        printf("%ld, %ld, %ld, %ld \n", sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id);
-            
         for (int i = 0; i < NUM_SLEDS; i++)
         {
             R3Shape *sled = ReadShape(fp, command_number, filename);
@@ -354,6 +351,7 @@ Read(const char *filename, R3Node *node)
         }
             
         // Create bobsled
+		bobsled->hasWon = false;
         bobsled->mass = mass;
         bobsled->position = position;
         bobsled->velocity = velocity;
@@ -365,7 +363,7 @@ Read(const char *filename, R3Node *node)
         bobsled->skates_material = skates_material;
         bobsled->helmets_material = helmets_material;
         bobsled->masks_material = masks_material;
-        bobsled->track = track_segments[0];
+        bobsled->track = track_segments[track_first];
             
         bobsled->transformation = current_transformation;
             

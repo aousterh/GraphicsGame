@@ -64,7 +64,7 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 				   bool force_left, bool force_right)
 {
 	// update each sled in the scene
-	for (int i = 0; i < 1/*scene->NBobsleds()*/; i++) {
+	for (int i = 0; i < scene->NBobsleds(); i++) {
 		// get the current sled and its track segment
 		R3Bobsled *bobsled = scene->Bobsled(i);
 		R3Track *track = bobsled->track;
@@ -274,6 +274,8 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
         double dist_plane = to_plane.Dot(track->endPlane.Normal());
         if (dist_plane <= 0) {
             bobsled->track = track->next;
+			if (track->type == TRACK_FINISH)
+				bobsled->hasWon = true;
             printf("went to new track %d\n", bobsled->track->type);
             printf("track along = ");
             bobsled->track->along.Print();

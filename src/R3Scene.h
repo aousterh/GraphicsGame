@@ -36,7 +36,7 @@ typedef enum {
 	TRACK_EXIT_LEFT,
 	TRACK_TURN_RIGHT,
 	TRACK_TURN_LEFT,
-	TRACK_FINISH
+	TRACK_FINISH,
 	NUM_TRACK_TYPES
 } R3TrackType;
 
@@ -147,8 +147,9 @@ struct R3Bobsled {
     R3Matrix transformation;
 	double big_percent;
 	double little_theta;
-  double x_vibration;  // additional horizontal motion from collision
+	double x_vibration;  // additional horizontal motion from collision
 	R3Box bbox;
+	bool hasWon;
 };
 
 

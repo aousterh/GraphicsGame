@@ -14,6 +14,7 @@
 #include "cos426_opengl.h"
 #include <cmath>
 #include "Mountain.h"
+//#include "glfont.h"
 
 /*#include <OpenAL/al.h>
 #include <OpenAL/alc.h>
@@ -888,7 +889,7 @@ void DrawBobsleds(R3Scene *scene, bool update_time, bool transparent)
 
     glEnable(GL_LIGHTING);
     // Draw all bobsleds
-    for (int i = 0; i < 1 /*scene->NBobsleds()*/; i++) {
+    for (int i = 0; i < scene->NBobsleds(); i++) {
         R3Bobsled *bobsled = scene->Bobsled(i);
         
         // Push transformation onto stack
@@ -1191,11 +1192,9 @@ void GLUTDrawText(const R3Point& p, const char *s)
 {
   // Draw text string s and position p
   glRasterPos3d(p[0], p[1], p[2]);
-  while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, *(s++));
+  while (*s) glutBitmapCharacter(GLUT_BITMAP_HELVETICA_18, *(s++));
 }
   
-
-
 void GLUTSaveImage(const char *filename)
 { 
   // Create image
@@ -1287,6 +1286,13 @@ void GLUTRedraw(void)
   for (int i = 0; i < scene->NBobsleds(); i++)
   {
     R3Bobsled *bobsled = scene->Bobsled(i);
+	if (bobsled->hasWon) {
+		R3Point point = R3Point(0,0,0);
+		char buffer[40];
+		sprintf(buffer, "PLAYER %d HAS WON!!", i);
+		GLUTDrawText(point, buffer);
+	}
+
     glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
 
     // Load camera
