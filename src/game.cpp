@@ -546,7 +546,7 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	//ground plane
 	R3Vector ground_normal(0, 1, 0);
-	R3Point ground_pt(0, -100, 0);
+	R3Point ground_pt(0, -60, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
 	//FIXME change this
