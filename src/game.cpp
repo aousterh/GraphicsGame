@@ -17,9 +17,9 @@
 #include "R3Obstacle.h"
 //#include "glfont.h"
 
-/*#include <OpenAL/al.h>
+#include <OpenAL/al.h>
 #include <OpenAL/alc.h>
-#include "../AL/alut.h"*/
+#include "../AL/alut.h"
 
 //#include <al.h>
 //#include <alc.h>
@@ -100,7 +100,7 @@ static bool force_right;
 static int levDetail = 0;
 static bool deadSound = false;
 
-//void playDeadSound();
+void playDeadSound();
 
 
 
@@ -1072,7 +1072,7 @@ void GLUTRedraw(void)
     if ((bobsled->isFalling == true && bobsled->hasWon == false) && deadSound == false)
     {
         deadSound = true;
-      //  playDeadSound();
+        playDeadSound();
     }
   force_left = false;
   force_right = false;
@@ -1329,7 +1329,7 @@ void GLUTCreateMenu(void)
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-/*
+
 ALCcontext *context;
 ALCdevice *device;
 
@@ -1455,9 +1455,9 @@ void ALinit(int *argc, char **argv)
 	alcDestroyContext(context);
 
 	//Close device
-	alcCloseDevice(device);
+	alcCloseDevice(device);*/
 	
-}*/
+}
 
 
 void GLUTInit(int *argc, char **argv)
@@ -1615,7 +1615,7 @@ main(int argc, char **argv)
 
     printf("about to al init\n");
   // Initialize AL
-  //  ALinit(&argc, argv);
+    ALinit(&argc, argv);
 
     printf("about to read\n");
   // Read scene
