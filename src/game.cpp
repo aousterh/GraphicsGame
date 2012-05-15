@@ -1041,7 +1041,7 @@ void GLUTRedraw(void)
       
   // Update bobsleds
   UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left, force_right);
-    if (bobsled->isFalling == true && deadSound == false)
+    if ((bobsled->isFalling == true && bobsled->hasWon == false) && deadSound == false)
     {
         deadSound = true;
         playDeadSound();
