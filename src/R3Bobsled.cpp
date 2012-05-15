@@ -70,13 +70,13 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
 		// get the current sled and its track segment
 		R3Bobsled *bobsled = scene->Bobsled(i);
 		R3Track *track = bobsled->track;
-        R3Vector velocity(R3null_vector);
+        //R3Vector velocity(R3null_vector);
         
         if (!bobsled->isFalling) {
             double big_r;
             R3Vector new_along(track->along);
             R3Vector new_normal(track->startNormal);
-        
+            R3Vector velocity(R3null_vector);
 
             // find the closest point on the along vector of the track
             R3Point position(bobsled->position);
@@ -87,13 +87,13 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
             double r = R3Distance(little_center, bobsled->position);
             R3Vector force(R3null_vector);
             force = Force(bobsled, r, delta_time);
-            R3Vector velocity(R3null_vector);
+            //R3Vector velocity(R3null_vector);
             velocity = bobsled->velocity + delta_time * force/bobsled->mass;
             //velocity.Print();
             //printf("\n");
             // Forward translation on a straight track
             R3Vector v_along(R3null_vector);
-            if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
+            if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT || track->type == TRACK_FINISH) {
                 v_along = bobsled->velocity.Dot(track->along) * track->along * delta_time;
                 bobsled->position.Translate(v_along);
                 for (int j = 0; j < NUM_SLEDS; j++)
@@ -308,13 +308,60 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 }
             
             }
+            bobsled->velocity = velocity;
         }
+        
+        // if bobsled is off the track
         else {
-            fprintf(stderr, "over edge\n");
-            exit(-1);
-           //if (bobsled- 
+            if (bobsled->timeFalling > 5) {
+                fprintf(stderr, "over edge\n");
+                exit(-1);
+            }
+            R3Point position(bobsled->position);
+            R3Vector ve_along(bobsled->position - track->start);
+            ve_along.Project(track->along);
+            R3Point little_center(track->start);
+            little_center += ve_along;
+            double r = R3Distance(little_center, bobsled->position);
+            R3Vector force(R3null_vector);
+            force = Force(bobsled, r, delta_time);
+            R3Vector velocity(R3null_vector);
+            velocity = bobsled->velocity + delta_time * force/bobsled->mass;
+            // translate by velocity
+            R3Vector v(bobsled->velocity);
+            v *= delta_time;
+            bobsled->position.Translate(v);
+            for (int j = 0; j < NUM_SLEDS; j++)
+            {
+                bobsled->sleds[j]->mesh->Translate(v.X(), v.Y(), v.Z());
+            }
+            bobsled->skates->mesh->Translate(v.X(), v.Y(), v.Z());
+            bobsled->helmets->mesh->Translate(v.X(), v.Y(), v.Z());
+            bobsled->masks->mesh->Translate(v.X(), v.Y(), v.Z());
+            bobsled->camera->eye += v;
+            bobsled->timeFalling += delta_time;
+            R3Vector down(0, -1, 0);
+            //if (v.Dot(down) < 0) {
+                // rotate around along if going up
+                R3Line rotate_line(bobsled->position, track->along);
+                double delta_theta = .16;
+                bobsled->position.Rotate(rotate_line, delta_theta);
+                for (int j = 0; j < NUM_SLEDS; j++)
+                {
+                    bobsled->sleds[j]->mesh->Rotate(delta_theta, rotate_line);
+                }
+                bobsled->skates->mesh->Rotate(delta_theta, rotate_line);
+                bobsled->helmets->mesh->Rotate(delta_theta, rotate_line);
+                bobsled->masks->mesh->Rotate(delta_theta, rotate_line);
+                bobsled->camera->eye.Rotate(rotate_line, delta_theta);
+                bobsled->camera->right.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera->up.Rotate(rotate_line.Vector(), delta_theta);
+                bobsled->camera->towards.Rotate(rotate_line.Vector(), delta_theta);
+            //}
+            
+            bobsled->velocity = velocity;
         }
-		bobsled->velocity = velocity;
+		
 	}
 }
 
@@ -330,9 +377,13 @@ R3Vector Force(R3Bobsled *bobsled, double r, double delta_time) {
     R3Vector fg(R3null_vector);
     R3Vector gravity(0, -9.8, 0);
     fg = bobsled->mass * gravity;
+    if (bobsled->isFalling) {
+        fg *= 3;
+        return fg;
+    }
     // normal force
     R3Vector fn(R3null_vector);
-    if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT) {
+    if (track->type == TRACK_STRAIGHT || track->type == TRACK_APPROACH_LEFT || track->type == TRACK_APPROACH_RIGHT || track->type == TRACK_EXIT_RIGHT || track->type == TRACK_EXIT_LEFT || track->type == TRACK_FINISH) {
         R3Vector temp(bobsled->position - track->start);
         temp.Project(track->along);
         R3Point center_point(track->start);
@@ -395,8 +446,15 @@ R3Vector Force(R3Bobsled *bobsled, double r, double delta_time) {
     }
     // force of friction
     R3Vector fk(R3null_vector);
-    fk = track->cof * fn.Length() * -1 * bobsled->velocity;
+    printf("cof = %f, fk = ", track->cof);
     
+    fk = track->cof * fn.Length() * -1 * (bobsled->velocity/bobsled->velocity.Length());
+    if (fk.Length() > (bobsled->velocity.Length() * bobsled->mass)) {
+        fk.Normalize(); 
+        fk *= bobsled->velocity.Length() * bobsled->mass;
+    }
+    fk.Print();
+    printf("\n");
     // total force
     force = (fg + fn + fk);
     //force = fk + fn;

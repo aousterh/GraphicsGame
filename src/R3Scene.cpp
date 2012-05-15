@@ -456,7 +456,7 @@ Read(const char *filename, R3Node *node)
       // Read sink parameters 
       double cof;
       int type, isCovered, m;
-      if (fscanf(fp, "%d%f%d%d", &type, &cof, &isCovered, &m) != 4) {
+      if (fscanf(fp, "%d%lf%d%d", &type, &cof, &isCovered, &m) != 4) {
         fprintf(stderr, "Unable to read track at command %d in file %s\n", command_number, filename);
         return 0;
       }
@@ -840,7 +840,7 @@ Read(const char *filename, R3Node *node)
 		  // set other fields
 		  track->big_radius = 0;
 		  track->next = NULL;
-		  track->cof = 1000000;
+		  track->cof = 100;
 	  }
       // Add track to scene
 	  int NSegments = track_segments.size();
