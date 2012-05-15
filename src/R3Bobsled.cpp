@@ -64,7 +64,7 @@ double Rand(void)
 // Updating Bobsled
 ////////////////////////////////////////////////////////////
 void UpdateBobsled(R3Scene *scene, double current_time, double delta_time, 
-				   bool *force_left, bool *force_right)
+				   bool force_left, bool force_right)
 {
 	// update each sled in the scene
 	for (int i = 0; i < 1/*scene->NBobsleds()*/; i++) {
@@ -190,13 +190,13 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 if (sign > 0)
                     delta_dist *= -1;
                 double delta_theta = delta_dist / r;
-                if (force_right[i]) {
+                if (force_right) {
                     double v_change = (ANGLE_SHIFT * r) * delta_time;
                     //printf("z change: %f\n", temp.Z());
                     velocity += v_change * temp;
                     //delta_theta -= ANGLE_SHIFT;
                 }
-                if (force_left[i]) {
+                if (force_left) {
                     double v_change = (ANGLE_SHIFT * r) * delta_time;
                     velocity -= v_change * temp;
                     //delta_theta += ANGLE_SHIFT;
@@ -244,11 +244,11 @@ void UpdateBobsled(R3Scene *scene, double current_time, double delta_time,
                 double R = R3Distance(bobsled->position, little_center);
                 double side_dist = -1 * bobsled->velocity.Dot(side) * delta_time;
                 double delta_theta = side_dist/R;
-                if (force_right[i]) {
+                if (force_right) {
                     double v_change = (ANGLE_SHIFT * R) * delta_time;
                     velocity += v_change * side;
                 }
-                if (force_left[i]) {
+                if (force_left) {
                     double v_change = (ANGLE_SHIFT * R) * delta_time;
                     velocity -= v_change * side;
                 }

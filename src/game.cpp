@@ -17,9 +17,9 @@
 #include "R3Obstacle.h"
 //#include "glfont.h"
 
-#include <OpenAL/al.h>
+/*#include <OpenAL/al.h>
 #include <OpenAL/alc.h>
-#include "../AL/alut.h"
+#include "../AL/alut.h"*/
 
 //#include <al.h>
 //#include <alc.h>
@@ -94,13 +94,13 @@ static int THIRD_PERSON = 1;
 static int FIRST_PERSON = 0;
 // forces left and right for players
 // p1 is A-S-D-W, p2 is left-down-right-up
-static bool *force_left;
-static bool *force_right;
+static bool force_left;
+static bool force_right;
 
 static int levDetail = 0;
 static bool deadSound = false;
 
-void playDeadSound();
+//void playDeadSound();
 
 
 
@@ -1044,12 +1044,10 @@ void GLUTRedraw(void)
     if (bobsled->isFalling == true && deadSound == false)
     {
         deadSound = true;
-        playDeadSound();
+      //  playDeadSound();
     }
-  force_left[0] = false;
-  force_right[0] = false;
-  force_left[1] = false;
-  force_right[1] = false;
+  force_left = false;
+  force_right = false;
       
   // Remember previous time
   previous_time = current_time;
@@ -1172,10 +1170,10 @@ void GLUTSpecial(int key, int x, int y)
       save_video = save_video ^ 1;
       break;
     case GLUT_KEY_LEFT:
-      force_left[1] = true;
+      force_left = true;
       break;
     case GLUT_KEY_RIGHT:
-      force_right[1] = true;
+      force_right = true;
       break;
   }
   
@@ -1200,19 +1198,9 @@ void GLUTKeyboard(unsigned char key, int x, int y)
     
     // Process keyboard button event 
     switch (key) {
-        case 'A':
-        case 'a':
-            force_left[0] = true;
-            break;
-            
         case 'B':
         case 'b':
             show_bboxes = !show_bboxes;
-            break;
-            
-        case 'D':
-        case 'd':
-            force_right[0] = true;
             break;
             
         case 'E':
@@ -1331,6 +1319,7 @@ void GLUTCreateMenu(void)
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
+/*
 ALCcontext *context;
 ALCdevice *device;
 
@@ -1456,9 +1445,9 @@ void ALinit(int *argc, char **argv)
 	alcDestroyContext(context);
 
 	//Close device
-	alcCloseDevice(device);*/
+	alcCloseDevice(device);
 	
-}
+}*/
 
 
 void GLUTInit(int *argc, char **argv)
@@ -1516,9 +1505,6 @@ ReadScene(const char *filename)
 
   // Remember initial camera
   camera = scene->camera;
-  int num_bobsleds = scene->NBobsleds();
-  force_left = new bool[num_bobsleds];
-  force_right = new bool[num_bobsleds];
   
   // set track pointers to obstacles and remove track-associated obstacles
   // from the list
@@ -1616,7 +1602,7 @@ main(int argc, char **argv)
   GLUTInit(&argc, argv);
 
   // Initialize AL
-    ALinit(&argc, argv);
+  //  ALinit(&argc, argv);
 
   // Read scene
   scene = ReadScene(input_scene_name);
