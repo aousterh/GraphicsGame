@@ -1,0 +1,122 @@
+<HTML>
+<HEAD>
+<TITLE>
+COS 426 Final Project
+</TITLE>
+<BODY>
+<CENTER>
+<H2>
+COS 426, Spring 2011<BR>
+Ricky Arietta (rarietta), Alice Fuller (aafuller), Amy Ousterhout (aousterh), and Robert Timpe (rtimpe) <BR>
+</H2>
+</CENTER>
+<HR><BR>
+
+
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+<H2>List of Implemented Features</H2>
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+
+We have implemented the following features:
+
+
+<ul>
+<li><A href="#requiredfeatures"> Required Features: </A>
+<ul>
+
+
+<li>3D Perspective Viewing and Objects
+<li>Lighting and Smooth Shading
+<li>User Input
+<li>Computer Control
+</ul>
+</ul>
+
+
+<ul>
+  
+<li><A href="#advancedfeatures">Advanced Features: </A>
+<ul>
+<li>Texture Mapping
+<li>Multiple Views
+<li>On-screen Control Panel
+<li>View Frustum Culling
+<li>Level of Detail Control
+<li>Procedural and Physically-Based Modeling
+<li>Collision Detection
+<li>Simulated Dynamics
+<li>Sound
+
+</ul>
+</ul>
+
+
+<HR><BR>
+
+
+
+
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+<H2>Demonstration of Implemented Features</H2>
+<!------------------------------------------------------------------------> 
+<!------------------------------------------------------------------------> 
+
+<!------------------------------------------------------------------------> 
+<H3><A name="requiredfeatures"> Required Features  </A></H3>
+<!------------------------------------------------------------------------> 
+
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="output/1_effectofdrag.gif"><IMG width=256 src="output/1_effectofdrag.gif"></A><BR>       
+          <A href="input/effectofdrag.scn">effectofdrag.scn</A>
+        </TD>  
+      </TR>
+    </TBODY>
+  </TABLE>  
+  Our game consists of 3D objects - mainly bobsleds, tracks, and obstacles. We provide perspective views of our scene using the command "gluPerspective". The camera follows the bobsled as it races, so it moves based on the motion of the bobsled.
+  
+  Many objects in our scene are lit using OpenGL's lighting model. The bobsleds can be lit in this manner when they are not texture mapped. The helmets, ski masks, and obstacles are always lit using OpenGl's lighting model.
+  
+  Our game allows users to control their bobsled by steering left and right using the arrow keys.
+  
+  Our game involve complex simulations of the physics that govern the motion of the bobsleds. It also includes various types of obstacles that aim at the bobsleds (for example, snowballs are dropped based on the location of the bobsled).
+
+
+<hr><br>
+
+  
+  <!------------------------------------------------------------------------> 
+  <H3><A name="advancedfeatures"> Advanced Features  </A></H3>
+  <!------------------------------------------------------------------------> 
+  
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="output/1_particlemotion.gif"><IMG  width=256 src="output/1_particlemotion.gif"></A><BR>       
+          <A href="input/particlemotion.scn">particlemotion.scn</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="output/1_effectofgravity.gif"><IMG width=256  src="output/1_effectofgravity.gif"></A><BR>       
+          <A href="input/effectofgravity.scn">effectofgravity.scn</A>
+        </TD>  
+        <TD vAlign=top align=middle>
+          <A href="output/1_effectofdrag.gif"><IMG width=256 src="output/1_effectofdrag.gif"></A><BR>       
+          <A href="input/effectofdrag.scn">effectofdrag.scn</A>
+        </TD>  
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
+  
+  <hr><br>
+  
+
+</BODY>
+</HTML>
