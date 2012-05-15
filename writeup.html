@@ -75,7 +75,7 @@ We have implemented the following features:
         <TD >
             Our game consists of 3D objects - mainly bobsleds, tracks, and obstacles. We provide perspective views of our scene using the command "gluPerspective". The camera follows the bobsled as it races, so it moves based on the motion of the bobsled. 
           <BR>
-            The main model for our gameplay is the bobsled model. The bobsled model is a struct defined in our scene that contains four separate mesh files -- a sled body, sled blades, helmets, and helmet masks -- all of which were modeled in Maya and exported as .OBJ files. Our scene reader was modified to support .OBJ files, also reading in texture coordinates. Each of these meshes is associated with its own material ID. Additionally, the bobsled contains a position and a velocity, which are updated according to the real time physical calculations, and 2 separate cameras. These cameras are a third and first person viewpoint, and they are transformed along with the sled. There are a few other fields used for tracking purposes.
+            The main model for our gameplay is the bobsled model. The bobsled model is a struct defined in our scene that contains four separate mesh files -- a sled body, sled blades, helmets, and helmet masks. We created all of these models in Maya and exported them as .OBJ files. We modified our scene reader to support .OBJ files, also reading in texture coordinates. Each of these meshes is associated with its own material ID. Additionally, the bobsled contains a position and a velocity, which are updated according to the real time physical calculations, and 2 separate cameras. These cameras are a third and first person viewpoint, and they are transformed along with the sled. There are a few other fields used for tracking purposes.
           <BR>
             The other major models in our scenes are the track pieces. These were also modeled in Maya and exported. Each track piece consists of a polygonal semicircle that is extruded along a central axis. Each track piece stores information necessary for translating the sled. These include vectors pointing along the track, normals for the start and end, positions for the start and end, etc. There are 7 different types of tracks (straight, turns, approaches, and exits in each direction), and each could be tunneled. The bobsled can rotate all the way around a tunnel without falling off. The track was built by connecting a series of these track meshes and rotating them through space.
         </TD>
@@ -191,8 +191,8 @@ We have implemented the following features:
           <A >Jamaican Flag</A>
         </TD>
       </TR>
-      <TR colspan=3>
-        <TD>
+      <TR >
+        <TD colspan=3>
 			All of our models are in the obj format.  This allows us to specify a mapping from object space to texture space in the meshes.  When we parse a .obj file, we store texture mapping information in R3Mesh along with vertex and face information.  Then during rendering, we use OpenGL texture mapping functions on this data to texture our models.
 
 			<BR/> <BR/>
