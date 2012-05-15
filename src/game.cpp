@@ -1456,8 +1456,9 @@ void ALinit(int *argc, char **argv)
 	alcDestroyContext(context);
 
 	//Close device
-	alcCloseDevice(device);
-	*/
+
+	alcCloseDevice(device);*/
+
 	
 }
 
@@ -1617,7 +1618,8 @@ main(int argc, char **argv)
 
     printf("about to al init\n");
   // Initialize AL
-  ALinit(&argc, argv);
+
+    ALinit(&argc, argv);
 
     printf("about to read\n");
   // Read scene
