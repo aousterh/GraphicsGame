@@ -138,6 +138,26 @@ Mountain::Mountain()
 			range *= pow(2, -h);
 		}
 	}
+    
+    double min = 10000;
+    for (int i = 0; i < width; i++)
+    {
+        for (int j = 0; j < height; j++)
+        {
+            if (heights[i][j] < min)
+            {
+                min = heights[i][j];
+            }
+        }
+    }
+    
+    for (int i = 0; i < width; i++)
+    {
+        for (int j = 0; j < height; j++)
+        {
+            heights[i][j] += abs(min);
+        }
+    }
 	printf("done with mountain\n");
 }
 

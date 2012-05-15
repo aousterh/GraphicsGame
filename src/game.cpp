@@ -324,7 +324,7 @@ void LoadCamera(R3Camera *camera)
   glLoadIdentity();
  
   
-  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width * 0.5 /(GLdouble) GLUTwindow_height, camera->neardist, camera->fardist);
+  gluPerspective(2*180.0*camera->yfov/M_PI, (GLdouble) GLUTwindow_width /(GLdouble) GLUTwindow_height, camera->neardist, camera->fardist);
 
   // Set camera transformation
   R3Vector t = -(camera->towards);
@@ -541,22 +541,29 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	//ground plane
 	R3Vector ground_normal(0, 1, 0);
-	R3Point ground_pt(0, -100, 0);
+	R3Point ground_pt(0, -200, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
 	//FIXME change this
 
+    /*
 	double d = cam->neardist;
 	//FIXME really weird
-	double tanTheta = tan(cam->xfov / 1.5);
+	double tanTheta = tan(cam->xfov);
 
+    R3Vector side = ground.Normal();
+    side = cam->right - cam->right.Dot(side) * ground.Normal();
+    side.Normalize();
+    
 	R3Point bl = cam->eye + d * cam->towards
 			- d * tanTheta * cam->up
-			- d * tanTheta * cam->right;
-
+			//- d * tanTheta * cam->right;
+    - d * tanTheta * side;
+    
 	R3Point br = cam->eye + d * cam->towards
 			- d * tanTheta * cam->up
-			+ d * tanTheta * cam->right;
+			//+ d * tanTheta * cam->right;
+    + d * tanTheta * side;
 
 	R3Ray rray(br, br - cam->eye);
 	R3Ray lray(bl, bl - cam->eye);
@@ -564,6 +571,7 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 	//intersect with ground plane
 	double t1 = IntersectGroundPlane(ground, rray);
 	double t2 = IntersectGroundPlane(ground, lray);
+    printf("t1 %f t2 %f\n", t1, t2);
 	if (t1 < 0 || t2 < 0) return;
 
 	R3Point r = rray.Point(t1);
@@ -581,6 +589,27 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	theta1 /= (2.0 * 3.14159);
 	theta2 /= (2.0 * 3.14159);
+     
+     */
+    R3Ray r(cam->eye, cam->towards);
+    double t = IntersectGroundPlane(ground, r);
+    printf("t %f\n", t);
+    R3Point pt = r.Point(t);
+    //pt += cam->eye;
+    
+    R3Vector towardsInGround = ground.Normal();
+    towardsInGround = cam->towards - ground.Normal() * ground.Normal().Dot(cam->towards);
+    towardsInGround.Normalize();
+    towardsInGround = cam->towards;
+    towardsInGround[1] = 0;
+    R3Vector v1 = towardsInGround;
+    v1.Rotate(ground.Normal(), 2 * cam->xfov);
+    R3Vector v2 = towardsInGround;
+    v2.Rotate(ground.Normal(), 2 * -cam->xfov);
+    v1.Normalize();
+    v2.Normalize();
+    
+    double theta1 = 0;
 
 	const double mountainDist = 2000.0;
 
@@ -605,7 +634,7 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	R3Point cur = startPt;
 	R3Vector next = endPt - startPt;
-	R3Vector back(0, 1, 0);
+	R3Vector back = ground.Normal();
 	back.Cross(next);
 	back.Flip();
 
@@ -628,8 +657,8 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 		glNormal3d(-cam->towards[0], -cam->towards[1], -cam->towards[2]);
 		glColor3d(1, 1, 1);
 		glVertex3d(cur[0], -ground.D(), cur[2]);
-		glVertex3d(cur[0], m->heights[(i + index) % m->width][0], cur[2]);
-		glVertex3d(nextPt[0], m->heights[(i + 1 + index) % m->width][0], nextPt[2]);
+		glVertex3d(cur[0], m->heights[(i + index) % m->width][0] - ground.D(), cur[2]);
+		glVertex3d(nextPt[0], m->heights[(i + 1 + index) % m->width][0] - ground.D(), nextPt[2]);
 		glVertex3d(nextPt[0], -ground.D(), nextPt[2]);
 		glEnd();
 
@@ -638,6 +667,7 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 	glEnable(GL_LIGHTING);
 
 	cur = startPt;
+    printf("dist %d\n", dist);
 	for (int i = 0; i < dist; i++)
 	{
 		R3Point nextPt = cur + next;
@@ -649,10 +679,10 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 		{
 			R3Point nextDepth =	anchor + back;
 
-			R3Point p1(anchor[0], m->heights[(i + index) % m->width][j], anchor[2]);
-			R3Point p2(nextDepth[0], m->heights[(i + index) % m->width][j+1], nextDepth[2]);
-			R3Point p3(overUp[0], m->heights[(i + 1 + index) % m->width][j+1], overUp[2]);
-			R3Point p4(over[0], m->heights[(i + 1 + index) % m->width][j], over[2]);
+			R3Point p1(anchor[0], m->heights[(i + index) % m->width][j] - ground.D(), anchor[2]);
+			R3Point p2(nextDepth[0], m->heights[(i + index) % m->width][j+1] - ground.D(), nextDepth[2]);
+			R3Point p3(overUp[0], m->heights[(i + 1 + index) % m->width][j+1] - ground.D(), overUp[2]);
+			R3Point p4(over[0], m->heights[(i + 1 + index) % m->width][j] - ground.D(), over[2]);
 
 			glBegin(GL_POLYGON);
 
@@ -813,8 +843,9 @@ void DrawMap(double width, double height)
   // twice as tall as wide for now
   double viewport_width = width * 0.2;
   double viewport_height = width * 0.4;
-  glViewport((width - viewport_width) * 0.5, (height - viewport_height) * 0.5,
-             viewport_width, viewport_height);
+  //glViewport((width - viewport_width) * 0.5, (height - viewport_height) * 0.5,
+  //           viewport_width, viewport_height);
+    glViewport(width - viewport_width, 0, viewport_width, viewport_height);
   double ratio = viewport_width / viewport_height;  // ratio of width to height
   
   // Load map camera
@@ -958,6 +989,8 @@ void GLUTRedraw(void)
   // Load camera
   LoadCamera(bobsled->camera);
 
+   // LoadCamera(&camera);
+    
   // Load scene lights 
   LoadLights(scene);
 
@@ -976,20 +1009,16 @@ void GLUTRedraw(void)
       
   // time passed since starting
   double delta_time = current_time - previous_time;
-      
-<<<<<<< HEAD
+
+  // Create snowballs
+  CreateSnowballs(scene);
+    
+  // Update obstacle
+  UpdateObstacles(scene, delta_time);
+    
   // Check for collisions
   CheckCollisions(scene);
-=======
-    // Create snowballs
-    CreateSnowballs(scene);
-    
-    // Update obstacle
-    UpdateObstacles(scene, delta_time);
-    
-    // Check for collisions
-    CheckCollisions(scene);
->>>>>>> b9f5f440b12290b1ea3f25dae274fc3de355c39c
+
       
   // Update bobsleds
   UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left, force_right);
@@ -1001,13 +1030,13 @@ void GLUTRedraw(void)
   // Remember previous time
   previous_time = current_time;
       
-<<<<<<< HEAD
+
   // Draw scene surfaces
-  if (show_faces) {
+  /*if (show_faces) {
     glEnable(GL_LIGHTING);
     DrawScene(scene, bobsled->camera);
-  }
-=======
+  }*/
+
     // Draw scene surfaces
     if (show_faces) {
       glEnable(GL_LIGHTING);
@@ -1019,7 +1048,7 @@ void GLUTRedraw(void)
    //   printf("delta drawing: %f\n", current_time - old_time);
       current_time = old_time;
     }
->>>>>>> b9f5f440b12290b1ea3f25dae274fc3de355c39c
+
     
   // Draw scene edges
   if (show_edges) {
@@ -1181,11 +1210,17 @@ void GLUTKeyboard(unsigned char key, int x, int y)
         	break;
 
         case ' ': {
+            R3Camera cam = *scene->bobsleds[0]->camera;
             printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
                    camera.eye[0], camera.eye[1], camera.eye[2], 
                    camera.towards[0], camera.towards[1], camera.towards[2], 
                    camera.up[0], camera.up[1], camera.up[2], 
-                   camera.xfov, camera.neardist, camera.fardist); 
+                   camera.xfov, camera.neardist, camera.fardist);
+            /*printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
+                   cam.eye[0], cam.eye[1], cam.eye[2], 
+                   cam.towards[0], cam.towards[1], cam.towards[2], 
+                   cam.up[0], cam.up[1], cam.up[2], 
+                   cam.xfov, cam.neardist, cam.fardist);*/ 
             break; }
     }
     
