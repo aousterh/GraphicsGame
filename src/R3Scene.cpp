@@ -274,17 +274,14 @@ Read(const char *filename, R3Node *node)
         double mass;
         R3Point position;
         R3Vector velocity = R3null_vector; 
-        int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id;
-        if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%d%d%d%d", &mass, &position[0], &position[1], &position[2],
+        int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id, track_first;
+        if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%d%d%d%d%d", &mass, &position[0], &position[1], &position[2],
                     &velocity[0], &velocity[1], &velocity[2], 
-                    &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id) != 11)
+                    &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id, &track_first) != 12)
         {
             fprintf(stderr, "Unable to read bobsled at command %d in file %s\n", command_number, filename);
             return 0;
         }
-            
-        printf("%ld, %ld, %ld, %ld \n", sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id);
-            
         for (int i = 0; i < NUM_SLEDS; i++)
         {
             R3Shape *sled = ReadShape(fp, command_number, filename);
@@ -354,6 +351,7 @@ Read(const char *filename, R3Node *node)
         }
             
         // Create bobsled
+		bobsled->hasWon = false;
         bobsled->mass = mass;
         bobsled->position = position;
         bobsled->velocity = velocity;
@@ -365,7 +363,7 @@ Read(const char *filename, R3Node *node)
         bobsled->skates_material = skates_material;
         bobsled->helmets_material = helmets_material;
         bobsled->masks_material = masks_material;
-        bobsled->track = track_segments[0];
+        bobsled->track = track_segments[track_first];
             
         bobsled->transformation = current_transformation;
             
@@ -522,6 +520,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 1, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector straight_side(-20, 0, 0);
@@ -563,6 +563,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(1, 0, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector right_approach_side(-20, 0, 0);
@@ -604,6 +606,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(-1, 0, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector left_approach_side(-20, 0, 0);
@@ -645,6 +649,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 1, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector right_approach_side(0, -20, 0);
@@ -686,6 +692,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 1, 0);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector left_approach_side(0, 20, 0);
@@ -728,6 +736,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 0, 1);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector turn_side(0, -20, 0);
@@ -773,6 +783,8 @@ Read(const char *filename, R3Node *node)
 		  track->endNormal = R3Vector(0, 0, 1);
 		  track->startNormal.Transform(current_transformation);
 		  track->endNormal.Transform(current_transformation);
+          track->startNormal.Normalize();
+          track->endNormal.Normalize();
 
 		  // set side vector of track
 		  R3Vector turn_side(0, 20, 0);
@@ -790,6 +802,47 @@ Read(const char *filename, R3Node *node)
 
 		  // set other fields
 		  track->big_radius = (track->center_point - track->start).Length();
+		  track->next = NULL;
+	  }
+	  else if (type == TRACK_FINISH) {
+		  // set beginning and end track points along central axis
+		  R3Point straight_start(0, 0, 25);
+		  R3Point straight_end(0, 0, -83);
+		  straight_start.Transform(current_transformation);
+		  straight_end.Transform(current_transformation);
+		  track->start = straight_start;
+		  track->end = straight_end;
+
+		  // set end plane of track
+		  R3Vector straight_endplane_normal = R3Vector(0, 0, -1);
+		  straight_endplane_normal.Transform(current_transformation);
+		  R3Plane straight_endplane(straight_end, straight_endplane_normal);
+		  track->endPlane = straight_endplane;
+
+		  // set initial along vector for track 
+		  track->along = R3Vector(0,0,-1);
+		  track->along.Transform(current_transformation);
+		  track->along.Normalize();
+
+		  // set track normals at beginning and end of segment
+		  track->startNormal = R3Vector(0, 1, 0);
+		  track->endNormal = R3Vector(0, 1, 0);
+		  track->startNormal.Transform(current_transformation);
+		  track->endNormal.Transform(current_transformation);
+
+		  // set side vector of track
+		  R3Vector straight_side(-20, 0, 0);
+		  straight_side.Transform(current_transformation);
+		  track->radius = straight_side.Length();
+		  track->side = straight_side;
+		  track->side.Normalize();
+
+		  // set center line of large curve
+		  track->center_point = R3zero_point;
+		  track->center_pivot = R3Line(R3null_point, R3zero_vector); 
+
+		  // set other fields
+		  track->big_radius = 0;
 		  track->next = NULL;
 	  }
       // Add track to scene
