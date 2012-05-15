@@ -75,7 +75,7 @@ void CreateSnowballs(R3Scene *scene)
     R3Obstacle *track_obstacle = NULL;
     
     // generate a snow ball with some probability
-    if (RandNum() > 0.7)
+    if (RandNum() > 0.8)
     {
       if (bobsled->track->obstacle != NULL)
       {

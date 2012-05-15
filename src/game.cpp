@@ -348,9 +348,9 @@ void LoadCamera(R3Camera *camera)
 
 void LoadMapCamera(R3Camera *map_camera, R3Box *bbox, double ratio)
 {
-  // sketchy hacks
   const int A = -300;
-  const int B = 500;
+  const int B = 1350;
+  const int C = 800;
   
   // Set projection transformation
   glMatrixMode(GL_PROJECTION);
@@ -364,6 +364,7 @@ void LoadMapCamera(R3Camera *map_camera, R3Box *bbox, double ratio)
   
   double dnear = min(map_camera->eye.Y() - bbox->YMin(), map_camera->eye.Y() - bbox->YMax());
   double dfar = max(map_camera->eye.Y() - bbox->YMin(), map_camera->eye.Y() - bbox->YMax());
+  dfar += 1000;
   
   double x_dim = x_max - x_avg;
   double z_dim = z_max - z_avg;
@@ -371,7 +372,7 @@ void LoadMapCamera(R3Camera *map_camera, R3Box *bbox, double ratio)
   if (x_dim >= z_dim * ratio)
   {
     // limited by width
-    glOrtho(x_min, x_max, z_avg - x_dim / ratio - A, z_avg + x_dim / ratio + B, dnear, dfar); 
+    glOrtho(x_min, x_max + C, z_avg - x_dim / ratio - A, z_avg + x_dim / ratio + B, dnear, dfar); 
   }
   else
   {
@@ -882,6 +883,7 @@ void DrawParticles(R3Scene *scene)
 // Overlays the Map on top of existing content
 void DrawMap(double width, double height)
 {
+  static double time;
   // draw another transparent image in center
   // twice as tall as wide for now
   double viewport_width = width * 0.2;
@@ -918,7 +920,8 @@ void DrawMap(double width, double height)
   char characters[10] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
   
   // draw the current time
-  double time = GetTime();
+  if (!scene->Bobsled(0)->hasWon && !scene->Bobsled(0)->isFalling)
+    time = GetTime();
   
   
   int tens = time / 10;
@@ -934,7 +937,7 @@ void DrawMap(double width, double height)
   
   
   char *s = time_string;
-  glRasterPos3d(-100, 0, -800);
+  glRasterPos3d(-250, 0, -3800);
   while (*s) glutBitmapCharacter(GLUT_BITMAP_TIMES_ROMAN_24, *(s++));
 }
 
