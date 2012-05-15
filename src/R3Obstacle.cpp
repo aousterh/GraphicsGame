@@ -75,7 +75,7 @@ void CreateSnowballs(R3Scene *scene)
     R3Obstacle *track_obstacle = NULL;
     
     // generate a snow ball with some probability
-    if (RandNum() > 0.95)
+    if (RandNum() > 0.9)
     {
       if (bobsled->track->obstacle != NULL)
       {
@@ -92,7 +92,8 @@ void CreateSnowballs(R3Scene *scene)
         // copy this track's obstacle
         R3Obstacle *obstacle = CopySnowball(track_obstacle);
         scene->obstacles.push_back(obstacle);
-        R3Point new_center = track->end + 5 * track->endNormal;
+        R3Point new_center = track->end + 5 * track->endNormal + 
+          0.5 * R3Vector(bobsled->position.X(), 0, 0);
         obstacle->obstacle_shape->sphere->Reposition(new_center);
         obstacle->velocity = R3Vector(0, -20, 0);
       }
