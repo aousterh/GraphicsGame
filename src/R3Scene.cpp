@@ -274,17 +274,14 @@ Read(const char *filename, R3Node *node)
         double mass;
         R3Point position;
         R3Vector velocity = R3null_vector; 
-        int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id;
-        if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%d%d%d%d", &mass, &position[0], &position[1], &position[2],
+        int sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id, track_first;
+        if (fscanf(fp, "%lf%lf%lf%lf%lf%lf%lf%d%d%d%d%d", &mass, &position[0], &position[1], &position[2],
                     &velocity[0], &velocity[1], &velocity[2], 
-                    &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id) != 11)
+                    &sled_mat_id, &skates_mat_id, &helmets_mat_id, &masks_mat_id, &track_first) != 12)
         {
             fprintf(stderr, "Unable to read bobsled at command %d in file %s\n", command_number, filename);
             return 0;
         }
-            
-        printf("%ld, %ld, %ld, %ld \n", sled_mat_id, skates_mat_id, helmets_mat_id, masks_mat_id);
-            
         for (int i = 0; i < NUM_SLEDS; i++)
         {
             R3Shape *sled = ReadShape(fp, command_number, filename);
@@ -354,10 +351,13 @@ Read(const char *filename, R3Node *node)
         }
             
         // Create bobsled
+		bobsled->hasWon = false;
         bobsled->mass = mass;
         bobsled->position = position;
         bobsled->velocity = velocity;
         //bobsled->sled = sled;
+        bobsled->position.Transform(current_transformation);
+        bobsled->velocity.Transform(current_transformation);
         bobsled->skates = skates;
         bobsled->helmets = helmets;
         bobsled->masks = masks;
@@ -365,9 +365,12 @@ Read(const char *filename, R3Node *node)
         bobsled->skates_material = skates_material;
         bobsled->helmets_material = helmets_material;
         bobsled->masks_material = masks_material;
-        bobsled->track = track_segments[0];
+
         bobsled->isFalling = false;
         bobsled->timeFalling = 0;
+
+        bobsled->track = track_segments[track_first];
+
             
         bobsled->transformation = current_transformation;
             
@@ -803,7 +806,7 @@ Read(const char *filename, R3Node *node)
 	  else if (type == TRACK_FINISH) {
 		  // set beginning and end track points along central axis
 		  R3Point straight_start(0, 0, 25);
-		  R3Point straight_end(0, 0, -25);
+		  R3Point straight_end(0, 0, -83);
 		  straight_start.Transform(current_transformation);
 		  straight_end.Transform(current_transformation);
 		  track->start = straight_start;
@@ -840,7 +843,7 @@ Read(const char *filename, R3Node *node)
 		  // set other fields
 		  track->big_radius = 0;
 		  track->next = NULL;
-		  track->cof = 100;
+
 	  }
       // Add track to scene
 	  int NSegments = track_segments.size();
