@@ -39,14 +39,14 @@ We have implemented the following features:
   
 <li><A href="#advancedfeatures">Advanced Features: </A>
 <ul>
+<li>Simulated Dynamics
 <li>Texture Mapping
 <li>Multiple Views
 <li>On-screen Control Panel
+<li>Procedural and Physically-Based Modeling
 <li>View Frustum Culling
 <li>Level of Detail Control
-<li>Procedural and Physically-Based Modeling
 <li>Collision Detection
-<li>Simulated Dynamics
 <li>Sound
 
 </ul>
@@ -58,22 +58,16 @@ We have implemented the following features:
 
 
 
-<!------------------------------------------------------------------------> 
-<!------------------------------------------------------------------------> 
-<H2>Demonstration of Implemented Features</H2>
-<!------------------------------------------------------------------------> 
-<!------------------------------------------------------------------------> 
 
 <!------------------------------------------------------------------------> 
-<H3><A name="requiredfeatures"> Required Features  </A></H3>
+<H2><A name="requiredfeatures"> Required Features  </A></H3>
 <!------------------------------------------------------------------------> 
 
   <TABLE>
     <TBODY>
       <TR>
         <TD vAlign=top align=middle>
-          <A href="output/1_effectofdrag.gif"><IMG width=256 src="output/1_effectofdrag.gif"></A><BR>       
-          <A href="input/effectofdrag.scn">effectofdrag.scn</A>
+          <A href="bobsled.png"><IMG width=512 src="bobsled.png"></A><BR>       
         </TD>  
       </TR>
     </TBODY>
@@ -84,34 +78,191 @@ We have implemented the following features:
   
   Our game allows users to control their bobsled by steering left and right using the arrow keys.
   
-  Our game involve complex simulations of the physics that govern the motion of the bobsleds. It also includes various types of obstacles that aim at the bobsleds (for example, snowballs are dropped based on the location of the bobsled).
+  Our game involves complex simulations of the physics that govern the motion of the bobsleds. It also includes various types of obstacles that aim at the bobsleds (for example, snowballs are dropped based on the location of the bobsled).
 
 
 <hr><br>
 
   
   <!------------------------------------------------------------------------> 
-  <H3><A name="advancedfeatures"> Advanced Features  </A></H3>
+  <H2><A name="advancedfeatures"> Advanced Features  </A></H2>
   <!------------------------------------------------------------------------> 
   
+  <H3><A > Simulated Dynamics </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="first_person.png"><IMG  width=512 src="first_person.png"></A><BR>       
+          <A >First Person View</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="third_person.png"><IMG  width=512 src="third_person.png"></A><BR>       
+          <A >Third Person View</A>
+        </TD>
+      </TR>
+      <TR>
+        <TD  colspan=2>
+          ALICE TALK ABOUT BOBSLED/TRACK PHYSICS
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
+  <H3><A > Texture Mapping</A></H3>
   <TABLE>
     <TBODY>
       <TR>
         <TD vAlign=top align=middle>
           <A href="output/1_particlemotion.gif"><IMG  width=256 src="output/1_particlemotion.gif"></A><BR>       
-          <A href="input/particlemotion.scn">particlemotion.scn</A>
+          <A >Texture Mapping</A>
         </TD>
-        <TD vAlign=top align=middle>
-          <A href="output/1_effectofgravity.gif"><IMG width=256  src="output/1_effectofgravity.gif"></A><BR>       
-          <A href="input/effectofgravity.scn">effectofgravity.scn</A>
-        </TD>  
-        <TD vAlign=top align=middle>
-          <A href="output/1_effectofdrag.gif"><IMG width=256 src="output/1_effectofdrag.gif"></A><BR>       
-          <A href="input/effectofdrag.scn">effectofdrag.scn</A>
-        </TD>  
+      </TR>
+      <TR>
+        <TD>
+          ROB WRITE STUFF HERE
+        </TD>
       </TR>
     </TBODY>
   </TABLE>
+    
+  <H3><A > Multiple Views </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="first_person.png"><IMG  width=512 src="first_person.png"></A><BR>       
+          <A >First Person View</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="third_person.png"><IMG  width=512 src="third_person.png"></A><BR>       
+          <A >Third Person View</A>
+        </TD>
+      </TR>
+      <TR>
+        <TD  colspan=2>
+          Our game can be played using one of multiple different views. The default view is "third person" which places the camera at a fixed position relative to the bobsled (behind it and above). First person view is from the perspective of inside the helmet of the front bobsleder. Players can switch to first person view and back to third person view using the '1' and '3' keys.  Both cameras are stored within the Bobsled object and are transformed whenever the bobsled moves.
+          
+          We also tried splitting our screen and having two bobsleds running simultaneously to make the game multi-player. However, rendering the scene twice each frame cause it to slow down an unreasonable amount, so we limited our game to one player at a time.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
+  <H3><A > On-Screen Control Panel </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="control_panel.png"><IMG  width=512 src="control_panel.png"></A><BR>       
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="winning.png"><IMG  width=512 src="winning.png"></A><BR>       
+        </TD>
+      </TR>
+      <TR>
+        <TD colspan=2 >
+          Our game includes an on-screen control panel. This control panel is generated by taking an orthographic projection of the track and bobsleds from above, using the command glOrtho. We also show the time in the control panel (how long the game has been running for). The time stops if/when you win or go off the edge of the track. It also announces "Player has Won!!" when a player completes the game.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
+  
+  <H3><A > Procedural and Physically-Based Modeling</A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="mountains.png"><IMG  width=512 src="mountains.png"></A><BR>
+        </TD>
+      </TR>
+      <TR>
+        <TD >
+          ROB TALK ABOUT MOUNTAINS
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  <H3><A > View Frustum Culling </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="mountains.png"><IMG  width=512 src="mountains.png"></A><BR>
+        </TD>
+      </TR>
+      <TR>
+        <TD>
+          ROB TALK ABOUT THIS
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
+  <H3><A > Level of Detail Control </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="high_detail.png"><IMG  width=512 src="high_detail.png"></A><BR>       
+          <A >High Level of Detail</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="low_detail.png"><IMG  width=512 src="low_detail.png"></A><BR>       
+          <A >Low Level of Detail</A>
+        </TD>
+      </TR>
+      <TR>
+        <TD  colspan=2>
+          ROB TALK ABOUT THIS
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+
+  
+  
+  <H3><A >Collision Detection</A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="rocks.png"><IMG  width=512 src="rocks.png"></A><BR>       
+          <A >Rocks</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="snowballs.png"><IMG  width=512 src="snowballs.png"></A><BR>       
+          <A >Snowballs</A>
+        </TD>
+      </TR>
+      <TR>
+        <TD  colspan=2>
+          There are two types of obstacles in our game - rocks and snowballs. Rocks are stationary on the floor of the track. If you hit rocks, your bobsled shakes violently side to side, and you will slow down. Snowballs are not stationary and fall from the sky. They fall vertically but their initial left-right position is determined by the left-right position of the bobsled when the snowball is created, so if you do not move sideways to avoid them, they will hit you. When a snowball hits your bobsled, you slow down. Collisions between obstacles and bobsleds are determined by bounding box intersections, in order to avoid calculating time-consuming intersections between meshes. Once snowballs have fallen through the track, they are deleted so that we no longer have to update their position, check for collisions with them, or consider rendering them.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+
+  
+  
+  <H3><A >Sound</A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD  >
+          ROB/RICKY TALK ABOUT SOUND
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
   
   
   
