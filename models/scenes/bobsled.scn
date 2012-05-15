@@ -113,9 +113,9 @@ particle_source
 	
 begin
 5
-3 0 0 0
-0 3 0 0
-0 0 3 0
+5 0 0 0
+0 5 0 0
+0 0 5 0
 0 0 0 1
 	
 	begin
@@ -502,6 +502,15 @@ bobsled
 	mesh OBJ_models/twohelmets.obj
 	mesh OBJ_models/twomasks.obj
 
-ground
-mesh
-	OBJ_models/groundplane.obj
+begin 0
+1 0 0 0
+0 1 0 -30
+0 0 1 0
+0 0 0 1
+
+	ground
+	mesh
+		OBJ_models/groundplane_big.obj
+
+end
+
