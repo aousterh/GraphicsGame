@@ -514,8 +514,8 @@ void CheckCollisions(R3Scene *scene)
       {
         double current_z = bobsled->velocity.Z();
         // slow down
-        if (obstacle->hit_count == 0)
-          bobsled->velocity.SetZ(current_z * 0.5);
+        if (obstacle->hit_count == 0 && abs(current_z) > 40)
+          bobsled->velocity.SetZ(current_z * 0.6);
       
         // add left-to-right vibration if this is a rock
         if (obstacle->type == OBSTACLE_ROCK)
