@@ -17,9 +17,9 @@
 #include "R3Obstacle.h"
 //#include "glfont.h"
 
-/*#include <OpenAL/al.h>
+#include <OpenAL/al.h>
 #include <OpenAL/alc.h>
-#include "../AL/alut.h"*/
+#include "../AL/alut.h"
 
 //#include <al.h>
 //#include <alc.h>
@@ -96,6 +96,9 @@ static bool *force_left;
 static bool *force_right;
 
 static int levDetail = 0;
+static bool deadSound = false;
+
+void playDeadSound();
 
 
 
@@ -593,7 +596,6 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
      */
     R3Ray r(cam->eye, cam->towards);
     double t = IntersectGroundPlane(ground, r);
-    printf("t %f\n", t);
     R3Point pt = r.Point(t);
     //pt += cam->eye;
     
@@ -667,7 +669,6 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 	glEnable(GL_LIGHTING);
 
 	cur = startPt;
-    printf("dist %d\n", dist);
 	for (int i = 0; i < dist; i++)
 	{
 		R3Point nextPt = cur + next;
@@ -1022,6 +1023,11 @@ void GLUTRedraw(void)
       
   // Update bobsleds
   UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left, force_right);
+    if (bobsled->isFalling == true && deadSound == false)
+    {
+        deadSound = true;
+        playDeadSound();
+    }
   force_left[0] = false;
   force_right[0] = false;
   force_left[1] = false;
@@ -1284,7 +1290,50 @@ void GLUTCreateMenu(void)
   glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-/*//
+ALCcontext *context;
+ALCdevice *device;
+
+
+void playDeadSound()
+{
+    ALuint alSource;
+
+    alSourcef(alSource, AL_PITCH, 1);
+	alSourcef(alSource, AL_GAIN, 1);
+	alSource3f(alSource, AL_POSITION, 0, 0, 0);
+	alSource3f(alSource, AL_VELOCITY, 0, 0, 0);
+	alSourcei(alSource, AL_LOOPING, AL_FALSE);
+    
+	alGenSources(1, &alSource);
+
+	alGetError();
+	char*     alBuffer;         //data for the buffer
+	ALenum alFormatBuffer;		//buffer format
+	ALsizei   alFreqBuffer;     //frequency
+	long       alBufferLen;     //bit depth
+	unsigned int alSampleSet;
+    
+	alutLoadWAVFile("../die.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer);
+    
+	//create  buffer
+	alGenBuffers(1, &alSampleSet);
+    
+	//put the data into our sampleset buffer
+	alBufferData(alSampleSet, alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+    
+	//assign the buffer to this source
+	alSourcei(alSource, AL_BUFFER, alSampleSet);
+    
+	//release the data
+	alutUnloadWAV(alFormatBuffer, alBuffer, alBufferLen, alFreqBuffer);
+    
+	alSourcei(alSource,AL_LOOPING,AL_FALSE);
+    
+	//play
+	alSourcePlay(alSource);
+}
+
+//
 void ALinit(int *argc, char **argv)
 {
 	//alutInit(argc, argv);
@@ -1327,7 +1376,7 @@ void ALinit(int *argc, char **argv)
 	ALboolean    alLoop;        //loop
 	unsigned int alSampleSet;
 
-	alutLoadWAVFile("../test.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer);
+	alutLoadWAVFile("../music.wav",&alFormatBuffer, (void **) &alBuffer,(ALsizei *)&alBufferLen, &alFreqBuffer);
 
 	//create  buffer
 	alGenBuffers(1, &alSampleSet);
@@ -1366,9 +1415,9 @@ void ALinit(int *argc, char **argv)
 	alcDestroyContext(context);
 
 	//Close device
-	alcCloseDevice(device);
+	alcCloseDevice(device);*/
 	
-}*/
+}
 
 
 void GLUTInit(int *argc, char **argv)
@@ -1526,7 +1575,7 @@ main(int argc, char **argv)
   GLUTInit(&argc, argv);
 
   // Initialize AL
- // ALinit(&argc, argv);
+    ALinit(&argc, argv);
 
   // Read scene
   scene = ReadScene(input_scene_name);
