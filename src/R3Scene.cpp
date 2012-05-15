@@ -424,6 +424,7 @@ Read(const char *filename, R3Node *node)
     }
     else if (!strcmp(cmd, "ground")) {
         
+        printf("reading ground\n");
         // Read sink parameters
 
         ground = ReadShape(fp, command_number, filename);
@@ -773,7 +774,7 @@ Read(const char *filename, R3Node *node)
 		  // set center line of large curve
 		  track->center_point = R3Point(70, 0, 0);
 		  track->center_point.Transform(current_transformation);
-		  R3Vector center_line(0, 1, 0);
+		  R3Vector center_line(0, -1, 0);
 		  center_line.Transform(current_transformation);
 		  track->center_pivot = R3Line(track->center_point, center_line); 
 
@@ -1447,6 +1448,7 @@ Read(const char *filename, R3Node *node)
       group_materials[depth] = material;
     }
     else if (!strcmp(cmd, "end")) {
+        printf("starting end\n");
       // Pop node from stack
       R3Node *node = group_nodes[depth];
       depth--;
@@ -1462,6 +1464,7 @@ Read(const char *filename, R3Node *node)
       R3Matrix Rmatrix = transformations.back();
       transformations.pop_back();
       current_transformation.Transform(Rmatrix.Inverse());
+        printf("ending end\n");
     }
     else if (!strcmp(cmd, "material")) {
       // Read data
