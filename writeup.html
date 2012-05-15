@@ -39,14 +39,14 @@ We have implemented the following features:
   
 <li><A href="#advancedfeatures">Advanced Features: </A>
 <ul>
+<li>Simulated Dynamics
 <li>Texture Mapping
 <li>Multiple Views
 <li>On-screen Control Panel
+<li>Procedural and Physically-Based Modeling
 <li>View Frustum Culling
 <li>Level of Detail Control
-<li>Procedural and Physically-Based Modeling
 <li>Collision Detection
-<li>Simulated Dynamics
 <li>Sound
 
 </ul>
@@ -58,60 +58,293 @@ We have implemented the following features:
 
 
 
-<!------------------------------------------------------------------------> 
-<!------------------------------------------------------------------------> 
-<H2>Demonstration of Implemented Features</H2>
-<!------------------------------------------------------------------------> 
-<!------------------------------------------------------------------------> 
 
 <!------------------------------------------------------------------------> 
-<H3><A name="requiredfeatures"> Required Features  </A></H3>
+<H2><A name="requiredfeatures"> Required Features  </A></H3>
 <!------------------------------------------------------------------------> 
 
+  <H3><A> 3D Perspective Viewing and Objects </A></H3>
   <TABLE>
     <TBODY>
       <TR>
         <TD vAlign=top align=middle>
-          <A href="output/1_effectofdrag.gif"><IMG width=256 src="output/1_effectofdrag.gif"></A><BR>       
-          <A href="input/effectofdrag.scn">effectofdrag.scn</A>
+          <A href="bobsled.png"><IMG width=512 src="bobsled.png"></A><BR>       
         </TD>  
+      </TR>
+      <TR>
+        <TD >
+            Our game consists of 3D objects - mainly bobsleds, tracks, and obstacles. We provide perspective views of our scene using the command "gluPerspective". The camera follows the bobsled as it races, so it moves based on the motion of the bobsled. 
+        </TD>
       </TR>
     </TBODY>
   </TABLE>  
-  Our game consists of 3D objects - mainly bobsleds, tracks, and obstacles. We provide perspective views of our scene using the command "gluPerspective". The camera follows the bobsled as it races, so it moves based on the motion of the bobsled.
+ 
+  <H3><A>Lighting and Smooth Shading </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="lighting_0.png"><IMG width=256 src="lighting_0.png"></A><BR>       
+        </TD>  
+        <TD vAlign=top align=middle>
+          <A href="lighting_1.png"><IMG width=256 src="lighting_1.png"></A><BR>       
+        </TD>  
+        <TD vAlign=top align=middle>
+          <A href="lighting_2.png"><IMG width=256 src="lighting_2.png"></A><BR>       
+        </TD>  
+      </TR>
+      <TR>
+        <TD colspan=3>
+          Many objects in our scene are lit using OpenGL's lighting model. The bobsleds can be lit in this manner when they are not texture mapped. The helmets, ski masks, and obstacles are always lit using OpenGl's lighting model.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>  
+
   
-  Many objects in our scene are lit using OpenGL's lighting model. The bobsleds can be lit in this manner when they are not texture mapped. The helmets, ski masks, and obstacles are always lit using OpenGl's lighting model.
+  <H3><A>User Input </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD >
+          Our game allows players to control their bobsled by steering left and right using the arrow keys (left and right). In addition, players can switch between first and third person view using the 1 and 3 keys, respectively. Finally, players can control the level of detail in their game using the + and - keys.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>  
   
-  Our game allows users to control their bobsled by steering left and right using the arrow keys.
   
-  Our game involve complex simulations of the physics that govern the motion of the bobsleds. It also includes various types of obstacles that aim at the bobsleds (for example, snowballs are dropped based on the location of the bobsled).
+  <H3><A>Computer Control </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD >
+          
+          Our game involves complex simulations of the physics that govern the motion of the bobsleds. It also includes various types of obstacles that aim at the bobsleds (for example, snowballs are dropped based on the location of the bobsled).
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>  
+
+
 
 
 <hr><br>
 
   
   <!------------------------------------------------------------------------> 
-  <H3><A name="advancedfeatures"> Advanced Features  </A></H3>
+  <H2><A name="advancedfeatures"> Advanced Features  </A></H2>
   <!------------------------------------------------------------------------> 
   
+  <H3><A > Simulated Dynamics </A></H3>
   <TABLE>
     <TBODY>
       <TR>
         <TD vAlign=top align=middle>
-          <A href="output/1_particlemotion.gif"><IMG  width=256 src="output/1_particlemotion.gif"></A><BR>       
-          <A href="input/particlemotion.scn">particlemotion.scn</A>
+          <A href="first_person.png"><IMG  width=512 src="first_person.png"></A><BR>       
+          <A >First Person View</A>
         </TD>
         <TD vAlign=top align=middle>
-          <A href="output/1_effectofgravity.gif"><IMG width=256  src="output/1_effectofgravity.gif"></A><BR>       
-          <A href="input/effectofgravity.scn">effectofgravity.scn</A>
-        </TD>  
+          <A href="third_person.png"><IMG  width=512 src="third_person.png"></A><BR>       
+          <A >Third Person View</A>
+        </TD>
+      </TR>
+      <TR>
+        <TD  colspan=2>
+           The forces that we calculate are the force of gravity, friction, and the normal force. The normal force is calculated using both the force of gravity and the centripital force cause from roation with in the track as well as the centripital caused by the tracks that are curved.
+            We set the new position of the bobsled in three different ways. 
+            For the straight track we translate the bobsled by the amount of change in the along direction and then we rotate the position around the around based on the side movement of the bobsled. 
+            For the curved tracks we set the forward position by rotating the bobsled around the pivot point of the track. To figure out what is the forward direction we also rotate the track's along vector at each point. We then rotate the bobsled around the along that was calculated by the change in side movement.
+            The last movement is when the bobsled is off the track. First the bobsled must check if it has fallen off. If it has then track->isFalling is set to true. Now the only force that is calculated is that of gravity. We then translte the bobsled along the vector of the velocity by the correct amount. we also set it to rotate by a certain amount for each step.
+          
+          Also, snow is constantly falling from the sky throughout our game.
+        </TD>
+      </TR> 
+      <TR>
+        <TD vAlign=top align=middle colspan=2>
+          <A href="snow.png"><IMG  width=512 src="snow.png"></A><BR>       
+          <A >Snow</A>
+        </TD>
+     </TR>
+      <TR>
+        <TD  colspan=2>
+          Also, snow falls from the sky throughout our game. This is implemented using a particle system.
+        </TD>
+      </TR> 
+    </TBODY>
+  </TABLE>
+  
+  
+  <H3><A > Texture Mapping</A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
         <TD vAlign=top align=middle>
-          <A href="output/1_effectofdrag.gif"><IMG width=256 src="output/1_effectofdrag.gif"></A><BR>       
-          <A href="input/effectofdrag.scn">effectofdrag.scn</A>
-        </TD>  
+          <A href="flag_texture.png"><IMG  width=256 src="flag_texture.png"></A><BR>       
+          <A >American Flag</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="checker_texture.png"><IMG  width=256 src="checker_texture.png"></A><BR>       
+          <A >Checker</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="jamaica_texture.png"><IMG  width=256 src="jamaica_texture.png"></A><BR>       
+          <A >Jamaican Flag</A>
+        </TD>
+      </TR>
+      <TR colspan=3>
+        <TD>
+			All of our models are in the obj format.  This allows us to specify a mapping from object space to texture space in the meshes.  When we parse a .obj file, we store texture mapping information in R3Mesh along with vertex and face information.  Then during rendering, we use OpenGL texture mapping functions on this data to texture our models.
+
+			<BR/>
+			Texture sources:<BR/>
+			Checker pattern: provided with Assignment 3<BR/>
+			American Flag: http://people.eku.edu/pedersonn/mongoliaFire/american-flag.gif <BR/>
+			Jamaican Flag: http://upload.wikimedia.org/wikipedia/commons/0/0a/Flag_of_Jamaica.svg <BR/>
+        </TD>
       </TR>
     </TBODY>
   </TABLE>
+    
+  <H3><A > Multiple Views </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="first_person.png"><IMG  width=512 src="first_person.png"></A><BR>       
+          <A >First Person View</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="third_person.png"><IMG  width=512 src="third_person.png"></A><BR>       
+          <A >Third Person View</A>
+        </TD>
+      </TR>
+      <TR>
+        <TD  colspan=2>
+          Our game can be played using one of multiple different views. The default view is "third person" which places the camera at a fixed position relative to the bobsled (behind it and above). First person view is from the perspective of inside the helmet of the front bobsleder. Players can switch to first person view and back to third person view using the '1' and '3' keys.  Both cameras are stored within the Bobsled object and are transformed whenever the bobsled moves.
+          
+          We also tried splitting our screen and having two bobsleds running simultaneously to make the game multi-player. However, rendering the scene twice each frame cause it to slow down an unreasonable amount, so we limited our game to one player at a time.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
+  <H3><A > On-Screen Control Panel </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="control_panel.png"><IMG  width=512 src="control_panel.png"></A><BR>       
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="winning.png"><IMG  width=512 src="winning.png"></A><BR>       
+        </TD>
+      </TR>
+      <TR>
+        <TD colspan=2 >
+          Our game includes an on-screen control panel. This control panel is generated by taking an orthographic projection of the track and bobsleds from above, using the command glOrtho. We also show the time in the control panel (how long the game has been running for). The time stops if/when you win or go off the edge of the track. It also announces "Player has Won!!" when a player completes the game.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
+  
+  <H3><A > Procedural and Physically-Based Modeling</A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="mountains.png"><IMG  width=512 src="mountains.png"></A><BR>
+        </TD>
+		<TD>
+          <A href="mountains2.png"><IMG  width=512 src="mountains2.png"></A><BR>
+        </TD>
+      </TR>
+      <TR>
+        <TD >
+			Mountains are shown here with faces hidden and edges rendered.  This makes it easier to see all of the mountains which are rendered.  The mountains are procedurally generated using the Diamond-Square algorithm for terrain generation.  We generate mountains randomly each time the game starts.  Two sample mountain ranges are shown above.  When we generate mountains, we create a two dimensional array, used as a height map.  The polygons and normals used in rendering are then computed on the fly when needed.  The mountains are rendered to intersect the ground plane so that the player can't see underneath them.  The mountains thus appear to be very far in the distance.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  <H3><A > View Frustum Culling </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="mountains.png"><IMG  width=512 src="mountains.png"></A><BR>
+        </TD>
+      </TR>
+      <TR>
+        <TD>
+			The array generated by mountain generation is of size 129 by 2049.  Attempting to render all of these polygons for each frame causes the game to run very slowly, and most of the polygons are off screen anyway.  To fix this, we do view frustrum culling on the mountains.  To accomplish this, we first project the camera towards vector into the ground plane to determine which direction the camera is looking.  Using the field of view of the camera, we then compute the edges of what the camera can see on the ground plane.  These two points are used as the start and end point of the mountain range.  We only render mountains in a line between these two points.  We also compute the angle at which the camera is looking in order to determine which segment of the mountain range should be drawn.  So as the camera rotates and translates, different parts of the mountain range are drawn.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
+  <H3><A > Level of Detail Control </A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="high_detail.png"><IMG  width=512 src="high_detail.png"></A><BR>       
+          <A >High Level of Detail</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="low_detail.png"><IMG  width=512 src="low_detail.png"></A><BR>       
+          <A >Low Level of Detail</A>
+        </TD>
+      </TR>
+      <TR>
+        <TD  colspan=2>
+			Since the bobsled model has a large number of polygons, we decided to implement level of detail control on the bobsled model to help improve performance if the high resolution model is too slow.  We have two bobsled models (although we have support for as many as desired) with differing levels of resolution.  Both models are tracked during gameplay and the user can switch between the two at any time using the "=" key to increase resolution and the "-" key to decrease resolution.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+
+  
+  
+  <H3><A >Collision Detection</A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD vAlign=top align=middle>
+          <A href="rocks.png"><IMG  width=512 src="rocks.png"></A><BR>       
+          <A >Rocks</A>
+        </TD>
+        <TD vAlign=top align=middle>
+          <A href="snowballs.png"><IMG  width=512 src="snowballs.png"></A><BR>       
+          <A >Snowballs</A>
+        </TD>
+      </TR>
+      <TR>
+        <TD  colspan=2>
+          There are two types of obstacles in our game - rocks and snowballs. Rocks are stationary on the floor of the track. If you hit rocks, your bobsled shakes violently side to side, and you will slow down. Snowballs are not stationary and fall from the sky. They fall vertically but their initial left-right position is determined by the left-right position of the bobsled when the snowball is created, so if you do not move sideways to avoid them, they will hit you. When a snowball hits your bobsled, you slow down. Collisions between obstacles and bobsleds are determined by bounding box intersections, in order to avoid calculating time-consuming intersections between meshes. Once snowballs have fallen through the track, they are deleted so that we no longer have to update their position, check for collisions with them, or consider rendering them.
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+
+  
+  
+  <H3><A >Sound</A></H3>
+  <TABLE>
+    <TBODY>
+      <TR>
+        <TD  >
+			We use OpenAL for sound effects.  We also experimented with SDL for sound effects, but had trouble because SDL was creating its own OpenGL context.  We initialize the required OpenAL data structures (device, context, listener, source and various buffers) when the game begins and start playing a song on loop.  The song (Turn it on by Genesis) plays as long as the game is running.  We also have a sound effect (a quote from the movie Cool Runnings, which inspired our game) that plays when the player dies (i.e. falls off the track).
+        </TD>
+      </TR>
+    </TBODY>
+  </TABLE>
+  
+  
   
   
   

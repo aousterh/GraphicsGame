@@ -550,11 +550,9 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 	R3Point ground_pt(0, -60, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
-	//FIXME change this
 
     /*
 	double d = cam->neardist;
-	//FIXME really weird
 	double tanTheta = tan(cam->xfov);
 
     R3Vector side = ground.Normal();
@@ -614,7 +612,10 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
     v1.Normalize();
     v2.Normalize();
     
-    double theta1 = 0;
+	R3Vector axis(1, 0, 0);
+	double theta1 = acos(v1.Dot(axis));
+	if (v1[2] < 0) theta1 += 3.14159;
+	theta1 /= (2.0 * 3.14159);
 
 	const double mountainDist = 2000.0;
 
@@ -1455,7 +1456,9 @@ void ALinit(int *argc, char **argv)
 	alcDestroyContext(context);
 
 	//Close device
+
 	alcCloseDevice(device);*/
+
 	
 }
 
@@ -1615,6 +1618,7 @@ main(int argc, char **argv)
 
     printf("about to al init\n");
   // Initialize AL
+
     ALinit(&argc, argv);
 
     printf("about to read\n");
