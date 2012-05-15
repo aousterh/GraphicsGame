@@ -948,81 +948,74 @@ void GLUTRedraw(void)
   glClearColor(background[0], background[1], background[2], background[3]);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  int x[2] = {0, GLUTwindow_width/2};
-  
-  for (int i = 0; i < scene->NBobsleds(); i++)
-  {
-    R3Bobsled *bobsled = scene->Bobsled(i);
-	if (bobsled->hasWon) {
-        printf("in hasWon\n");
-		R3Point point = R3Point(0,0,0);
-		char buffer[40];
-		sprintf(buffer, "PLAYER %d HAS WON!!", i);
-		GLUTDrawText(point, buffer);
-	}
+  R3Bobsled *bobsled = scene->Bobsled(0);
+  if (bobsled->hasWon) {
+    printf("in hasWon\n");
+    R3Point point = R3Point(0,0,0);
+    char buffer[40];
+    sprintf(buffer, "PLAYER HAS WON!!");
+    GLUTDrawText(point, buffer);
+  }
 
-    glViewport(x[i], 0, GLUTwindow_width / 2, GLUTwindow_height);
+  glViewport(0, 0, GLUTwindow_width, GLUTwindow_height);
 
-    // Load camera
-	  LoadCamera(bobsled->camera);
+  // Load camera
+  LoadCamera(bobsled->camera);
 
-	//  LoadCamera(&camera);
+  // Load scene lights 
+  LoadLights(scene);
 
-    // Load scene lights
-    LoadLights(scene);
+  // Draw particles
+  DrawParticles(scene);
 
-    // Draw particles
-    DrawParticles(scene);
-
-    // Get current time (in seconds) since start of execution
-    double current_time = GetTime();
-    static double previous_time = 0;
-    static double time_lost_taking_videos = 0; // for switching back and forth
+  // Get current time (in seconds) since start of execution
+  double current_time = GetTime();
+  static double previous_time = 0;
+  static double time_lost_taking_videos = 0; // for switching back and forth
       // between recording and not
       // recording smoothly
       
-    // program just started up?
-    if (previous_time == 0) previous_time = current_time;
+  // program just started up?
+  if (previous_time == 0) previous_time = current_time;
       
-    // time passed since starting
-    double delta_time = current_time - previous_time;
+  // time passed since starting
+  double delta_time = current_time - previous_time;
       
-    // Check for collisions
-    CheckCollisions(scene);
+  // Check for collisions
+  CheckCollisions(scene);
       
-    // Update bobsleds
-    UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left, force_right);
-    force_left[0] = false;
-    force_right[0] = false;
-    force_left[1] = false;
-    force_right[1] = false;
+  // Update bobsleds
+  UpdateBobsled(scene, current_time - time_lost_taking_videos, delta_time, force_left, force_right);
+  force_left[0] = false;
+  force_right[0] = false;
+  force_left[1] = false;
+  force_right[1] = false;
       
-    // Remember previous time
-    previous_time = current_time;
+  // Remember previous time
+  previous_time = current_time;
       
-    // Draw scene surfaces
-    if (show_faces) {
-      glEnable(GL_LIGHTING);
-      DrawScene(scene, bobsled->camera);
-    }
+  // Draw scene surfaces
+  if (show_faces) {
+    glEnable(GL_LIGHTING);
+    DrawScene(scene, bobsled->camera);
+  }
     
-    // Draw scene edges
-    if (show_edges) {
-      glDisable(GL_LIGHTING);
-      glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-      DrawScene(scene, bobsled->camera);
-      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
-    // draw another transparent image in center, on top
+  // Draw scene edges
+  if (show_edges) {
     glDisable(GL_LIGHTING);
-    DrawMap(GLUTwindow_width, GLUTwindow_height);
+    glColor3d(1 - background[0], 1 - background[1], 1 - background[2]);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    DrawScene(scene, bobsled->camera);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+  }
 
-    // Quit here so that can save image before exit
-    if (quit) {
-      GLUTStop();
-    }
+  // draw another transparent image in center, on top
+  glDisable(GL_LIGHTING);
+  DrawMap(GLUTwindow_width, GLUTwindow_height);
+
+  // Quit here so that can save image before exit
+  if (quit) {
+    GLUTStop();
   }
   // Swap buffers 
   glutSwapBuffers();
