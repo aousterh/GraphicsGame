@@ -546,7 +546,7 @@ void DrawMountain(R3Scene * scene, R3Camera * cam)
 
 	//ground plane
 	R3Vector ground_normal(0, 1, 0);
-	R3Point ground_pt(0, -200, 0);
+	R3Point ground_pt(0, -100, 0);
 	R3Plane ground(ground_pt, ground_normal);
 
 	//FIXME change this
@@ -798,10 +798,17 @@ void DrawObstacles(R3Scene *scene, bool transparent)
 
 void DrawGround(R3Scene * scene)
 {
-    glDisable(GL_LIGHTING);
-    glColor3d(1, 1, 1);
+    R3Material * mat = new R3Material();
+	mat->emission = R3Rgb(0, 0, 0, 0);
+	mat->ka = R3Rgb(1, 1, 1, 1);
+	mat->kd = R3Rgb(1, 1, 1, 1);
+	mat->ks = R3Rgb(1, 1, 1, 1);
+	mat->kt = R3Rgb(0, 0, 0, 0);
+	mat->shininess = 10;
+	mat->texture = NULL;
+	LoadMaterial(mat, false);
+	delete mat;
     scene->ground->mesh->Draw();
-    glEnable(GL_LIGHTING);
 }
 
 void DrawScene(R3Scene *scene, R3Camera * cam)

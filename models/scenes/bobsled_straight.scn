@@ -262,5 +262,6 @@ bobsled
 	mesh OBJ_models/twohelmets.obj
 	mesh OBJ_models/twomasks.obj
 
+ground
 mesh
-	2 0 OBJ_models/groundplane.obj
+	 OBJ_models/groundplane.obj
