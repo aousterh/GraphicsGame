@@ -10,6 +10,7 @@
 #include "R3/R3.h"
 #include "R3Scene.h"
 #include "R3Bobsled.h"
+#include "R3Obstacle.h"
 #include <cmath>
 using namespace std;
 #ifdef _WIN32
@@ -471,7 +472,7 @@ R3Vector Force(R3Bobsled *bobsled, double r, double delta_time) {
 ////////////////////////////////////////////////////////////
 void CheckCollisions(R3Scene *scene)
 {
-  const double MOVEMENT_WEIGHT = 0.08;
+  const double MOVEMENT_WEIGHT = 0.02;
 
   // check each bobsled - //TODO CHANGE THIS WHEN WE HAVE MULTIPLE BOBSLEDS
   for (unsigned int i = 0; i < 1; i++)
@@ -479,16 +480,16 @@ void CheckCollisions(R3Scene *scene)
     R3Bobsled *bobsled = scene->bobsleds[i];
     bobsled->x_vibration = 0.0;
     R3Box &bbox = bobsled->sleds[0]->mesh->bbox;
- //   printf("bobsled: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
     
-    // check each rock for a collision
+  //  printf("bobsled: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
+    
+    // check each obstacle for a collision
     for (unsigned int j = 0; j < scene->obstacles.size(); j++)
     {
       R3Obstacle *obstacle = scene->obstacles[j];
       R3Box intersection = bbox;
-      intersection.Intersect(obstacle->bbox);
-      bbox = obstacle->bbox;
-    //  printf("rock box: %f %f %f %f %f %f\n", bbox.XMin(), bbox.XMax(), bbox.YMin(), bbox.YMax(), bbox.ZMin(), bbox.ZMax());
+      R3Box *obstacle_box = ObstacleBBox(obstacle);
+      intersection.Intersect(*obstacle_box);
       if (intersection.XMin() < intersection.XMax() &&
           intersection.YMin() < intersection.YMax() &&
           intersection.ZMin() < intersection.ZMax())
@@ -499,16 +500,25 @@ void CheckCollisions(R3Scene *scene)
         if (obstacle->hit_count == 0)
           bobsled->velocity.SetZ(current_z * 0.5);
       
-        // add left-to-right vibration
-        if (obstacle->hit_count - 2 * ((int) obstacle->hit_count / 2) == 0)
-          bobsled->x_vibration = MOVEMENT_WEIGHT * (1 + Rand());
-        else
-          bobsled->x_vibration = - MOVEMENT_WEIGHT * (1 + Rand());
-        
+        // add left-to-right vibration if this is a rock
+        if (obstacle->type == OBSTACLE_ROCK)
+        {
+          if (obstacle->hit_count - 2 * ((int) obstacle->hit_count / 2) == 0)
+            bobsled->x_vibration = MOVEMENT_WEIGHT * (1 + Rand());
+          else
+            bobsled->x_vibration = - MOVEMENT_WEIGHT * (1 + Rand());
+        }
         obstacle->hit_count++;
       }
+      delete obstacle_box;
     }
   }
   
 }
+
+  
+  
+  
+  
+  
 

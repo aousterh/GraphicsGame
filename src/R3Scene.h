@@ -40,6 +40,11 @@ typedef enum {
 	NUM_TRACK_TYPES
 } R3TrackType;
 
+typedef enum {
+  OBSTACLE_ROCK,
+  OBSTACLE_SNOWBALL
+} R3ObstacleType;
+
 
 
 // Scene element definitions
@@ -102,6 +107,18 @@ struct R3Node {
 
 
 
+struct R3Obstacle {
+  R3ObstacleType type;
+  double impact;  // NOTE: currently unused
+	R3Shape *obstacle_shape;
+	R3Matrix transformation;
+	R3Material *material;
+  int hit_count;
+  int track_num;
+  R3Vector velocity;
+};
+
+
 
 // Bobsled specific definitions
 struct R3Track {
@@ -124,6 +141,7 @@ struct R3Track {
 	R3Box bbox;
 	R3Point center_point;
 	R3Line center_pivot;
+  R3Obstacle *obstacle;  // any associated obstacles
 };
 
 #define NUM_SLEDS 2
@@ -153,16 +171,6 @@ struct R3Bobsled {
     double timeFalling;
 	bool hasWon;
 
-};
-
-
-struct R3Obstacle {
-  double impact;
-	R3Shape *obstacle_shape;
-	R3Matrix transformation;
-	R3Material *material;
-  int hit_count;
-  R3Box bbox;
 };
 
 

@@ -229,10 +229,14 @@ begin
 
 
 		obstacle
-			0.7 7
+			0.7 7 -1
 			mesh OBJ_models/rocks.obj
 	end
 end
+
+obstacle 
+	 1 2 4
+	 sphere 0 0 0 5
 
 
 bobsled
@@ -243,6 +247,160 @@ bobsled
 	mesh OBJ_models/twohelmets.obj
 	mesh OBJ_models/twomasks.obj
 
+<<<<<<< HEAD
+=======
+begin
+5
+1 0 0 400
+0 1 0 0
+0 0 1 0
+0 0 0 1
+	
+	begin
+	5
+	3 0 0 0
+	0 3 0 0
+	0 0 3 0
+	0 0 0 1
+		
+		begin
+		5
+		1 0 0 0
+		0 1 0 15
+		0 0 1 0
+		0 0 0 1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+			
+		end
+		
+		begin
+		5
+		1 0 0 0
+		0 1 0 15
+		0 0 1 -50
+		0 0 0 1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+			
+		end
+		
+		begin
+		5
+		1 0 0 0
+		0 1 0 15
+		0 0 1 -100
+		0 0 0 1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+			
+		end
+
+		begin
+		5
+		1 0 0 0
+		0 1 0 15
+		0 0 1 -150
+		0 0 0 1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+			
+		end
+		
+		begin
+		5
+		1 0 0 0
+		0 1 0 15
+		0 0 1 -200
+		0 0 0 1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+			
+		end
+
+		begin
+		5
+		1 0 0 0
+		0 1 0 15
+		0 0 1 -250
+		0 0 0 1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+			
+		end
+
+		begin
+		5
+		1 0 0 0
+		0 1 0 15
+		0 0 1 -300
+		0 0 0 1
+		
+		track
+			0 0.01 0 5
+			mesh OBJ_models/track_straight.obj
+			
+		end
+
+		begin
+		5
+		1 0 0 0
+		0 1 0 15
+		0 0 1 -350
+		0 0 0 1
+		
+		track
+			0 5.0 0 5
+			mesh OBJ_models/track_finish.obj
+			
+		end
+
+	end
+
+
+	begin
+		5
+		0.5 0 0 0
+		0 0.5 0 0
+		0 0 0.5 0
+		0 0 0 1
+
+		begin
+			5
+			1 0 0 0
+			0 1 0 -29
+			0 0 1 -500
+			0 0 0 1
+
+
+			obstacle
+				0.7 7 -1
+				mesh OBJ_models/rocks.obj
+		end
+	end
+
+
+	bobsled
+		100 0 0 0 0 0 -100 0 1 3 4 8
+		mesh OBJ_models/sled_body1.obj
+		mesh OBJ_models/sled_body2.obj
+		mesh OBJ_models/sled_blades.obj
+		mesh OBJ_models/twohelmets.obj
+		mesh OBJ_models/twomasks.obj
+end
+>>>>>>> 8bbd9ce5b0fbc194bde08bcf065fb0be622069ce
 	
 mesh
 	2 0 OBJ_models/groundplane.obj

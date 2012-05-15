@@ -14,6 +14,7 @@
 #include "cos426_opengl.h"
 #include <cmath>
 #include "Mountain.h"
+#include "R3Obstacle.h"
 //#include "glfont.h"
 
 /*#include <OpenAL/al.h>
@@ -754,6 +755,7 @@ void DrawObstacles(R3Scene *scene, bool transparent)
   // Draw all obstacles
   for (int i = 0; i < scene->NObstacles(); i++) {
     R3Obstacle *obstacle = scene->Obstacle(i);
+    
     // Push transformation onto stack
     glPushMatrix();
     LoadMatrix(&obstacle->transformation);
@@ -1378,6 +1380,21 @@ ReadScene(const char *filename)
   int num_bobsleds = scene->NBobsleds();
   force_left = new bool[num_bobsleds];
   force_right = new bool[num_bobsleds];
+  
+  // set track pointers to obstacles and remove track-associated obstacles
+  // from the list
+  int i = 0;
+  while (i < scene->obstacles.size())
+  {
+    int track_num = scene->obstacles[i]->track_num;
+    if (track_num >= 0 && track_num < scene->track_segments.size())
+    {
+      scene->track_segments[track_num]->obstacle = scene->obstacles[i];
+      scene->obstacles.erase(scene->obstacles.begin() + i);
+    }
+    else
+      i++;
+  }
   
   // Return scene
   return scene;
