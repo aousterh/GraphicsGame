@@ -354,6 +354,8 @@ Read(const char *filename, R3Node *node)
         bobsled->mass = mass;
         bobsled->position = position;
         bobsled->velocity = velocity;
+		bobsled->position.Transform(current_transformation);
+		bobsled->velocity.Transform(current_transformation);
         //bobsled->sled = sled;
         bobsled->position.Transform(current_transformation);
         bobsled->velocity.Transform(current_transformation);
@@ -405,7 +407,23 @@ Read(const char *filename, R3Node *node)
         sled_camera->yfov = 0.25;
         sled_camera->neardist = 350;
         sled_camera->fardist = 100000;
-        bobsled->camera = sled_camera;
+        bobsled->camera3 = sled_camera;
+
+        R3Camera *sled_camera = new R3Camera();
+        sled_camera->towards = R3Vector(0, 0, -1);
+        sled_camera->up = R3Vector(0, 1, 0);
+        sled_camera->right = R3Vector(1, 0, 0);
+        sled_camera->eye = sled_center  + 1.0 * sled_radius * sled_camera->up;
+        sled_camera->towards = (sled_center - sled_camera->eye);
+        sled_camera->towards.Normalize();
+        sled_camera->towards.Print();
+        sled_camera->up = R3Vector(sled_camera->right);
+        sled_camera->up.Cross(sled_camera->towards);
+        sled_camera->xfov = 0.25;
+        sled_camera->yfov = 0.25;
+        sled_camera->neardist = 0.1;
+        sled_camera->fardist = 100000;
+        bobsled->camera1 = sled_camera;
         
         
         
