@@ -90,6 +90,8 @@ static int show_particle_sources_and_sinks = 0;
 static int save_image = 0;
 static int save_video = 0;
 static int quit = 0;
+static int THIRD_PERSON = 1;
+static int FIRST_PERSON = 0;
 // forces left and right for players
 // p1 is A-S-D-W, p2 is left-down-right-up
 static bool *force_left;
@@ -988,10 +990,11 @@ void GLUTRedraw(void)
   glViewport(0, 0, GLUTwindow_width, GLUTwindow_height);
 
   // Load camera
-  LoadCamera(bobsled->camera);
+  if (THIRD_PERSON)
+	  LoadCamera(bobsled->camera3);
+  else
+	  LoadCamera(bobsled->camera1);
 
-   // LoadCamera(&camera);
-    
   // Load scene lights 
   LoadLights(scene);
 
@@ -1215,8 +1218,18 @@ void GLUTKeyboard(unsigned char key, int x, int y)
         		levDetail--;
         	break;
 
+        case '3':
+			THIRD_PERSON = true;
+			FIRST_PERSON = false;
+        	break;
+
+        case '1':
+			THIRD_PERSON = false;
+			FIRST_PERSON = true;
+        	break;
+
         case ' ': {
-            R3Camera cam = *scene->bobsleds[0]->camera;
+            R3Camera cam = *scene->bobsleds[0]->camera3;
             printf("camera %g %g %g  %g %g %g  %g %g %g  %g  %g %g \n",
                    camera.eye[0], camera.eye[1], camera.eye[2], 
                    camera.towards[0], camera.towards[1], camera.towards[2], 
