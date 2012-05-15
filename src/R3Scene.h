@@ -161,7 +161,8 @@ struct R3Bobsled {
     R3Material *helmets_material;
     R3Material *masks_material;
     R3Track *track;                 // current section of track that this bobsled is on
-    R3Camera *camera;               // bobsled's camera    
+    R3Camera *camera1;              // bobsled's 1st person camera
+	R3Camera *camera3;				// bobsled's 3rd person camera
     R3Matrix transformation;
 	double big_percent;
 	double little_theta;
