@@ -410,6 +410,17 @@ Read(const char *filename, R3Node *node)
         
         
     }
+    else if (!strcmp(cmd, "ground")) {
+        
+        // Read sink parameters
+
+        ground = ReadShape(fp, command_number, filename);
+        if (!ground) {
+            fprintf(stderr, "Unable to read ground mesh at command %d in file %s\n", command_number, filename);
+            return 0;
+        }
+    }
+      
 	else if (!strcmp(cmd, "obstacle")) {
 	  double impact;
       int m;
