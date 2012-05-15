@@ -75,7 +75,7 @@ void CreateSnowballs(R3Scene *scene)
     R3Obstacle *track_obstacle = NULL;
     
     // generate a snow ball with some probability
-    if (RandNum() > 0.9)
+    if (RandNum() > 0.7)
     {
       if (bobsled->track->obstacle != NULL)
       {
@@ -116,7 +116,6 @@ void UpdateObstacles(R3Scene *scene, double delta_time)
     }
     
     // delete obstacle if it is out of visible range of all bobsleds
-    // TODO: FIX WHEN MORE BOBSLEDS
     bool remove = true;
     for (unsigned int j = 0; j < scene->bobsleds.size(); j++)
     {
